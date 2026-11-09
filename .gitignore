@@ -35,3 +35,8 @@ client-unreal/Plugins/*/Intermediate/
 *.sln
 *.VC.db
 .vs/
+
+# Fichiers personnels (assistant IA)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
