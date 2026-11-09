@@ -18,6 +18,9 @@
 
 Chaque tâche du [planning](PLANNING.md) indique **qui** en est responsable.
 
+**Les rôles sont interchangeables** : chacun peut reprendre une tâche de l'autre (absence, retard, envie).
+Le « qui » du planning indique le responsable par défaut, pas une exclusivité : il suffit de se réassigner l'issue.
+
 ## Postes de travail
 
 - **Nicolas** : Linux pour le serveur et `shared/` ; Windows (dual-boot) pour l'éditeur Unreal et les tests du client.
