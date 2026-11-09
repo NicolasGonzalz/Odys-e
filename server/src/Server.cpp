@@ -1,12 +1,16 @@
 #include "Server.hpp"
 
 #include "odyssee/core/Config.hpp"
+#include "odyssee/core/Log.hpp"
 
 #include <chrono>
-#include <iostream>
 #include <thread>
 
 namespace odyssee::server {
+
+namespace {
+constexpr log::Logger kLog{"server"};
+} // namespace
 
 Server::Server(std::uint16_t port) : _port(port) {}
 
@@ -14,8 +18,7 @@ void Server::run() {
     using Clock = std::chrono::steady_clock;
 
     _running = true;
-    std::cout << "[server] Odyssée v" << ODYSSEE_VERSION_STRING << " — port " << _port << ", "
-              << kTickRate << " ticks/s\n";
+    kLog.info("Odyssée v{} — port {}, {} ticks/s", ODYSSEE_VERSION_STRING, _port, kTickRate);
 
     std::uint64_t tickIndex = 0;
     auto nextTick = Clock::now();
@@ -31,13 +34,13 @@ void Server::run() {
         std::this_thread::sleep_until(nextTick);
     }
 
-    std::cout << "[server] Arrêt après " << tickIndex << " ticks.\n";
+    kLog.info("Arrêt après {} ticks.", tickIndex);
 }
 
 void Server::tick(std::uint64_t tickIndex) {
     // TODO(M1) : réception des paquets, application des inputs, simulation, envoi des snapshots.
     if (tickIndex % (kTickRate * 10) == 0) {
-        std::cout << "[server] tick " << tickIndex << '\n';
+        kLog.debug("tick {}", tickIndex);
     }
 }
 
