@@ -10,7 +10,7 @@ Le monde continue d'exister quand on se déconnecte : ce qu'on construit reste.
 
 | Axe | Choix |
 |---|---|
-| **Univers** | Post-apocalyptique *doux* : la nature a repris un monde abandonné. On fouille les vestiges, on reconstruit. Contemplatif plutôt que sombre. |
+| **Univers** | Post-apocalyptique *doux* : **retour à l'état sauvage**. Les humains ont disparu depuis longtemps et la nature a repris ses droits sur leurs villes. On fouille les vestiges, on reconstruit. Contemplatif plutôt que sombre. |
 | **Ton** | Survie **équilibrée** : vrais dangers et besoins vitaux, mais on ne perd pas tout en mourant. Difficulté réglable par monde. |
 | **Monde** | **Carte faite main**, conçue zone par zone, avec des lieux pensés pour raconter quelque chose. |
 | **Fil conducteur** | Un **mystère** : que s'est-il passé ? Il se découvre par des **indices dans le monde** (ruines, journaux, inscriptions, objets), **sans cinématiques**. |
@@ -88,6 +88,26 @@ explorer → récolter → fabriquer → (construire / s'équiper) → survivre 
 
 **Solo**, **duo** et **coop** depuis un même menu, plus un **monde persistant** hébergé sur un serveur dédié.
 Un monde solo peut être ouvert aux amis à tout moment. Détails : [MODES.md](MODES.md).
+
+## Le monde : retour à l'état sauvage
+
+Les humains ne sont plus là. Pendant des décennies (ou des siècles), la nature a repris ses droits.
+Le monde ne paraît pas détruit : il semble **abandonné puis reconquis**.
+
+- **Bâtiments délabrés** : immeubles éventrés couverts de lierre, toits effondrés où pousse une forêt, ponts rompus,
+  routes fendues par les racines, véhicules rouillés envahis de mousse.
+- **Nature dominante** : forêts denses qui recouvrent les villes, rivières qui ont changé de lit, zones inondées,
+  faune revenue (et parfois devenue dangereuse).
+- **Lisibilité du passé** : on doit toujours reconnaître ce qu'était un lieu (gare, hôpital, école, laboratoire…).
+  C'est là que se cachent les indices du mystère.
+- **Contraste visuel** : formes géométriques et couleurs ternes du béton et du métal face aux formes organiques
+  et aux couleurs vives de la végétation.
+
+**Références d'ambiance** (inspiration de ton, pas de reprise de contenu) : la nature qui reprend la civilisation
+humaine, à la manière du manga *Dr. Stone* ou des paysages de *The Last of Us*. L'histoire, les causes de la disparition
+et les personnages d'Odyssée restent **originaux**. On évite notamment de reprendre la pétrification de *Dr. Stone*.
+
+> Piste pour T001 : la grande question du mystère devient naturellement **« où sont passés les humains ? »**
 
 ## Direction artistique
 
