@@ -1,6 +1,7 @@
 # Code partagé client/serveur : protocole, sérialisation, simulation déterministe.
 add_library(odyssee_shared STATIC
     src/ByteBuffer.cpp
+    src/Log.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 
