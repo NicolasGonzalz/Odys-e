@@ -55,6 +55,19 @@ théoriques de Godot (légèreté, fichiers texte, Linux). Nicolas dispose de Li
 - Projet plus lourd : quelques dizaines de Go en développement, jeu final estimé à 1,5–4 Go.
 - La **carte** est faite dans l'éditeur Unreal ; l'outil d'export vers le serveur devient un utilitaire d'éditeur Unreal.
 
+## Règles techniques (par défaut, à confirmer pendant le spike)
+
+1. **Les collisions de référence viennent de la carte exportée**, pas de la physique d'Unreal.
+   Le plugin charge le même fichier monde que le serveur ; la prédiction du joueur l'utilise.
+   La physique Unreal ne sert qu'aux effets purement visuels (débris, tissus, particules).
+2. **Unités** : `shared/` travaille en **mètres, Z vers le haut**. Le plugin convertit vers Unreal (centimètres, repère main gauche).
+3. **`shared/` sans exceptions ni RTTI**, compilable avec MSVC, GCC et Clang (Unreal les désactive par défaut).
+4. **Intégration** : les sources de `shared/` sont compilées directement dans le module du plugin.
+5. **Version d'Unreal figée** au spike (T010), notée dans le README.
+6. **Pas de CI pour Unreal** : la CI couvre `shared/`, le serveur et les tests ; le plugin est compilé localement.
+7. **Client Windows uniquement** pour le MVP ; le client de debug raylib couvre Linux.
+8. **Quota Git LFS** surveillé ; repli : Forgejo auto-hébergé sur le homelab pour les assets.
+
 ## Critères du spike (M0.5)
 
 1. Le plugin `OdysseeNet` compile sous **Windows** (et si possible Linux) et utilise `odyssee_shared`.
