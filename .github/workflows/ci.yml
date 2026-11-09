@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  build:
+  linux:
+    name: Linux (GCC, sanitizers)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -25,3 +26,20 @@ jobs:
 
       - name: Tests
         run: ctest --test-dir build --output-on-failure
+
+  windows:
+    name: Windows (MSVC)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      # Le client raylib est un outil de debug Linux : sous Windows, on vérifie shared/, le serveur
+      # (utilisé en solo) et les tests, c'est-à-dire tout ce que le plugin Unreal réutilisera.
+      - name: Configuration
+        run: cmake -S . -B build -DODYSSEE_BUILD_CLIENT=OFF
+
+      - name: Compilation
+        run: cmake --build build --config Debug -j
+
+      - name: Tests
+        run: ctest --test-dir build -C Debug --output-on-failure
