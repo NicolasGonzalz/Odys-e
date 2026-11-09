@@ -35,7 +35,7 @@
 | `core/` | Configuration (tick rate, ports), types de base, logging |
 | `net/` | Sérialisation binaire (`ByteWriter`/`ByteReader`), définition des messages, couche transport UDP |
 | `sim/` | Simulation déterministe : mouvement du joueur, collisions, physique simple |
-| `world/` | Chunks, génération procédurale (bruit seedé), voxel/heightmap |
+| `world/` | Chunks, chargement de la carte exportée (heightmap, collisions, points d'intérêt) |
 | `game/` | Définitions de données : objets, recettes, ressources |
 
 ### `server/`
@@ -52,11 +52,30 @@
 - **Interpolation** : les autres entités sont affichées légèrement dans le passé (~100 ms) entre deux snapshots.
 - **Rendu** : raylib, maillages de chunks générés côté client, UI d'inventaire/artisanat.
 
+## Pipeline de la carte (monde fait main)
+
+Le serveur ne dépend pas de Godot ; il a pourtant besoin de connaître la carte. La carte a donc **une seule source**
+et deux formats dérivés :
+
+```
+Blender (props, ruines, modèles)  ─┐
+                                   ├─▶  Éditeur Godot : scène de la carte (terrain, décors, marqueurs)
+Figma (plans de zones, concepts) ──┘                    │
+                                                        ├─▶ client : scène Godot (rendu)
+                                                        └─▶ outil d'export ─▶ fichier monde serveur
+                                                              (heightmap, volumes de collision,
+                                                               spawns de ressources/créatures,
+                                                               indices, boss, artefacts, déclencheurs de zone)
+```
+
+Les **marqueurs** (nœuds Godot dédiés : `ResourceSpawn`, `ClueSpot`, `BossArena`, `ZoneGate`…) portent les données
+de gameplay. Le serveur charge le fichier exporté au démarrage ; ce fichier est versionné avec le reste du projet.
+
 ## Modèle de threads (cible)
 
 - **Serveur** : un thread de simulation (pas de verrous dans la logique de jeu), un thread réseau I/O,
   un thread de persistance alimenté par une file. La génération de chunks pourra passer sur un pool de workers.
-- **Client** : thread principal (entrées + rendu + simulation locale), thread réseau, workers de maillage de chunks.
+- **Client** : thread principal Godot (entrées + rendu + simulation locale), thread réseau dans la GDExtension.
 
 ## Conventions de code
 

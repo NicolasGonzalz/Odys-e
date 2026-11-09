@@ -39,12 +39,13 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 **Démo :** déplacement fluide même avec 150 ms de latence simulée et 5 % de perte.
 
 ## M3 — Un monde à explorer
-- [ ] Chunks + génération procédurale seedée (bruit, biomes)
-- [ ] Streaming des chunks selon la position
+- [ ] Zone de départ construite à la main dans Godot (terrain + premiers décors Blender)
+- [ ] Marqueurs de gameplay + outil d'export de la carte pour le serveur
+- [ ] Chargement de la carte par chunks côté serveur
 - [ ] Collisions avec le terrain, caméra 3ᵉ personne
 - [ ] Zone d'intérêt côté serveur
 
-**Démo :** marcher sur un grand terrain procédural à plusieurs.
+**Démo :** explorer la zone de départ à plusieurs.
 
 ## M4 — Récolter & fabriquer
 - [ ] ECS serveur
@@ -52,6 +53,7 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 - [ ] Inventaire synchronisé (canal fiable)
 - [ ] Artisanat et recettes data-driven
 - [ ] UI d'inventaire / artisanat
+- [ ] Premiers indices lisibles + journal du joueur
 
 **Démo :** couper un arbre, fabriquer une hache, couper plus vite.
 
@@ -65,4 +67,4 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 **Démo :** déconnexion/reconnexion le lendemain, tout est resté en place ; une partie solo peut être ouverte en coop. → **MVP jouable**
 
 ## Au-delà du MVP (v1)
-Construction, faune et combat, cycle jour/nuit, chat & groupes, annuaire de codes d'invitation (V2), hébergement derrière NAT, tests de charge à 50 bots, déploiement d'un serveur public.
+Artefacts et zones verrouillées, boss, construction, faune et combat, cycle jour/nuit, chat & groupes, annuaire de codes d'invitation (V2), hébergement derrière NAT, tests de charge à 50 bots, déploiement d'un serveur public.

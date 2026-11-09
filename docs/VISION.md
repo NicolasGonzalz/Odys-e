@@ -6,9 +6,33 @@ Un monde 3D low-poly partagé et persistant. On y arrive seul et démuni ; on ex
 des outils et des abris, on affronte l'environnement, puis on s'organise avec d'autres joueurs pour aller plus loin.
 Le monde continue d'exister quand on se déconnecte : ce qu'on construit reste.
 
+## Identité
+
+| Axe | Choix |
+|---|---|
+| **Univers** | Post-apocalyptique *doux* : la nature a repris un monde abandonné. On fouille les vestiges, on reconstruit. Contemplatif plutôt que sombre. |
+| **Ton** | Survie **équilibrée** : vrais dangers et besoins vitaux, mais on ne perd pas tout en mourant. Difficulté réglable par monde. |
+| **Monde** | **Carte faite main**, conçue zone par zone, avec des lieux pensés pour raconter quelque chose. |
+| **Fil conducteur** | Un **mystère** : que s'est-il passé ? Il se découvre par des **indices dans le monde** (ruines, journaux, inscriptions, objets), **sans cinématiques**. |
+| **Progression** | Des **jalons** donnent une direction : **zones** à débloquer, **boss**, **artefacts** qui ouvrent de nouvelles capacités et font avancer l'enquête. |
+
+### Narration environnementale
+
+- Le récit est **éclaté** : chaque ruine, journal ou objet apporte un fragment ; le joueur reconstitue l'histoire.
+- Les indices découverts sont gardés dans un **journal du joueur**, consultable à tout moment.
+- En coop, chacun peut trouver des indices différents : on enquête ensemble.
+- Les artefacts relient les deux axes : ils sont à la fois des **outils de progression** (accès à une zone, nouvelle capacité)
+  et des **pièces du mystère**.
+
+### Structure du monde (principe)
+
+Des zones de plus en plus dangereuses autour d'une zone de départ calme. Chaque zone a ses ressources, sa faune,
+ses ruines à explorer et un gardien (boss) ou une énigme qui protège un artefact. L'artefact obtenu ouvre l'accès
+à la zone suivante et révèle une partie du mystère.
+
 ## Piliers
 
-1. **Exploration** — un monde procédural assez varié pour donner envie d'aller voir derrière la colline.
+1. **Exploration & mystère** — un monde fait main où chaque lieu a quelque chose à raconter et donne envie d'aller voir derrière la colline.
 2. **Survie & progression** — besoins vitaux, récolte, artisanat ; chaque palier d'outils ouvre de nouvelles zones et ressources.
 3. **Persistance** — le monde, les constructions et les inventaires survivent aux déconnexions et aux redémarrages du serveur.
 4. **Ensemble ou seul** — tout est faisable en solo, mais coopérer rend les choses plus rapides et plus ambitieuses.
@@ -18,18 +42,22 @@ Le monde continue d'exister quand on se déconnecte : ce qu'on construit reste.
 
 ```
 explorer → récolter → fabriquer → (construire / s'équiper) → survivre → explorer plus loin
+                                                         ↘ indices, boss, artefacts → mystère
 ```
 
 - **Boucle courte (secondes)** : se déplacer, frapper un arbre, ramasser une ressource.
 - **Boucle moyenne (minutes)** : fabriquer un outil, cuisiner, poser un abri, gérer faim/soif/santé.
-- **Boucle longue (heures)** : débloquer des paliers de technologie, bâtir une base, explorer des biomes hostiles.
+- **Boucle longue (heures)** : débloquer des paliers de technologie, bâtir une base, vaincre un gardien, obtenir un artefact, ouvrir une nouvelle zone, avancer dans le mystère.
 
 ## Systèmes de jeu (périmètre cible)
 
 | Système | Description | Priorité |
 |---|---|---|
 | Déplacement | Marche, course, saut, collisions avec le terrain | MVP |
-| Monde | Terrain procédural par chunks, biomes, végétation | MVP |
+| Monde | Carte faite main découpée en chunks, zones, végétation | MVP |
+| Indices & journal | Objets lisibles, journal du joueur, progression du mystère | MVP |
+| Artefacts & zones | Artefacts qui débloquent zones et capacités | v1 |
+| Boss | Gardiens de zone, combats scriptés | v1 |
 | Récolte | Ressources (bois, pierre, fibres…) avec repousse | MVP |
 | Inventaire | Emplacements, piles, glisser-déposer | MVP |
 | Artisanat | Recettes, établis, paliers | MVP |
