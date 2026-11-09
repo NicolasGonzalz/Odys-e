@@ -68,3 +68,9 @@ TEST_CASE("ReceivedPackets : fonctionne à travers le rebouclage") {
     CHECK(received.ackBits() == 0b111); // 0, 65535 et 65534
     CHECK(received.record(65535) == Arrival::Duplicate);
 }
+
+TEST_CASE("ReceivedPackets : avant toute réception, n'acquitte pas le paquet 0") {
+    const ReceivedPackets received;
+    CHECK(received.ack() == 65535);
+    CHECK(received.ackBits() == 0);
+}
