@@ -2,7 +2,8 @@
 
 ## Objectifs
 
-- Jusqu'à **~50 joueurs** par serveur, latences de 20 à 150 ms.
+- **4 joueurs** par monde (un par survivant), latences de 20 à 150 ms. Un serveur dédié peut héberger plusieurs mondes.
+- Le monde reste riche en entités (faune, ressources, objets) : c'est le nombre d'**entités**, pas de joueurs, qui dimensionne le réseau.
 - Déplacements perçus comme **instantanés** côté joueur local.
 - Bande passante descendante raisonnable : viser **< 30 ko/s par client** en situation normale.
 - Robustesse : un client malveillant ou un paquet corrompu ne doit jamais faire tomber le serveur.
@@ -88,5 +89,5 @@ il ne reçoit les entités et les modifications que de ces chunks. C'est la clé
 ## Outils de test
 
 - Simulateur de conditions réseau intégré (latence, gigue, perte, duplication) activable des deux côtés.
-- Clients « bots » headless pour tester la charge à 50+ joueurs.
+- Clients « bots » headless pour tester 4 joueurs dans les pires conditions (combats de boss, zones denses).
 - Statistiques à l'écran : RTT, perte, ko/s entrants/sortants, corrections de prédiction.

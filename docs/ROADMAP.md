@@ -69,4 +69,4 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 **Démo :** déconnexion/reconnexion le lendemain, tout est resté en place ; une partie solo peut être ouverte en coop. → **MVP jouable**
 
 ## Au-delà du MVP (v1)
-Artefacts et zones verrouillées, boss, construction, faune et combat, cycle jour/nuit, chat & groupes, annuaire de codes d'invitation (V2), hébergement derrière NAT, tests de charge à 50 bots, déploiement d'un serveur public.
+Artefacts et zones verrouillées, boss, construction, faune et combat, cycle jour/nuit, chat & groupes, annuaire de codes d'invitation (V2), hébergement derrière NAT, tests de charge (bots, zones denses), déploiement d'un serveur public.

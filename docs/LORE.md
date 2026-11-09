@@ -84,7 +84,8 @@ Au Cœur, les survivants peuvent agir sur Gaïa :
 3. **La troisième voie** : un réveil progressif, en cohabitation avec Gaïa.
 
 **Débloquer la troisième voie demande deux conditions :**
-- **Comprendre** : avoir trouvé les indices clés du mystère, dont les indices personnels des survivants ;
+- **Comprendre** : avoir trouvé les indices clés du mystère, dont les indices personnels des survivants
+  (en solo, leurs versions génériques) ;
 - **Respecter Gaïa** : la façon dont on l'a traitée pendant le jeu compte (cocons épargnés plutôt que détruits,
   Cœurs apaisés plutôt que tués quand c'est possible, zones peu saccagées). Le serveur tient un **score de respect**
   caché, alimenté par les actions de tous les joueurs du monde.

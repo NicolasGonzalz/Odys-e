@@ -7,7 +7,7 @@ Les joueurs partagent un monde où ils explorent, récoltent, fabriquent et prog
 
 Le défi est surtout invisible :
 
-- un **serveur de jeu autoritaire** qui garde le monde cohérent pour des dizaines de joueurs ;
+- un **serveur de jeu autoritaire** qui garde le monde cohérent pour tous les joueurs (coop jusqu'à 4) ;
 - un **réseau temps réel** assez fluide pour que tout reste réactif malgré la latence (prédiction côté client, réconciliation, interpolation).
 
 C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).

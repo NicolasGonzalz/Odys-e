@@ -119,4 +119,4 @@ Chaîne de production : **Figma** (concepts de personnages, palettes, maquettes 
 
 ## Public & plateforme
 
-PC (Linux en priorité, Windows ensuite). Sessions de 30 min à plusieurs heures, de 1 à ~50 joueurs simultanés par monde.
+PC (Linux en priorité, Windows ensuite). Sessions de 30 min à plusieurs heures, de **1 à 4 joueurs** par monde (un par survivant).
