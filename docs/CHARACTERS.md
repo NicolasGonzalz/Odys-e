@@ -13,8 +13,6 @@
 - Chacun a des **indices personnels** : des objets ou souvenirs que **lui seul** peut lire ou comprendre.
   Pour obtenir toute l'histoire (et la troisième voie), il faut les réunir.
 
-## Les quatre
-
 ## Spécialités
 
 Chaque survivant a **une spécialité** liée à son passé. Elle aide sans jamais bloquer : tout reste faisable en solo,
@@ -26,6 +24,8 @@ juste plus lentement ou autrement.
 | **Ilian** | Botanique | Identifie les plantes (comestibles, toxiques, médicinales), récolte plus sur la flore de Gaïa, apaise plus facilement les créatures |
 | **Teo** | Débrouille | Discret (la faune le repère moins), se faufile dans des passages étroits, fouille mieux les ruines urbaines |
 | **Nadia** | Protection | Plus résistante, blocage plus efficace, meilleure au combat contre les Gardiens |
+
+## Les quatre
 
 ### Mara Velin — l'ingénieure
 - **Avant** : technicienne de maintenance du réseau des Portes, 34 ans. Placée en stase pour être réveillée
