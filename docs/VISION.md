@@ -90,6 +90,18 @@ explorer → récolter → fabriquer → (construire / s'équiper) → survivre 
 **Solo**, **duo** et **coop** depuis un même menu, plus un **monde persistant** hébergé sur un serveur dédié.
 Un monde solo peut être ouvert aux amis à tout moment. Détails : [MODES.md](MODES.md).
 
+## Règles de la coop
+
+| Sujet | Règle |
+|---|---|
+| **Joueurs** | 1 à 4 par monde, chacun avec un survivant différent ([CHARACTERS.md](CHARACTERS.md)) |
+| **Journal d'indices** | **Commun + personnel** : les indices généraux trouvés par n'importe qui vont dans le journal du groupe ; les indices personnels restent dans le journal de leur survivant. C'est à lui de les raconter aux autres |
+| **Artefacts et zones** | **Appartiennent au monde** : une zone débloquée l'est pour tous, même pour les absents |
+| **Boss** | **Rejouables** : ils reviennent après un délai pour le butin, mais l'**artefact n'est donné qu'une fois**. Seule la première rencontre compte pour le **respect de Gaïa** |
+| **Butin** | **Premier arrivé** : ce qu'on ramasse est à soi. La base a des **coffres communs** |
+| **Choix final** | Fait par l'**hôte** du monde ([LORE.md](LORE.md)) |
+| **Respect de Gaïa** | Score du **monde**, alimenté par les actions de tous les joueurs |
+
 ## Le monde : retour à l'état sauvage
 
 Les humains ne sont plus là. Pendant des décennies (ou des siècles), la nature a repris ses droits.
