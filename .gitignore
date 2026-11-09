@@ -1,0 +1,25 @@
+# Build
+build/
+build-*/
+cmake-build-*/
+out/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.cache/
+compile_commands.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Binaires
+odyssee_server
+odyssee_client
+odyssee_tests
+*.o
+*.a
+*.so

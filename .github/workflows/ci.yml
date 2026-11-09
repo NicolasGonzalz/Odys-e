@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dépendances système
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libxi-dev libgl1-mesa-dev
+
+      - name: Configuration
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DODYSSEE_SANITIZERS=ON
+
+      - name: Compilation
+        run: cmake --build build -j
+
+      - name: Tests
+        run: ctest --test-dir build --output-on-failure
