@@ -1,6 +1,6 @@
 # ADR 0002 — Client Godot 4 + serveur C++ maison
 
-- **Statut :** proposé — à valider par un prototype (« spike », voir critères plus bas)
+- **Statut :** proposé — **à rediscuter** (Godot ou Unreal Engine) avant le spike, puis à valider par un prototype
 - **Date :** 2026-11-09
 - **Remplace partiellement :** [ADR 0001](0001-stack-technique.md) (le choix de raylib pour le client)
 

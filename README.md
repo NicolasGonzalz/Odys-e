@@ -70,6 +70,7 @@ Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_
 - [Architecture technique](docs/ARCHITECTURE.md)
 - [Modèle réseau & protocole](docs/NETWORK.md)
 - [Modes de jeu & hébergement](docs/MODES.md)
+- [Lore](docs/LORE.md) · [Survivants](docs/CHARACTERS.md) · [Zones & bestiaire](docs/ZONES.md)
 - [Roadmap & jalons](docs/ROADMAP.md)
 - [Planning semaine par semaine](docs/PLANNING.md)
 - [Décisions d'architecture (ADR)](docs/adr/)

@@ -1,6 +1,6 @@
 # Lore — le mystère d'Odyssée
 
-> **Statut : trame validée (T001).** Fusion des pistes A (« L'Exode ») et B (« La Floraison »).
+> **Statut : trame validée (T001).** Les noms (Gaïa, Odyssée, la Floraison…) sont provisoires. Fusion des pistes A (« L'Exode ») et B (« La Floraison »).
 
 ## La question
 

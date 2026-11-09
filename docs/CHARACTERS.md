@@ -1,6 +1,6 @@
 # Les survivants
 
-> **Statut : validé (T002).** Noms et détails encore modifiables.
+> **Statut : validé (T002).** Les **noms sont provisoires** ; les détails restent modifiables.
 
 ## Principes
 
