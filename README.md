@@ -1,5 +1,7 @@
 # Odyssée
 
+[![CI](https://github.com/NicolasGonzalz/Odys-e/actions/workflows/ci.yml/badge.svg)](https://github.com/NicolasGonzalz/Odys-e/actions/workflows/ci.yml)
+
 > Nom de code : **Odyssée** · projet personnel, en développement
 
 Jeu en ligne multijoueur d'aventure et de survie en monde persistant, construit à deux, de A à Z : le code et le serveur d'un côté, le moteur et l'art de l'autre.
