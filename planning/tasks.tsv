@@ -1,0 +1,58 @@
+id	semaine	jalon	labels	heures	titre	fini_quand
+T001	1	M0	doc,lore	4	Mystère : trame et chronologie de la catastrophe	docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue.
+T002	1	M0	doc,lore	3	Fiches des survivants prédéfinis	2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ».
+T003	1	M0	doc,gameplay	2	Règles de progression en coop	docs/VISION.md précise si artefacts, zones et journal sont partagés en coop.
+T004	1	M0	tech,shared	2	Logger commun	Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé.
+T005	1	M0	infra	1	Vérifier la CI et le badge	CI verte sur main, badge dans le README.
+T006	2	M0	design,figma	4	Plan des zones (Figma)	Carte macro des zones : départ, zones dangereuses, emplacements des boss et artefacts.
+T007	2	M0	design,figma	3	Guide de style visuel (Figma)	Moodboard, palette par zone, références de silhouettes low-poly.
+T008	2	M0	doc,gameplay	2	Construction, jour/nuit et météo	Choix documentés : type de construction, durée d'une journée, impact de la nuit.
+T009	2	M0	doc,lore	3	Fiche détaillée de chaque zone	Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact.
+T010	3	M0.5	client,godot	3	Installer Godot 4 et godot-cpp	Projet Godot dans client-godot/, godot-cpp compilé, extension « hello » chargée.
+T011	3	M0.5	client,godot	4	GDExtension embarquant odyssee_shared	Une méthode C++ appelée depuis GDScript utilise ByteWriter/ByteReader de shared.
+T012	3	M0.5	client,godot	3	Scène test + contrôleur 1re personne	Déplacement, saut, souris, sur un sol de test.
+T013	3	M0.5	art,blender	2	Blockout du premier survivant	Silhouette low-poly validée par rapport au concept Figma.
+T014	4	M0.5	art,blender	5	Modèle, rig et bras FPS du survivant 1	Corps entier + bras FPS riggés, animations idle et marche.
+T015	4	M0.5	client,godot	3	Import .glb animé dans Godot	Le survivant animé s'affiche ; bras FPS visibles en vue subjective.
+T016	4	M0.5	client,infra	4	Build Windows de l'extension + export	L'export Windows se lance sur un PC Windows (ou Wine) et charge l'extension.
+T017	5	M0.5	doc	2	Bilan du spike et décision ADR 0002	ADR 0002 passée à « accepté » ou « rejeté », avec les raisons.
+T018	5	M1	net,shared	4	Abstraction socket UDP (POSIX)	Socket UDP non bloquante, envoi/réception, testée en local.
+T019	5	M1	net,shared	3	Implémentation Winsock	Même API sous Windows ; compile dans la CI Windows.
+T020	5	M1	infra	3	Job CI Windows	La CI compile shared + serveur + tests sous Windows.
+T021	6	M1	net,shared	6	En-tête de paquet, séquences et acks	Header (protocole, seq, ack, ack_bits) + comparaison modulaire, tests unitaires.
+T022	7	M1	net,shared	6	Canal fiable et retransmission	Messages fiables livrés malgré 20 % de perte simulée en test.
+T023	8	M1	net,server	6	Handshake avec challenge et timeouts	Connexion, refus de version, timeout 10 s, déconnexion explicite.
+T024	8	M1	net,shared	4	Messages du protocole (inputs, état)	Types de messages sérialisés et testés.
+T025	8	M1	net,tools	2	Simulateur de latence et de perte	Latence, gigue, perte et duplication configurables.
+T026	9	M1	server	5	Sessions et diffusion de l'état	Le serveur gère N joueurs et diffuse leurs positions à chaque tick.
+T027	9	M1	client,godot	5	Client Godot connecté au serveur	Connexion depuis Godot, affichage des autres joueurs.
+T028	9	M1	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.
+T029	10	M2	sim,shared	5	Simulation de mouvement partagée	shared/sim : mouvement + collisions de base, utilisé par client et serveur.
+T030	10	M2	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.
+T031	10	M2	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.
+T032	11	M2	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.
+T033	11	M2	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.
+T034	11	M2	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.
+T035	12	M2	devlog	4	Semaine tampon + post d'avancement	Retard rattrapé, post public M1/M2 publié.
+T036	13	M3	map,godot	6	Terrain de la zone de départ	Relief, chemins et zones de la zone de départ dans Godot.
+T037	13	M3	art,blender	6	Kit de ruines modulaires	Murs, sols, débris, végétation low-poly exportés en .glb.
+T038	14	M3	map,godot	4	Marqueurs de gameplay	Nœuds ResourceSpawn, ClueSpot, BossArena, ZoneGate utilisables dans l'éditeur.
+T039	14	M3	tools	6	Outil d'export de la carte	La scène Godot produit un fichier monde serveur (heightmap, collisions, marqueurs).
+T040	14	M3	doc,shared	2	Format du fichier monde	Format documenté et versionné.
+T041	15	M3	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.
+T042	15	M3	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.
+T043	16	M4	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.
+T044	16	M4	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.
+T045	17	M4	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.
+T046	17	M4	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.
+T047	18	M4	gameplay	4	Artisanat	Fabriquer un objet consomme les ressources, validé par le serveur.
+T048	18	M4	client,ui,figma	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées dans Godot, glisser-déposer.
+T049	19	M4	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal du joueur.
+T050	19	M4	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.
+T051	20	M5	gameplay	6	Santé, faim, soif, endurance	Stats simulées par le serveur, HUD côté client.
+T052	20	M5	gameplay	6	Mort, sac au sol et réapparition	Inventaire laissé sur place, récupérable ; réapparition au point de repos.
+T053	21	M5	server,data	10	Persistance SQLite	Joueurs, inventaires et modifications du monde sauvegardés et rechargés.
+T054	21	M5	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage sans perte, automatisé.
+T055	22	M5	client,ui	8	Menu principal et serveur local intégré	Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger.
+T056	22	M5	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.
+T057	23	M5	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.

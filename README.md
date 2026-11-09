@@ -34,7 +34,9 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 ├── client/   # Client 3D (prototype raylib, Godot à venir)
 ├── tests/    # Tests unitaires
 ├── cmake/    # Modules CMake (warnings, dépendances)
-└── docs/     # Conception : vision, architecture, réseau, roadmap, ADR
+├── docs/     # Conception : vision, architecture, réseau, roadmap, planning, ADR
+├── planning/ # Source du planning (tâches + jalons, TSV)
+└── scripts/  # Outils (planning.py : génère PLANNING.md et les issues GitHub)
 ```
 
 ## Compiler
@@ -69,6 +71,7 @@ Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_
 - [Modèle réseau & protocole](docs/NETWORK.md)
 - [Modes de jeu & hébergement](docs/MODES.md)
 - [Roadmap & jalons](docs/ROADMAP.md)
+- [Planning semaine par semaine](docs/PLANNING.md)
 - [Décisions d'architecture (ADR)](docs/adr/)
 
 ## Statut

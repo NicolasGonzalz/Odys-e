@@ -1,5 +1,7 @@
 # Roadmap & jalons
 
+Le détail des tâches, semaine par semaine, est dans [PLANNING.md](PLANNING.md).
+
 Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fait l'objet d'un point d'avancement public.
 
 ## M0 — Fondations ⏳
