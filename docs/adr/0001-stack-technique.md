@@ -1,6 +1,6 @@
 # ADR 0001 — Stack technique
 
-- **Statut :** accepté
+- **Statut :** accepté — partie client remplacée par [ADR 0002](0002-client-godot.md) (proposé)
 - **Date :** 2026-11-09
 
 ## Contexte

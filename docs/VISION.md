@@ -47,10 +47,17 @@ explorer → récolter → fabriquer → (construire / s'équiper) → survivre 
 - Monétisation, comptes centralisés, matchmaking.
 - PvP compétitif équilibré.
 
+## Modes de jeu
+
+**Solo**, **duo** et **coop** depuis un même menu, plus un **monde persistant** hébergé sur un serveur dédié.
+Un monde solo peut être ouvert aux amis à tout moment. Détails : [MODES.md](MODES.md).
+
 ## Direction artistique
 
 Low-poly stylisé, couleurs franches, flat shading, éclairage simple mais lisible. Ce style est rapide à produire seul,
-léger à afficher et vieillit bien. Les assets sont soit faits maison (Blender), soit sous licence libre (CC0).
+léger à afficher et vieillit bien. Les assets sont soit faits maison, soit sous licence libre (CC0).
+
+Chaîne de production : **Figma** (concepts de personnages, palettes, maquettes d'UI, icônes) → **Blender** (modèles, rig, animations) → export **glTF (.glb)** → client.
 
 ## Public & plateforme
 

@@ -13,14 +13,22 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 
 **Démo :** le serveur tourne à 20 ticks/s, le client affiche une scène 3D.
 
+## M0.5 — Spike Godot (validation de l'ADR 0002)
+- [ ] GDExtension qui embarque `odyssee_shared`, compilée sous Linux et Windows
+- [ ] Personnage `.glb` animé (premier modèle Blender) dans une scène Godot
+- [ ] Export Windows fonctionnel
+- [ ] Décision : ADR 0002 → accepté (on migre le client) ou rejeté (on garde raylib)
+
 ## M1 — Premier contact réseau
 - [ ] Couche UDP (sockets non bloquantes, abstraction POSIX/Win32)
 - [ ] En-tête de paquet, séquences, acks, canal fiable
 - [ ] Handshake avec challenge, timeouts, déconnexion
 - [ ] Plusieurs clients voient leurs cubes respectifs bouger (sans prédiction)
 - [ ] Simulateur de latence/perte
+- [ ] Sockets Linux **et** Windows (Winsock)
+- [ ] Premier déploiement du serveur sur le homelab (LXC)
 
-**Démo :** 2–3 clients connectés, chacun voit les autres se déplacer.
+**Démo :** 2–3 clients connectés au serveur du homelab, chacun voit les autres se déplacer.
 
 ## M2 — Mouvement fluide
 - [ ] Simulation de mouvement partagée (`shared/sim`)
@@ -51,8 +59,10 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 - [ ] Santé, faim, soif, endurance
 - [ ] Persistance SQLite (joueurs, chunks modifiés, inventaires)
 - [ ] Redémarrage du serveur sans perte
+- [ ] Menu principal : Solo (serveur local intégré), Multijoueur (rejoindre, favoris, héberger)
+- [ ] Codes d'invitation (V1)
 
-**Démo :** déconnexion/reconnexion le lendemain, tout est resté en place. → **MVP jouable**
+**Démo :** déconnexion/reconnexion le lendemain, tout est resté en place ; une partie solo peut être ouverte en coop. → **MVP jouable**
 
 ## Au-delà du MVP (v1)
-Construction, faune et combat, cycle jour/nuit, chat & groupes, tests de charge à 50 bots, déploiement d'un serveur public.
+Construction, faune et combat, cycle jour/nuit, chat & groupes, annuaire de codes d'invitation (V2), hébergement derrière NAT, tests de charge à 50 bots, déploiement d'un serveur public.

@@ -18,7 +18,10 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 |---|---|
 | Langage | C++20 |
 | Build | CMake ≥ 3.24, dépendances via `FetchContent` |
-| Rendu client | [raylib](https://www.raylib.com/) 5.5 (OpenGL) |
+| Client | [Godot 4](https://godotengine.org/) + GDExtension C++ — *proposé, voir [ADR 0002](docs/adr/0002-client-godot.md)* (prototype actuel : raylib) |
+| Serveur | C++20 headless, autoritaire — homelab Proxmox ou local (solo) |
+| Assets | Figma (2D, UI, concepts) → Blender (3D, animations) → glTF |
+| Plateformes | Linux, Windows |
 | Réseau | UDP maison, fiabilité sélective (voir [docs/NETWORK.md](docs/NETWORK.md)) |
 | Tests | [doctest](https://github.com/doctest/doctest) |
 
@@ -28,7 +31,7 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 .
 ├── shared/   # Code commun client/serveur : protocole, sérialisation, simulation
 ├── server/   # Serveur dédié autoritaire (headless)
-├── client/   # Client graphique 3D
+├── client/   # Client 3D (prototype raylib, Godot à venir)
 ├── tests/    # Tests unitaires
 ├── cmake/    # Modules CMake (warnings, dépendances)
 └── docs/     # Conception : vision, architecture, réseau, roadmap, ADR
@@ -64,6 +67,7 @@ Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_
 - [Vision & game design](docs/VISION.md)
 - [Architecture technique](docs/ARCHITECTURE.md)
 - [Modèle réseau & protocole](docs/NETWORK.md)
+- [Modes de jeu & hébergement](docs/MODES.md)
 - [Roadmap & jalons](docs/ROADMAP.md)
 - [Décisions d'architecture (ADR)](docs/adr/)
 
