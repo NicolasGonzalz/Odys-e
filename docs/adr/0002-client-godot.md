@@ -1,6 +1,6 @@
 # ADR 0002 — Client Godot 4 + serveur C++ maison
 
-- **Statut :** **accepté** (2026-11-09). Godot retenu face à Unreal ; le spike M0.5 valide la faisabilité technique.
+- **Statut :** **remplacé** par [ADR 0003](0003-client-unreal.md) (2026-11-09) : la répartition du travail à deux a fait pencher pour Unreal.
 - **Date :** 2026-11-09
 - **Remplace partiellement :** [ADR 0001](0001-stack-technique.md) (le choix de raylib pour le client)
 

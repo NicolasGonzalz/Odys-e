@@ -25,6 +25,7 @@ MILESTONES = ROOT / "planning" / "milestones.tsv"
 OUTPUT = ROOT / "docs" / "PLANNING.md"
 START = dt.date(2026, 11, 16)  # lundi de la semaine 1
 REPO = "NicolasGonzalz/Odys-e"
+WHO = {"nicolas": "Nicolas", "ami": "Coéquipier", "both": "Les deux"}
 
 MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
           "juil.", "août", "sept.", "oct.", "nov.", "déc."]
@@ -32,7 +33,7 @@ MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
 LABEL_COLORS = {
     "doc": "0e8a16", "lore": "5319e7", "gameplay": "fbca04", "design": "d876e3", "figma": "d876e3",
     "art": "c5def5", "blender": "c5def5", "tech": "1d76db", "shared": "1d76db", "net": "0052cc",
-    "server": "b60205", "client": "0075ca", "godot": "478cbf", "sim": "006b75", "tests": "bfd4f2",
+    "server": "b60205", "client": "0075ca", "unreal": "313131", "sim": "006b75", "tests": "bfd4f2",
     "infra": "6f42c1", "homelab": "6f42c1", "tools": "e99695", "map": "7057ff", "world": "7057ff",
     "data": "c2e0c6", "ui": "f9d0c4", "devlog": "ededed",
 }
@@ -57,7 +58,8 @@ def issue_title(t):
 
 def issue_body(t):
     monday = week_monday(int(t["semaine"]))
-    return (f"**Semaine {t['semaine']}** (du {fmt(monday)}) · **Estimation :** {t['heures']} h\n\n"
+    return (f"**Semaine {t['semaine']}** (du {fmt(monday)}) · **Qui :** {WHO[t['qui']]} · "
+            f"**Estimation :** {t['heures']} h\n\n"
             f"### Fini quand\n{t['fini_quand']}\n\n"
             f"_Généré depuis `planning/tasks.tsv` — modifier la source, pas l'issue._")
 
@@ -79,7 +81,8 @@ def render():
         "",
         f"- **Début :** lundi {fmt(START)} · **Fin prévue du MVP :** semaine {last_week} "
         f"({fmt(week_monday(last_week) + dt.timedelta(days=6))})",
-        f"- **Rythme :** ~12 h/semaine (10–15 h), objectifs fixés semaine par semaine",
+        "- **Équipe :** Nicolas (code, serveur, réseau) et son coéquipier (Unreal, art, cartes) — voir [TEAM.md](TEAM.md)",
+        "- **Rythme :** ~12 h/semaine pour Nicolas (10–15 h), objectifs fixés semaine par semaine",
         f"- **Charge totale :** {total} h, {len(tasks)} tâches",
         "- **Suivi au quotidien :** GitHub Issues + Project (une issue par tâche)",
         "",
@@ -105,16 +108,17 @@ def render():
     for w in sorted(by_week):
         week_tasks = by_week[w]
         monday = week_monday(w)
-        hours = sum(int(t["heures"]) for t in week_tasks)
+        def h(who):
+            return sum(int(t["heures"]) for t in week_tasks if t["qui"] in (who, "both"))
         jalons = sorted({t["jalon"] for t in week_tasks}, key=lambda j: list(milestones).index(j))
         lines += [
-            f"### Semaine {w} — du {fmt(monday)} · {hours} h · {', '.join(jalons)}",
+            f"### Semaine {w} — du {fmt(monday)} · {', '.join(jalons)} · Nicolas {h('nicolas')} h · Coéquipier {h('ami')} h",
             "",
-            "| | ID | Tâche | h | Fini quand |",
-            "|---|---|---|---|---|",
+            "| | ID | Qui | Tâche | h | Fini quand |",
+            "|---|---|---|---|---|---|",
         ]
         for t in week_tasks:
-            lines.append(f"| ☐ | {t['id']} | {t['titre']} | {t['heures']} | {t['fini_quand']} |")
+            lines.append(f"| ☐ | {t['id']} | {WHO[t['qui']]} | {t['titre']} | {t['heures']} | {t['fini_quand']} |")
         lines.append("")
 
     OUTPUT.write_text("\n".join(lines), encoding="utf-8")
@@ -151,14 +155,28 @@ def github(dry_run, project):
            dry_run=dry_run)
 
     ms_titles = {m["id"]: m["titre"] for m in milestones}
-    existing_issues = set() if dry_run else {
-        i["title"].split(" · ")[0]
+    existing_issues = {} if dry_run else {
+        i["title"].split(" · ")[0]: i
         for i in json.loads(gh("issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
-                               "--json", "title", capture=True))
+                               "--json", "number,title,body,labels,milestone", capture=True))
     }
     for t in tasks:
-        if t["id"] in existing_issues:
-            print(f"{t['id']} existe déjà, ignorée.")
+        current = existing_issues.get(t["id"])
+        if current:
+            wanted = set(t["labels"].split(","))
+            have = {l["name"] for l in current["labels"]}
+            ms = (current.get("milestone") or {}).get("title")
+            if (current["title"], current["body"], have, ms) == (
+                    issue_title(t), issue_body(t), wanted, ms_titles[t["jalon"]]):
+                continue
+            args = ["issue", "edit", str(current["number"]), "--repo", REPO, "--title", issue_title(t),
+                    "--body", issue_body(t), "--milestone", ms_titles[t["jalon"]]]
+            if wanted - have:
+                args += ["--add-label", ",".join(sorted(wanted - have))]
+            if have - wanted:
+                args += ["--remove-label", ",".join(sorted(have - wanted))]
+            gh(*args, dry_run=dry_run, capture=True)
+            print(f"{t['id']} mise à jour")
             continue
         url = gh("issue", "create", "--repo", REPO, "--title", issue_title(t), "--body", issue_body(t),
                  "--label", t["labels"], "--milestone", ms_titles[t["jalon"]],
@@ -175,6 +193,7 @@ PROJECT_FIELDS = {  # nom -> type
     "Début": "DATE",
     "Fin": "DATE",
     "Jalon": "TEXT",
+    "Qui": "SINGLE_SELECT",
 }
 
 
@@ -193,8 +212,9 @@ def project(number, dry_run):
                                             "--limit", "100")["fields"]}
     for name, kind in PROJECT_FIELDS.items():
         if name not in fields:
+            extra = ["--single-select-options", ",".join(WHO.values())] if kind == "SINGLE_SELECT" else []
             gh("project", "field-create", str(number), "--owner", owner, "--name", name,
-               "--data-type", kind, dry_run=dry_run)
+               "--data-type", kind, *extra, dry_run=dry_run)
     fields = {f["name"]: f for f in gh_json("project", "field-list", str(number), "--owner", owner,
                                             "--limit", "100")["fields"]}
     status = fields.get("Status")
@@ -226,6 +246,10 @@ def project(number, dry_run):
         for name, (flag, value) in values.items():
             gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
                "--field-id", fields[name]["id"], flag, value, dry_run=dry_run, capture=True)
+        who = next(o["id"] for o in fields["Qui"]["options"] if o["name"] == WHO[t["qui"]])
+        gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
+           "--field-id", fields["Qui"]["id"], "--single-select-option-id", who,
+           dry_run=dry_run, capture=True)
         if todo and not item.get("status"):
             gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
                "--field-id", status["id"], "--single-select-option-id", todo,

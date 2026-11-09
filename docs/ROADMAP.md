@@ -15,11 +15,11 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 
 **Démo :** le serveur tourne à 20 ticks/s, le client affiche une scène 3D.
 
-## M0.5 — Spike Godot (validation de l'ADR 0002)
-- [ ] GDExtension qui embarque `odyssee_shared`, compilée sous Linux et Windows
-- [ ] Personnage `.glb` animé (premier modèle Blender) dans une scène Godot
-- [ ] Export Windows fonctionnel
-- [ ] Décision : ADR 0002 → accepté (on migre le client) ou rejeté (on garde raylib)
+## M0.5 — Spike Unreal (validation de l'ADR 0003)
+- [ ] Projet Unreal versionné avec Git LFS, modifié à deux
+- [ ] Plugin `OdysseeNet` qui embarque `odyssee_shared`
+- [ ] Pion 1re personne piloté par la simulation maison
+- [ ] Premier survivant Blender animé dans Unreal
 
 ## M1 — Premier contact réseau
 - [ ] Couche UDP (sockets non bloquantes, abstraction POSIX/Win32)
@@ -41,7 +41,7 @@ Chaque jalon se termine par quelque chose de **jouable ou démontrable**, et fai
 **Démo :** déplacement fluide même avec 150 ms de latence simulée et 5 % de perte.
 
 ## M3 — Un monde à explorer
-- [ ] Zone de départ construite à la main dans Godot (terrain + premiers décors Blender)
+- [ ] Zone de départ construite à la main dans Unreal (terrain + premiers décors Blender)
 - [ ] Marqueurs de gameplay + outil d'export de la carte pour le serveur
 - [ ] Chargement de la carte par chunks côté serveur
 - [ ] Collisions avec le terrain, caméra 3ᵉ personne

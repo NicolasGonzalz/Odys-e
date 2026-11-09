@@ -62,6 +62,7 @@ Un monde solo peut être ouvert plus tard en coop : c'est le même format de sau
 
 | Composant | Linux | Windows |
 |---|---|---|
-| Client (Godot) | ✅ | ✅ |
+| Client (Unreal) | ⚠️ possible, non prioritaire | ✅ |
+| Client de debug (raylib) | ✅ | ✅ |
 | Serveur intégré (solo / héberger) | ✅ | ✅ (sockets Winsock dès M1) |
 | Serveur dédié (homelab) | ✅ | non prévu |

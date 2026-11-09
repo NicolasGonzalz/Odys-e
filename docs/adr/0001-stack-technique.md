@@ -1,11 +1,11 @@
 # ADR 0001 — Stack technique
 
-- **Statut :** accepté — partie client remplacée par [ADR 0002](0002-client-godot.md) (proposé)
+- **Statut :** accepté — partie client remplacée par [ADR 0003](0003-client-unreal.md) (Unreal)
 - **Date :** 2026-11-09
 
 ## Contexte
 
-Projet solo, ambition long terme, objectif d'apprentissage et de démonstration sur deux axes :
+Projet personnel (au départ solo, aujourd'hui à deux, voir [TEAM.md](../TEAM.md)), ambition long terme, objectif d'apprentissage et de démonstration sur deux axes :
 un serveur autoritaire robuste et un réseau temps réel. Expérience préalable en C++ (Zappy, Raytracer, Arcade).
 
 ## Décision

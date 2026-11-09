@@ -2,7 +2,7 @@
 
 > Nom de code : **Odyssée** · projet personnel, en développement
 
-Jeu en ligne multijoueur d'aventure et de survie en monde persistant, construit entièrement seul, de A à Z.
+Jeu en ligne multijoueur d'aventure et de survie en monde persistant, construit à deux, de A à Z : le code et le serveur d'un côté, le moteur et l'art de l'autre.
 Les joueurs partagent un monde où ils explorent, récoltent, fabriquent et progressent, en solo comme à plusieurs.
 
 Le défi est surtout invisible :
@@ -18,9 +18,10 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 |---|---|
 | Langage | C++20 |
 | Build | CMake ≥ 3.24, dépendances via `FetchContent` |
-| Client | [Godot 4](https://godotengine.org/) + GDExtension C++ — voir [ADR 0002](docs/adr/0002-client-godot.md) (prototype actuel : raylib) |
+| Client | [Unreal Engine 5](https://www.unrealengine.com/) + plugin C++ `OdysseeNet` — voir [ADR 0003](docs/adr/0003-client-unreal.md) |
+| Client de debug | raylib (Linux, tests serveur et réseau sans Unreal) |
 | Serveur | C++20 headless, autoritaire — homelab Proxmox ou local (solo) |
-| Assets | Figma (2D, UI, concepts) → Blender (3D, animations) → glTF |
+| Assets | Figma (2D, UI, concepts) → Blender (3D, animations) → Unreal (Git LFS) |
 | Plateformes | Linux, Windows |
 | Réseau | UDP maison, fiabilité sélective (voir [docs/NETWORK.md](docs/NETWORK.md)) |
 | Tests | [doctest](https://github.com/doctest/doctest) |
@@ -31,13 +32,17 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 .
 ├── shared/   # Code commun client/serveur : protocole, sérialisation, simulation
 ├── server/   # Serveur dédié autoritaire (headless)
-├── client/   # Client 3D (prototype raylib, Godot à venir)
+├── client/   # Client de debug raylib (le client Unreal arrivera dans client-unreal/)
 ├── tests/    # Tests unitaires
 ├── cmake/    # Modules CMake (warnings, dépendances)
 ├── docs/     # Conception : vision, architecture, réseau, roadmap, planning, ADR
 ├── planning/ # Source du planning (tâches + jalons, TSV)
 └── scripts/  # Outils (planning.py : génère PLANNING.md et les issues GitHub)
 ```
+
+## Git LFS
+
+Les fichiers binaires (Unreal, art, audio) passent par Git LFS : `sudo apt install git-lfs && git lfs install` avant de cloner ou de committer des assets.
 
 ## Compiler
 
@@ -70,6 +75,7 @@ Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_
 - [Architecture technique](docs/ARCHITECTURE.md)
 - [Modèle réseau & protocole](docs/NETWORK.md)
 - [Modes de jeu & hébergement](docs/MODES.md)
+- [Équipe & façon de travailler](docs/TEAM.md)
 - [Lore](docs/LORE.md) · [Survivants](docs/CHARACTERS.md) · [Zones & bestiaire](docs/ZONES.md)
 - [Roadmap & jalons](docs/ROADMAP.md)
 - [Planning semaine par semaine](docs/PLANNING.md)

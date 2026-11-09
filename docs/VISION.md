@@ -127,8 +127,8 @@ et les personnages d'Odyssée restent **originaux**. On évite notamment de repr
 Low-poly stylisé, couleurs franches, flat shading, éclairage simple mais lisible. Ce style est rapide à produire seul,
 léger à afficher et vieillit bien. Les assets sont soit faits maison, soit sous licence libre (CC0).
 
-Chaîne de production : **Figma** (concepts de personnages, palettes, maquettes d'UI, icônes) → **Blender** (modèles, rig, animations) → export **glTF (.glb)** → client.
+Chaîne de production : **Figma** (concepts de personnages, palettes, maquettes d'UI, icônes) → **Blender** (modèles, rig, animations) → import dans **Unreal**.
 
 ## Public & plateforme
 
-PC (Linux en priorité, Windows ensuite). Sessions de 30 min à plusieurs heures, de **1 à 4 joueurs** par monde (un par survivant).
+PC, **Windows** en priorité (client Unreal) ; le serveur tourne sous Linux et Windows. Sessions de 30 min à plusieurs heures, de **1 à 4 joueurs** par monde (un par survivant).

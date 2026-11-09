@@ -54,21 +54,21 @@
 
 ## Pipeline de la carte (monde fait main)
 
-Le serveur ne dépend pas de Godot ; il a pourtant besoin de connaître la carte. La carte a donc **une seule source**
+Le serveur ne dépend pas d'Unreal ; il a pourtant besoin de connaître la carte. La carte a donc **une seule source**
 et deux formats dérivés :
 
 ```
 Blender (props, ruines, modèles)  ─┐
-                                   ├─▶  Éditeur Godot : scène de la carte (terrain, décors, marqueurs)
+                                   ├─▶  Éditeur Unreal : carte (terrain, décors, acteurs marqueurs)
 Figma (plans de zones, concepts) ──┘                    │
-                                                        ├─▶ client : scène Godot (rendu)
+                                                        ├─▶ client : niveau Unreal (rendu)
                                                         └─▶ outil d'export ─▶ fichier monde serveur
                                                               (heightmap, volumes de collision,
                                                                spawns de ressources/créatures,
                                                                indices, boss, artefacts, déclencheurs de zone)
 ```
 
-Les **marqueurs** (nœuds Godot dédiés : `ResourceSpawn`, `ClueSpot`, `BossArena`, `ZoneGate`…) portent les données
+Les **marqueurs** (acteurs Unreal dédiés, définis en C++ dans le plugin : `ResourceSpawn`, `ClueSpot`, `BossArena`, `ZoneGate`…) portent les données
 de gameplay. Le serveur charge le fichier exporté au démarrage ; ce fichier est versionné avec le reste du projet.
 
 ## Rendu & performances (client)
@@ -77,11 +77,12 @@ de gameplay. Le serveur charge le fichier exporté au démarrage ; ce fichier es
 
 | Technique | Rôle |
 |---|---|
-| Frustum culling | Ne pas dessiner ce qui est hors du champ de vision (automatique dans Godot) |
-| Occlusion culling | Ne pas dessiner ce qui est caché derrière un mur (`OccluderInstance3D`), crucial en ville |
+| Frustum culling | Ne pas dessiner ce qui est hors du champ de vision (automatique dans Unreal) |
+| Occlusion culling | Ne pas dessiner ce qui est caché derrière un mur (automatique, à vérifier en ville) |
 | LOD | Modèles simplifiés au loin |
 | Distances de visibilité | Herbe, cailloux et détails disparaissent au loin |
-| MultiMesh | Végétation dessinée par milliers d'instances en un seul appel |
+| Instanced meshes (outil Foliage) | Végétation dessinée par milliers d'instances |
+| World Partition / HLOD | Découpage du niveau en cellules chargées selon la distance, versions simplifiées au loin |
 | Streaming par distance | Les chunks se chargent et se déchargent selon la **distance** (jamais selon la direction du regard, pour éviter les saccades) |
 
 Côté serveur, la zone d'intérêt se base aussi sur la **distance**, pas sur le regard : ce qui est dans le dos du joueur
@@ -94,7 +95,7 @@ végétation animée par le vent, oiseaux, insectes, particules (pollen, luciole
 
 - **Serveur** : un thread de simulation (pas de verrous dans la logique de jeu), un thread réseau I/O,
   un thread de persistance alimenté par une file. La génération de chunks pourra passer sur un pool de workers.
-- **Client** : thread principal Godot (entrées + rendu + simulation locale), thread réseau dans la GDExtension.
+- **Client** : thread de jeu Unreal (entrées + simulation locale), thread réseau dans le plugin OdysseeNet.
 
 ## Conventions de code
 

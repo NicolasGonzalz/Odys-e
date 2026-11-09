@@ -1,6 +1,6 @@
 id	titre	echeance	description
 M0	M0 — Conception & fondations	2026-11-29	Documentation de conception complète (mystère, survivants, zones, style) et fondations techniques (logger, CI).
-M0.5	M0.5 — Spike Godot	2026-12-18	Valider ou rejeter l'ADR 0002 : GDExtension + shared, personnage .glb animé, export Windows.
+M0.5	M0.5 — Spike Unreal	2026-12-18	Valider l'ADR 0003 : plugin OdysseeNet + shared, pion piloté par la simulation maison, survivant animé, Git LFS à deux.
 M1	M1 — Premier contact réseau	2027-01-17	Couche UDP maison, handshake, plusieurs clients connectés au serveur du homelab.
 M2	M2 — Mouvement fluide	2027-02-07	Simulation partagée, prédiction, réconciliation, interpolation.
 M3	M3 — Zone de départ	2027-02-28	Zone de départ faite main, export de la carte, collisions et zone d'intérêt côté serveur.
