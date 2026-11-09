@@ -5,6 +5,7 @@ Usage :
     scripts/planning.py render              # régénère docs/PLANNING.md
     scripts/planning.py github [--dry-run]  # crée labels, jalons et issues sur GitHub (idempotent)
     scripts/planning.py github --project N  # ... et ajoute les issues au GitHub Project n° N
+    scripts/planning.py project N           # range toutes les issues dans le Project n° N et remplit ses champs
 
 Pré-requis pour `github` : gh installé et authentifié (`gh auth login`).
 Pour `--project` : `gh auth refresh -s project`.
@@ -168,6 +169,70 @@ def github(dry_run, project):
                dry_run=dry_run)
 
 
+PROJECT_FIELDS = {  # nom -> type
+    "Semaine": "NUMBER",
+    "Estimation (h)": "NUMBER",
+    "Début": "DATE",
+    "Fin": "DATE",
+    "Jalon": "TEXT",
+}
+
+
+def project(number, dry_run):
+    """Ajoute toutes les issues au GitHub Project et remplit ses champs (idempotent)."""
+    owner = REPO.split("/")[0]
+    tasks = {t["id"]: t for t in read_tsv(TASKS)}
+
+    def gh_json(*args):
+        return json.loads(gh(*args, "--format", "json", capture=True))
+
+    project_id = next(p["id"] for p in gh_json("project", "list", "--owner", owner)["projects"]
+                      if p["number"] == number)
+
+    fields = {f["name"]: f for f in gh_json("project", "field-list", str(number), "--owner", owner,
+                                            "--limit", "100")["fields"]}
+    for name, kind in PROJECT_FIELDS.items():
+        if name not in fields:
+            gh("project", "field-create", str(number), "--owner", owner, "--name", name,
+               "--data-type", kind, dry_run=dry_run)
+    fields = {f["name"]: f for f in gh_json("project", "field-list", str(number), "--owner", owner,
+                                            "--limit", "100")["fields"]}
+    status = fields.get("Status")
+    todo = next((o["id"] for o in (status or {}).get("options", []) if o["name"] in ("Todo", "À faire")),
+                None)
+
+    items = {i["content"].get("url"): i for i in gh_json("project", "item-list", str(number), "--owner",
+                                                         owner, "--limit", "1000")["items"]}
+    issues = json.loads(gh("issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
+                           "--json", "title,url", capture=True))
+
+    for issue in sorted(issues, key=lambda i: i["title"]):
+        tid = issue["title"].split(" · ")[0]
+        t = tasks.get(tid)
+        if t is None:
+            continue
+        item = items.get(issue["url"])
+        if item is None:
+            item = json.loads(gh("project", "item-add", str(number), "--owner", owner, "--url",
+                                 issue["url"], "--format", "json", capture=True))
+        monday = week_monday(int(t["semaine"]))
+        values = {
+            "Semaine": ("--number", t["semaine"]),
+            "Estimation (h)": ("--number", t["heures"]),
+            "Début": ("--date", monday.isoformat()),
+            "Fin": ("--date", (monday + dt.timedelta(days=6)).isoformat()),
+            "Jalon": ("--text", t["jalon"]),
+        }
+        for name, (flag, value) in values.items():
+            gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
+               "--field-id", fields[name]["id"], flag, value, dry_run=dry_run, capture=True)
+        if todo and not item.get("status"):
+            gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
+               "--field-id", status["id"], "--single-select-option-id", todo,
+               dry_run=dry_run, capture=True)
+        print(f"{tid} ajoutée au projet")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -175,10 +240,15 @@ def main():
     p = sub.add_parser("github")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--project", type=int, help="numéro du GitHub Project où ajouter les issues")
+    pp = sub.add_parser("project")
+    pp.add_argument("number", type=int, help="numéro du GitHub Project")
+    pp.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     if args.cmd == "render":
         render()
+    elif args.cmd == "project":
+        project(args.number, args.dry_run)
     else:
         try:
             github(args.dry_run, args.project)
