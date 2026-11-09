@@ -104,3 +104,18 @@ végétation animée par le vent, oiseaux, insectes, particules (pollen, luciole
 - Membres privés préfixés `_`, types en `PascalCase`, fonctions en `camelCase`, constantes en `kPascalCase`.
 - Formatage : `.clang-format` à la racine. Code et identifiants en anglais, documentation en français.
 - Les décisions structurantes sont consignées en ADR dans [`docs/adr/`](adr/).
+
+### Modularité
+
+1. **Un fichier = une notion.** Une classe, ou un petit groupe de fonctions qui parlent de la même chose.
+   Le nom du fichier dit ce qu'il contient.
+2. **Une fonction = une action.** Nommée par un verbe (`createSocket`, `bindToPort`), elle tient sur un écran
+   (~25 lignes). S'il faut écrire « et » pour la décrire, on la coupe en deux. Une fonction de haut niveau
+   se lit comme une liste d'étapes qui appellent des fonctions plus petites.
+3. **Le code propre à une plateforme** vit dans son propre dossier (`net/posix/`, `net/win32/`) ;
+   le reste du code ne voit que l'interface commune.
+4. **Code aéré** : une ligne vide entre chaque étape logique ; les commentaires expliquent le **pourquoi**.
+5. **Les détails internes restent cachés** : `namespace` anonyme dans le `.cpp`, ou dossier `detail/`
+   s'ils servent à plusieurs fichiers.
+6. **Une branche = un sujet** : on ne mélange pas une fonctionnalité et une refactorisation dans la même PR.
+7. **100 caractères maximum par ligne** (comptés en caractères : les accents ne comptent qu'une fois).

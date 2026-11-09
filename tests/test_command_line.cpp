@@ -1,0 +1,42 @@
+#include "CommandLine.hpp"
+
+#include <doctest/doctest.h>
+
+#include <string_view>
+#include <vector>
+
+using odyssee::server::parseCommandLine;
+
+namespace {
+
+auto parse(std::vector<std::string_view> args) { return parseCommandLine(args); }
+
+} // namespace
+
+TEST_CASE("Ligne de commande : valeurs par défaut sans argument") {
+    const auto options = parse({});
+    REQUIRE(options.has_value());
+    CHECK(options->port == odyssee::kDefaultPort);
+    CHECK_FALSE(options->verbose);
+}
+
+TEST_CASE("Ligne de commande : port et --verbose, dans n'importe quel ordre") {
+    for (const auto& args : {std::vector<std::string_view>{"--verbose", "27016"},
+                             std::vector<std::string_view>{"27016", "--verbose"}}) {
+        const auto options = parse(args);
+        REQUIRE(options.has_value());
+        CHECK(options->port == 27016);
+        CHECK(options->verbose);
+    }
+}
+
+TEST_CASE("Ligne de commande : arguments invalides refusés") {
+    for (const auto& args : {std::vector<std::string_view>{"0"},
+                             std::vector<std::string_view>{"65536"},
+                             std::vector<std::string_view>{"27016abc"},
+                             std::vector<std::string_view>{"-5"},
+                             std::vector<std::string_view>{"--inconnu"},
+                             std::vector<std::string_view>{"27016", "27017"}}) {
+        CHECK_FALSE(parse(args).has_value());
+    }
+}
