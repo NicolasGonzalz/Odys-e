@@ -26,7 +26,5 @@ int main(int argc, char** argv) {
 
     server::Server gameServer(options->port);
     server::stopOnShutdownSignals(gameServer);
-    gameServer.run();
-
-    return EXIT_SUCCESS;
+    return gameServer.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

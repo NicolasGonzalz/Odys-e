@@ -11,12 +11,19 @@ add_executable(odyssee_tests
     test_reliable_sender.cpp
     test_reliable_receiver.cpp
     test_reliable_channel.cpp
+    test_player_name.cpp
+    test_control_messages.cpp
+    test_client_connection.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 
 # Les tests du serveur ne sont compilés que si le serveur l'est.
 if(ODYSSEE_BUILD_SERVER)
-    target_sources(odyssee_tests PRIVATE test_command_line.cpp)
+    target_sources(odyssee_tests PRIVATE
+        test_command_line.cpp
+        test_client_registry.cpp
+        test_handshake.cpp
+    )
     target_link_libraries(odyssee_tests PRIVATE odyssee_server_core)
 endif()
 odyssee_set_options(odyssee_tests)

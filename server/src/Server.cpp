@@ -1,25 +1,49 @@
 #include "Server.hpp"
 
+#include "ConnectionService.hpp"
+
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
+#include "odyssee/net/UdpSocket.hpp"
 
-#include <chrono>
+#include <random>
 #include <thread>
 
 namespace odyssee::server {
 
 namespace {
+
 constexpr log::Logger kLog{"server"};
+
+/// Graine imprévisible pour les défis de connexion (un attaquant ne doit pas pouvoir les deviner).
+std::uint64_t unpredictableSeed() {
+    std::random_device device;
+    return (std::uint64_t{device()} << 32) | device();
+}
+
 } // namespace
 
 Server::Server(std::uint16_t port) : _port(port) {}
 
-void Server::run() {
-    using Clock = std::chrono::steady_clock;
+bool Server::run() {
+    auto socket = net::UdpSocket::open(_port);
+    if (!socket) {
+        kLog.error("impossible d'ouvrir le port UDP {} : le serveur ne peut pas démarrer", _port);
+        return false;
+    }
 
+    ConnectionService connections(std::move(*socket), unpredictableSeed());
+    kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max", ODYSSEE_VERSION_STRING, _port,
+              kTickRate, kMaxPlayers);
+
+    loop(connections);
+
+    connections.shutdown();
+    return true;
+}
+
+void Server::loop(ConnectionService& connections) {
     _running = true;
-    kLog.info("Odyssée v{} — port {}, {} ticks/s", ODYSSEE_VERSION_STRING, _port, kTickRate);
-
     std::uint64_t tickIndex = 0;
     auto nextTick = Clock::now();
 
@@ -28,7 +52,7 @@ void Server::run() {
     while (_running) {
         const auto now = Clock::now();
         while (nextTick <= now && _running) {
-            tick(tickIndex++);
+            tick(connections, tickIndex++, now);
             nextTick += kTickDuration;
         }
         std::this_thread::sleep_until(nextTick);
@@ -37,10 +61,13 @@ void Server::run() {
     kLog.info("Arrêt après {} ticks.", tickIndex);
 }
 
-void Server::tick(std::uint64_t tickIndex) {
-    // TODO(M1) : réception des paquets, application des inputs, simulation, envoi des snapshots.
+void Server::tick(ConnectionService& connections, std::uint64_t tickIndex,
+                  Clock::time_point now) {
+    connections.poll(now);
+
+    // TODO(M1) : application des inputs, simulation, envoi des snapshots.
     if (tickIndex % (kTickRate * 10) == 0) {
-        kLog.debug("tick {}", tickIndex);
+        kLog.debug("tick {} — {} joueur(s)", tickIndex, connections.playerCount());
     }
 }
 

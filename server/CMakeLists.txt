@@ -1,7 +1,9 @@
 # Cœur du serveur, en bibliothèque pour pouvoir le tester.
 add_library(odyssee_server_core STATIC
     src/Server.cpp
+    src/ClientRegistry.cpp
     src/CommandLine.cpp
+    src/ConnectionService.cpp
     src/ShutdownSignals.cpp
 )
 target_include_directories(odyssee_server_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
