@@ -1,7 +1,6 @@
 # Fins de ligne normalisées pour le code et la doc
 * text=auto eol=lf
 *.bat text eol=crlf
-
 # --- Git LFS : fichiers binaires (Unreal, art, audio) ---
 # Unreal
 *.uasset filter=lfs diff=lfs merge=lfs -text lockable
