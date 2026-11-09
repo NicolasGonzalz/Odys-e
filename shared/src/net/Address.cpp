@@ -5,29 +5,63 @@
 
 namespace odyssee::net {
 
+namespace {
+
+/// Résultat de la lecture d'un nombre de l'adresse : sa valeur et la position juste après.
+struct Octet {
+    std::uint32_t value = 0;
+    const char* next = nullptr;
+};
+
+/// Lit un nombre de 0 à 255 (1 à 3 chiffres, sans zéro en tête comme « 01 »).
+std::optional<Octet> parseOctet(const char* begin, const char* end) {
+    unsigned value = 0;
+    const auto [next, ec] = std::from_chars(begin, end, value);
+    const auto digits = next - begin;
+
+    const bool parsed = ec == std::errc{};
+    const bool inRange = value <= 255 && digits <= 3;
+    const bool leadingZero = digits > 1 && *begin == '0';
+
+    if (!parsed || !inRange || leadingZero) {
+        return std::nullopt;
+    }
+    return Octet{value, next};
+}
+
+/// Consomme le point qui sépare deux nombres.
+std::optional<const char*> skipDot(const char* it, const char* end) {
+    if (it == end || *it != '.') {
+        return std::nullopt;
+    }
+    return it + 1;
+}
+
+} // namespace
+
 std::optional<Address> Address::parse(std::string_view text, std::uint16_t port) {
-    // Analyse à la main (pas d'inet_pton) : code portable, sans en-tête système,
-    // et strict : exactement 4 nombres de 0 à 255 séparés par des points.
-    std::uint32_t ip = 0;
+    // Analyse à la main (pas d'inet_pton) : portable, sans en-tête système, et stricte.
     const char* it = text.data();
     const char* const end = text.data() + text.size();
+    std::uint32_t ip = 0;
 
-    for (int octet = 0; octet < 4; ++octet) {
-        if (octet > 0) {
-            if (it == end || *it != '.') {
+    for (int index = 0; index < 4; ++index) {
+        if (index > 0) {
+            const auto afterDot = skipDot(it, end);
+            if (!afterDot) {
                 return std::nullopt;
             }
-            ++it;
+            it = *afterDot;
         }
-        unsigned value = 0;
-        const auto [next, ec] = std::from_chars(it, end, value);
-        const auto digits = next - it;
-        if (ec != std::errc{} || value > 255 || digits > 3 || (digits > 1 && *it == '0')) {
-            return std::nullopt; // vide, trop grand, ou zéro en tête ("01") refusé
+
+        const auto octet = parseOctet(it, end);
+        if (!octet) {
+            return std::nullopt;
         }
-        ip = (ip << 8) | value;
-        it = next;
+        ip = (ip << 8) | octet->value;
+        it = octet->next;
     }
+
     if (it != end) {
         return std::nullopt; // caractères en trop
     }
