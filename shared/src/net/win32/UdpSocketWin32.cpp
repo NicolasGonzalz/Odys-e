@@ -7,8 +7,14 @@
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
 
-#include <mstcpip.h> // SIO_UDP_CONNRESET
+#include <mstcpip.h>
 #include <utility>
+
+// Selon la version du SDK Windows, mstcpip.h n'expose pas toujours cette constante.
+// Sa valeur est fixe et documentée par Microsoft : on la définit si elle manque.
+#ifndef SIO_UDP_CONNRESET
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+#endif
 
 namespace odyssee::net {
 
