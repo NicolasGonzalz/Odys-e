@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -28,3 +30,10 @@ struct Address {
 };
 
 } // namespace odyssee::net
+
+/// Permet d'utiliser une Address comme clé de std::unordered_map (ex. joueurs par adresse).
+template <> struct std::hash<odyssee::net::Address> {
+    std::size_t operator()(const odyssee::net::Address& a) const noexcept {
+        return std::hash<std::uint64_t>{}((std::uint64_t{a.ip} << 16) | a.port);
+    }
+};

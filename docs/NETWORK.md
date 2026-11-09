@@ -39,14 +39,36 @@ Les numéros de séquence sur 16 bits rebouclent ; la comparaison se fait en ari
 
 ```
 Client                                  Serveur
-  │── ConnectRequest(version, nom) ────────▶│  vérifie version, capacité
-  │◀─────────── Challenge(token) ───────────│  (anti-spoofing d'IP)
-  │── ChallengeResponse(token) ────────────▶│
-  │◀─── Accepted(playerId, tick, seed) ─────│
-  │◀═════════ snapshots / chunks ═══════════│
+  │── ConnectRequest(pseudo) ──────────────▶│  version (en-tête), pseudo, place libre ?
+  │◀─────────── Challenge(jeton u64) ───────│  jeton aléatoire envoyé à l'adresse annoncée
+  │── ChallengeResponse(jeton) ────────────▶│  prouve que le client possède bien cette adresse
+  │◀────────── Accepted(playerId) ──────────│  numéro de joueur 0 à 3
+  │◀═════════ état du monde (T024+) ════════│
 ```
 
-Déconnexion : message explicite, ou timeout après 10 s sans paquet. Keep-alive implicite via les inputs.
+Format d'un paquet de connexion : `PacketHeader | PacketKind (u8) | contenu`. Les numéros de séquence
+de l'en-tête ne servent qu'après la connexion (valeurs à 0 pendant la poignée de main).
+
+| Type (`PacketKind`) | Sens | Contenu |
+|---|---|---|
+| `ConnectRequest` = 1 | client → serveur | pseudo (chaîne, 16 octets max) |
+| `Challenge` = 2 | serveur → client | jeton (u64) |
+| `ChallengeResponse` = 3 | client → serveur | jeton (u64) |
+| `Accepted` = 4 | serveur → client | numéro de joueur (u8) |
+| `Refused` = 5 | serveur → client | raison (u8) : 1 mauvaise version, 2 serveur plein, 3 pseudo invalide |
+| `Disconnect` = 6 | les deux | — (envoyé 3 fois, il peut se perdre) |
+| `KeepAlive` = 7 | les deux | — (chaque seconde sans autre trafic) |
+
+Les valeurs de `PacketKind` et de `Refused` sont **figées** : un client d'une autre version doit pouvoir
+lire un refus pour afficher « mauvaise version ».
+
+- **Pertes** : le client renvoie sa demande toutes les 250 ms ; le serveur répond la même chose
+  à une demande en double (même défi, même acceptation).
+- **Délais** : poignée de main abandonnée après 5 s ; joueur connecté retiré après 10 s sans paquet.
+- **Protection** : 32 poignées de main simultanées au maximum ; jetons tirés d'une graine imprévisible.
+- **Arrêt du serveur** : il envoie `Disconnect` à tous les joueurs.
+
+Code : `shared/net/ClientConnection` (client), `server/ClientRegistry` et `server/ConnectionService`.
 
 ## Synchronisation de l'état
 
