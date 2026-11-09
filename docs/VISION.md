@@ -30,6 +30,15 @@ Des zones de plus en plus dangereuses autour d'une zone de départ calme. Chaque
 ses ruines à explorer et un gardien (boss) ou une énigme qui protège un artefact. L'artefact obtenu ouvre l'accès
 à la zone suivante et révèle une partie du mystère.
 
+## Ce que vit le joueur
+
+| Axe | Choix | Conséquences |
+|---|---|---|
+| **Caméra** | **1re personne** | Immersion dans les ruines et les indices. Deux rendus par personnage : les **bras en vue subjective** (pour soi) et le **corps entier** (vu par les autres joueurs en coop). |
+| **Personnages** | **Survivants prédéfinis** (2 à 4) | Chacun a une identité visuelle forte, conçue dans Figma puis modélisée dans Blender. Ils peuvent avoir un lien avec le mystère (passé, indices propres). Plusieurs joueurs peuvent-ils incarner le même ? *À décider.* |
+| **Mort** | **Sac au sol** | On réapparaît au dernier point de repos. L'inventaire reste à l'endroit de la mort, à récupérer. Les objets équipés et le journal d'indices sont conservés. |
+| **Combat** | **Action simple** | Attaque, esquive, blocage, endurance. Lisible, tolérant à la latence. Les boss ont des patterns reconnaissables. |
+
 ## Piliers
 
 1. **Exploration & mystère** — un monde fait main où chaque lieu a quelque chose à raconter et donne envie d'aller voir derrière la colline.
