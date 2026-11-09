@@ -2,7 +2,10 @@
 add_library(odyssee_shared STATIC
     src/ByteBuffer.cpp
     src/Log.cpp
+    src/net/Acknowledgements.cpp
     src/net/Address.cpp
+    src/net/PacketHeader.cpp
+    src/net/ReceivedPackets.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

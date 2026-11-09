@@ -3,6 +3,10 @@ add_executable(odyssee_tests
     test_bytebuffer.cpp
     test_log.cpp
     test_udp.cpp
+    test_sequence.cpp
+    test_packet_header.cpp
+    test_received_packets.cpp
+    test_acknowledgements.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 
