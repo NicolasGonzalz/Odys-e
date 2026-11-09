@@ -1,7 +1,6 @@
 # Lore — le mystère d'Odyssée
 
-> **Statut : trame validée (T001), détails en cours.** Fusion des pistes A (« L'Exode ») et B (« La Floraison »).
-> Les points marqués ❓ restent ouverts.
+> **Statut : trame validée (T001).** Fusion des pistes A (« L'Exode ») et B (« La Floraison »).
 
 ## La question
 
@@ -42,8 +41,10 @@ tout en laissant la nature les avoir largement repris.
 **Ils dormaient dans des capsules de stase d'Odyssée** destinées à un départ différé, qui n'a jamais eu lieu.
 Isolés et scellés pendant la Floraison, ils ont échappé à Gaïa. Le joueur en sait autant que son personnage au réveil.
 
-❓ **Pourquoi les capsules ne sont-elles jamais parties ?** Panne, abandon, ou décision volontaire de quelqu'un ?
-(Indice potentiel pour une révélation secondaire.)
+**Pourquoi les capsules ne sont-elles jamais parties ? Un simple abandon.** Pendant la dernière nuit, les opérateurs
+du site ont fui face à la Floraison. Les capsules, en mode automatique, ont continué de fonctionner, oubliées de tous.
+Pas de complot : juste la panique et la fin d'un monde. Les derniers journaux des opérateurs racontent cette fuite
+(zone 1, l'Abri).
 
 Pistes de profils (détaillés dans T002) : une ingénieure d'Odyssée, un biologiste de Gaïa, un « non-choisi »,
 une agente de sécurité. Chacun possède des **indices personnels** que les autres n'ont pas : un vrai atout en coop.
@@ -77,12 +78,34 @@ Ce que le joueur a vu tout au long du jeu prend un autre sens :
 
 ### Le choix final
 
-Au Cœur, les survivants peuvent agir sur Gaïa. ❓ Options à affiner :
+Au Cœur, les survivants peuvent agir sur Gaïa :
 1. **Tout réveiller** : l'humanité revient, mais Gaïa s'effondre et la nature revenue risque de régresser.
 2. **Laisser dormir** : le monde guéri reste aux survivants, seuls.
-3. **Une troisième voie** : un réveil progressif, en cohabitation avec Gaïa. C'est la plus difficile à obtenir (artefacts, indices tous trouvés ?).
+3. **La troisième voie** : un réveil progressif, en cohabitation avec Gaïa.
 
-En coop, ❓ le choix se fait-il par **vote** des joueurs présents ?
+**Débloquer la troisième voie demande deux conditions :**
+- **Comprendre** : avoir trouvé les indices clés du mystère, dont les indices personnels des survivants ;
+- **Respecter Gaïa** : la façon dont on l'a traitée pendant le jeu compte (cocons épargnés plutôt que détruits,
+  Cœurs apaisés plutôt que tués quand c'est possible, zones peu saccagées). Le serveur tient un **score de respect**
+  caché, alimenté par les actions de tous les joueurs du monde.
+
+Si une condition manque, seules les deux premières options sont proposées.
+
+**En coop, c'est l'hôte qui décide** : le propriétaire du monde (celui qui l'a créé en solo/coop, ou l'administrateur
+du serveur dédié). Les autres joueurs présents assistent au choix.
+
+### Après la fin : le monde continue, changé
+
+Le choix modifie **durablement** le monde persistant, et on continue d'y jouer :
+
+| Fin | Ce qui change dans le monde |
+|---|---|
+| Tout réveiller | Les cocons s'ouvrent. Des communautés humaines (PNJ) réapparaissent, la forêt recule, les Cœurs disparaissent. Nouveaux besoins : reconstruire, nourrir, organiser. |
+| Laisser dormir | Le monde reste sauvage et paisible. Gaïa cesse d'être hostile : la faune se calme, de nouvelles zones s'ouvrent. |
+| Troisième voie | Réveils progressifs au fil du temps, villages mêlant nature et humains, Gaïa devient une alliée (nouvelles capacités). |
+
+> ⚠️ **Portée :** c'est le contenu le plus coûteux du projet (trois états du monde). Il est prévu **après le MVP**.
+> Le MVP s'arrête avant le Cœur (zones 1 à 3).
 
 ### Le fil laissé ouvert
 

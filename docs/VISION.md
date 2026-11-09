@@ -76,6 +76,7 @@ explorer → récolter → fabriquer → (construire / s'équiper) → survivre 
 | Créatures | IA de faune passive/hostile, combat | v1 |
 | Cycle jour/nuit & météo | Impact sur la visibilité et la survie | v1 |
 | Social | Chat, groupes, partage de base | v1 |
+| Fin & monde changé | Choix final au Cœur, trois états du monde après la fin | v2 |
 | Économie / échanges | Commerce entre joueurs | plus tard |
 
 ## Hors périmètre (pour l'instant)
