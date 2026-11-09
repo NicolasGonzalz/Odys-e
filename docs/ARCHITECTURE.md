@@ -71,6 +71,25 @@ Figma (plans de zones, concepts) ──┘                    │
 Les **marqueurs** (nœuds Godot dédiés : `ResourceSpawn`, `ClueSpot`, `BossArena`, `ZoneGate`…) portent les données
 de gameplay. Le serveur charge le fichier exporté au démarrage ; ce fichier est versionné avec le reste du projet.
 
+## Rendu & performances (client)
+
+**Objectif : 60 FPS sur un PC moyen**, avec des préréglages graphiques (bas / moyen / haut / ultra) pour les portables.
+
+| Technique | Rôle |
+|---|---|
+| Frustum culling | Ne pas dessiner ce qui est hors du champ de vision (automatique dans Godot) |
+| Occlusion culling | Ne pas dessiner ce qui est caché derrière un mur (`OccluderInstance3D`), crucial en ville |
+| LOD | Modèles simplifiés au loin |
+| Distances de visibilité | Herbe, cailloux et détails disparaissent au loin |
+| MultiMesh | Végétation dessinée par milliers d'instances en un seul appel |
+| Streaming par distance | Les chunks se chargent et se déchargent selon la **distance** (jamais selon la direction du regard, pour éviter les saccades) |
+
+Côté serveur, la zone d'intérêt se base aussi sur la **distance**, pas sur le regard : ce qui est dans le dos du joueur
+doit continuer d'exister (un loup qui approche par derrière).
+
+**Un monde vivant :** chaque zone doit avoir des éléments d'ambiance en plus des ressources et des ennemis :
+végétation animée par le vent, oiseaux, insectes, particules (pollen, lucioles, spores), sons d'ambiance, météo.
+
 ## Modèle de threads (cible)
 
 - **Serveur** : un thread de simulation (pas de verrous dans la logique de jeu), un thread réseau I/O,

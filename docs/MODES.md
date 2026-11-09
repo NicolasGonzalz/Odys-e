@@ -24,7 +24,8 @@ ODYSSÉE
 ```
 
 - **Solo** : le client démarre `odyssee_server` en processus enfant (port local, accès limité à la machine),
-  s'y connecte, et l'arrête en quittant. Le monde est sauvegardé localement.
+  s'y connecte, et l'arrête en quittant. Le monde est sauvegardé localement. **Pas besoin du homelab ni d'Internet**,
+  latence quasi nulle, impact négligeable sur les FPS.
 - **Duo / coop** : même chose que le solo, mais le serveur accepte d'autres joueurs (nombre max réglable).
   « Duo » et « coop » ne sont pas deux modes techniques différents : seule la limite de joueurs change.
 - **Monde persistant** : un serveur dédié qui tourne en permanence sur le homelab, même quand personne ne joue.
@@ -33,7 +34,8 @@ Un monde solo peut être ouvert plus tard en coop : c'est le même format de sau
 
 ## Serveur dédié sur le homelab (Proxmox)
 
-- **Conteneur LXC** Debian dédié, IP fixe, nom `odyssee.lan`, service systemd `odyssee-server`.
+- **Conteneur LXC** Debian dédié (plus léger qu'une VM), IP fixe, nom `odyssee.lan`, service systemd `odyssee-server`.
+- **Pas de carte graphique** : le serveur ne fait aucun rendu. Estimation : 1–2 cœurs et 1–2 Go de RAM par monde à 4 joueurs.
 - Port **UDP 27015**.
 - Surveillance dans Uptime Kuma, carte sur Homepage, sauvegardes de la base du monde (SQLite) dans le plan de sauvegarde existant.
 - Mises à jour : déploiement du binaire Linux compilé par la CI.

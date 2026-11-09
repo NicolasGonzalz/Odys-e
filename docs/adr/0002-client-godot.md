@@ -1,6 +1,6 @@
 # ADR 0002 — Client Godot 4 + serveur C++ maison
 
-- **Statut :** proposé — **à rediscuter** (Godot ou Unreal Engine) avant le spike, puis à valider par un prototype
+- **Statut :** **accepté** (2026-11-09). Godot retenu face à Unreal ; le spike M0.5 valide la faisabilité technique.
 - **Date :** 2026-11-09
 - **Remplace partiellement :** [ADR 0001](0001-stack-technique.md) (le choix de raylib pour le client)
 
@@ -40,6 +40,15 @@ Trois options ont été étudiées :
 │  Serveur C++ headless ─ odyssee_shared (net + sim) ─ monde       │
 └────────────────────────────────────────────────────────────────┘
 ```
+
+## Godot face à Unreal (comparaison du 2026-11-09)
+
+Unreal a été envisagé (l'un des deux développeurs le connaît). Godot a été retenu pour :
+- le **travail à deux sous Git** : scènes en texte, fusionnables, pas de Git LFS ni de verrouillage de fichiers ;
+- le **développement sous Linux**, où l'éditeur Unreal est moins bien supporté ;
+- le **serveur C++ maison** sur le homelab, naturel avec Godot et à contre-courant du réseau intégré d'Unreal ;
+- le **style low-poly**, qui n'a pas besoin du rendu photoréaliste d'Unreal ;
+- la **légèreté** : éditeur de ~150 Mo, jeu final estimé à 0,5–1,5 Go, PC modeste suffisant.
 
 ## Critères de validation du spike
 

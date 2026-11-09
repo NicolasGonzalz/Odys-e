@@ -18,7 +18,7 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 |---|---|
 | Langage | C++20 |
 | Build | CMake ≥ 3.24, dépendances via `FetchContent` |
-| Client | [Godot 4](https://godotengine.org/) + GDExtension C++ — *proposé, voir [ADR 0002](docs/adr/0002-client-godot.md)* (prototype actuel : raylib) |
+| Client | [Godot 4](https://godotengine.org/) + GDExtension C++ — voir [ADR 0002](docs/adr/0002-client-godot.md) (prototype actuel : raylib) |
 | Serveur | C++20 headless, autoritaire — homelab Proxmox ou local (solo) |
 | Assets | Figma (2D, UI, concepts) → Blender (3D, animations) → glTF |
 | Plateformes | Linux, Windows |
