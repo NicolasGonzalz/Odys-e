@@ -22,6 +22,8 @@ class ByteWriter {
     void writeBool(bool v) { writeU8(v ? 1 : 0); }
     /// Chaîne préfixée par sa longueur (u16).
     void writeString(std::string_view s);
+    /// Octets bruts, sans préfixe de longueur (à écrire avant par l'appelant).
+    void writeBytes(std::span<const std::byte> bytes);
 
     [[nodiscard]] std::span<const std::byte> data() const { return _data; }
     [[nodiscard]] std::size_t size() const { return _data.size(); }
@@ -44,6 +46,8 @@ class ByteReader {
     [[nodiscard]] std::optional<float> readF32();
     [[nodiscard]] std::optional<bool> readBool();
     [[nodiscard]] std::optional<std::string> readString(std::size_t maxLength = 256);
+    /// Lit exactement `count` octets bruts.
+    [[nodiscard]] std::optional<std::vector<std::byte>> readBytes(std::size_t count);
 
     [[nodiscard]] std::size_t remaining() const { return _data.size() - _offset; }
 

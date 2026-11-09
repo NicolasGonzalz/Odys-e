@@ -32,7 +32,9 @@ class ReceivedPackets {
     Arrival recordOlder(Sequence sequence);
 
     bool _hasReceived = false;
-    Sequence _latest = 0;
+    // Tant que rien n'est reçu, ack() vaut 65535 : un numéro que l'autre côté n'a pas encore
+    // utilisé (il commence à 0). Avec 0, on « confirmerait » à tort son tout premier paquet.
+    Sequence _latest = 0xFFFF;
     std::uint32_t _bits = 0;
 };
 

@@ -2,6 +2,8 @@
 
 #include <doctest/doctest.h>
 
+#include <vector>
+
 using odyssee::net::ByteReader;
 using odyssee::net::ByteWriter;
 
@@ -57,4 +59,13 @@ TEST_CASE("ByteBuffer : un booléen invalide est rejeté") {
     w.writeU8(7);
     ByteReader r(w.data());
     CHECK_FALSE(r.readBool().has_value());
+}
+
+TEST_CASE("ByteBuffer : octets bruts") {
+    const std::vector<std::byte> payload{std::byte{1}, std::byte{2}, std::byte{3}};
+    ByteWriter w;
+    w.writeBytes(payload);
+    ByteReader r(w.data());
+    CHECK(r.readBytes(3) == payload);
+    CHECK_FALSE(r.readBytes(1).has_value()); // plus rien
 }

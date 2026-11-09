@@ -28,6 +28,10 @@ void ByteWriter::writeString(std::string_view s) {
     }
 }
 
+void ByteWriter::writeBytes(std::span<const std::byte> bytes) {
+    _data.insert(_data.end(), bytes.begin(), bytes.end());
+}
+
 template <typename T> std::optional<T> ByteReader::readUnsigned() {
     if (remaining() < sizeof(T)) {
         return std::nullopt;
@@ -73,6 +77,16 @@ std::optional<std::string> ByteReader::readString(std::size_t maxLength) {
     }
     _offset += *len;
     return s;
+}
+
+std::optional<std::vector<std::byte>> ByteReader::readBytes(std::size_t count) {
+    if (remaining() < count) {
+        return std::nullopt;
+    }
+    const auto first = _data.begin() + static_cast<std::ptrdiff_t>(_offset);
+    std::vector<std::byte> bytes(first, first + static_cast<std::ptrdiff_t>(count));
+    _offset += count;
+    return bytes;
 }
 
 } // namespace odyssee::net

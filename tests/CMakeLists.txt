@@ -7,6 +7,10 @@ add_executable(odyssee_tests
     test_packet_header.cpp
     test_received_packets.cpp
     test_acknowledgements.cpp
+    test_reliable_codec.cpp
+    test_reliable_sender.cpp
+    test_reliable_receiver.cpp
+    test_reliable_channel.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 
