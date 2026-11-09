@@ -20,7 +20,7 @@ struct Received {
 /// - RAII : le socket est fermé à la destruction. Déplaçable, non copiable (un seul propriétaire).
 /// - Aucune exception : les erreurs sont signalées par std::nullopt / false
 ///   (règle de shared/, ADR 0003).
-/// - Implémentation par plateforme : net/posix/ (Linux/macOS), Winsock à venir (T019).
+/// - Implémentation par plateforme : net/posix/ (Linux/macOS), net/win32/ (Windows).
 class UdpSocket {
   public:
     /// Ouvre un socket attaché à `port` sur toutes les interfaces.

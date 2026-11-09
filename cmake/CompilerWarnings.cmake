@@ -1,7 +1,8 @@
 # Options de compilation communes à toutes les cibles du projet.
 function(odyssee_set_options target)
     if(MSVC)
-        target_compile_options(${target} PRIVATE /W4 /permissive-)
+        # /utf-8 : nos sources contiennent des accents (sans ça, MSVC les lit dans l'encodage local).
+        target_compile_options(${target} PRIVATE /W4 /permissive- /utf-8)
     else()
         target_compile_options(${target} PRIVATE
             -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion

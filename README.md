@@ -61,6 +61,14 @@ cmake --build build -j
 ctest --test-dir build --output-on-failure
 ```
 
+Sous **Windows** (Visual Studio 2022, utile pour le mode solo et le plugin Unreal) :
+
+```powershell
+cmake -S . -B build -DODYSSEE_BUILD_CLIENT=OFF
+cmake --build build --config Debug
+ctest --test-dir build -C Debug --output-on-failure
+```
+
 Options CMake : `ODYSSEE_BUILD_CLIENT`, `ODYSSEE_BUILD_SERVER`, `ODYSSEE_BUILD_TESTS`, `ODYSSEE_SANITIZERS`.
 Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_BUILD_CLIENT=OFF`.
 

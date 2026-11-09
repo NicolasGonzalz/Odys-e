@@ -14,7 +14,11 @@ add_library(odyssee::shared ALIAS odyssee_shared)
 
 # Socket UDP : une implémentation par plateforme.
 if(WIN32)
-    message(FATAL_ERROR "UdpSocket pour Windows (Winsock) pas encore implémenté : voir T019.")
+    target_sources(odyssee_shared PRIVATE
+        src/net/win32/UdpSocketWin32.cpp
+        src/net/win32/WinsockRuntime.cpp
+    )
+    target_link_libraries(odyssee_shared PRIVATE ws2_32) # bibliothèque Winsock
 else()
     target_sources(odyssee_shared PRIVATE src/net/posix/UdpSocketPosix.cpp)
 endif()
