@@ -17,7 +17,8 @@ struct Address {
     /// 127.0.0.1:<port>, la machine locale.
     static constexpr Address loopback(std::uint16_t port) { return {0x7F000001u, port}; }
 
-    /// Lit une IPv4 en notation pointée ("192.168.1.20"). Renvoie std::nullopt si le texte est invalide.
+    /// Lit une IPv4 en notation pointée ("192.168.1.20").
+    /// Renvoie std::nullopt si le texte est invalide.
     [[nodiscard]] static std::optional<Address> parse(std::string_view ip, std::uint16_t port);
 
     /// "192.168.1.20:27015"

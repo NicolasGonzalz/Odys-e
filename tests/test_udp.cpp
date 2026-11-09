@@ -17,8 +17,8 @@ using odyssee::net::UdpSocket;
 
 namespace {
 
-/// En local, un datagramme arrive quasi instantanément, mais pas forcément avant notre premier appel :
-/// on réessaie pendant au plus ~200 ms.
+/// En local, un datagramme arrive quasi instantanément, mais pas forcément avant
+/// notre premier appel : on réessaie pendant au plus ~200 ms.
 std::optional<Received> receiveWithin(UdpSocket& socket, std::span<std::byte> buffer) {
     for (int attempt = 0; attempt < 200; ++attempt) {
         if (auto received = socket.receive(buffer)) {

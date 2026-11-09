@@ -10,7 +10,7 @@ add_library(odyssee::shared ALIAS odyssee_shared)
 if(WIN32)
     message(FATAL_ERROR "UdpSocket pour Windows (Winsock) pas encore implémenté : voir T019.")
 else()
-    target_sources(odyssee_shared PRIVATE src/net/UdpSocketPosix.cpp)
+    target_sources(odyssee_shared PRIVATE src/net/posix/UdpSocketPosix.cpp)
 endif()
 
 target_include_directories(odyssee_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
