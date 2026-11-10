@@ -25,7 +25,8 @@ def _body():
 def _head():
     fur = flat_material("pelage", FUR)
     dark = flat_material("pelage_sombre", FUR_DARK)
-    skull = blob("crane", 0.17, fur, subdivisions=1, scale=(1.1, 0.9, 0.85), location=(0.66, 0, 1.0))
+    skull = blob("crane", 0.17, fur, subdivisions=1, scale=(1.1, 0.9, 0.85),
+                 location=(0.66, 0, 1.0))
     muzzle = wedge("museau", 0.24, back=(0.17, 0.15), front=(0.07, 0.07), material=fur,
                    location=(0.74, 0, 0.96))
     nose = blob("truffe", 0.035, dark, subdivisions=1, location=(0.99, 0, 0.97))

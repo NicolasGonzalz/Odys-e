@@ -52,5 +52,6 @@ def _rust_patches():
 
 
 def build():
-    return (_handle() + _bandage("poignee", 0.07, 6, 0.023) + _bandage("collier", HEAD_Z - 0.13, 3, 0.021)
-            + _head() + _rust_patches())
+    grip = _bandage("poignee", 0.07, 6, 0.023)
+    collar = _bandage("collier", HEAD_Z - 0.13, 3, 0.021)
+    return _handle() + grip + collar + _head() + _rust_patches()

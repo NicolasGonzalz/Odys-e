@@ -91,9 +91,10 @@ def wedge(name, length, back, front, material, location=(0, 0, 0), rotation_deg=
     `back` et `front` = (épaisseur y, hauteur z) à l'arrière (x = 0) et à l'avant (x = length).
     """
     (by, bz), (fy, fz) = back, front
-    corners = [(0, -by / 2, -bz / 2), (0, by / 2, -bz / 2), (0, by / 2, bz / 2), (0, -by / 2, bz / 2),
-               (length, -fy / 2, -fz / 2), (length, fy / 2, -fz / 2), (length, fy / 2, fz / 2),
-               (length, -fy / 2, fz / 2)]
+    corners = [(0, -by / 2, -bz / 2), (0, by / 2, -bz / 2),
+               (0, by / 2, bz / 2), (0, -by / 2, bz / 2),
+               (length, -fy / 2, -fz / 2), (length, fy / 2, -fz / 2),
+               (length, fy / 2, fz / 2), (length, -fy / 2, fz / 2)]
     faces = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(corners, [], faces)

@@ -19,12 +19,13 @@ def _camera_for(obj):
     bpy.context.scene.camera = camera
 
 
-def _workbench(scene):
-    """Moteur Workbench : rapide, fonctionne sans écran, montre les couleurs des matériaux."""
+def _workbench(scene, color_type):
+    """Moteur Workbench : rapide, fonctionne sans écran. color_type : MATERIAL (couleurs unies)
+    ou TEXTURE (modèles générés par IA, dont les couleurs sont dans une image)."""
     scene.render.engine = "BLENDER_WORKBENCH"
     shading = scene.display.shading
     shading.light = "STUDIO"
-    shading.color_type = "MATERIAL"
+    shading.color_type = color_type
     shading.show_object_outline = True
     shading.show_cavity = True
     shading.cavity_type = "WORLD"
@@ -33,10 +34,10 @@ def _workbench(scene):
     scene.render.film_transparent = False
 
 
-def render_preview(obj, path, resolution=900):
+def render_preview(obj, path, resolution=900, color_type="MATERIAL"):
     scene = bpy.context.scene
     _camera_for(obj)
-    _workbench(scene)
+    _workbench(scene, color_type)
     scene.render.resolution_x = resolution
     scene.render.resolution_y = resolution
     scene.render.filepath = str(path)

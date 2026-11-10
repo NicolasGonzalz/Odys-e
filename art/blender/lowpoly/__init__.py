@@ -2,7 +2,7 @@
 
   scene      : remise à zéro de la scène
   materials  : matériaux de couleur unie (style des planches de concepts)
-  shapes     : formes de base (boîtes, cylindres, cônes, sphères) et retouches (biseau, irrégularité)
+  shapes     : formes de base (boîtes, cylindres, cônes, sphères, biseaux) et irrégularités
   finish     : assemblage, pivot au pied, application des transformations
   export     : fichiers .blend (retouchable) et .fbx (pour Unreal)
   preview    : rendu de vérification (vue de trois quarts)
