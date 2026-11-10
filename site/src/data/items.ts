@@ -46,7 +46,7 @@ export interface Chaine {
 export const transformes: Objet[] = [
   { id: "planches", nom: "Planches", texte: "Une bûche, quelques coups, et le bois devient matériau : établis, abris, manches." },
   { id: "baton", nom: "Bâton", texte: "Taillé dans une planche. Il sert de manche à presque tous les outils." },
-  { id: "lingot", nom: "Lingot de métal", texte: "Le minerai fondu à la main. Du métal enfin utilisable, prêt à devenir outil." },
+  { id: "lingot", nom: "Lingot de métal", texte: "Le minerai fondu à la forge. Du métal enfin utilisable, prêt à devenir outil." },
 ];
 
 export const chaines: Chaine[] = [
@@ -66,6 +66,35 @@ export const chaines: Chaine[] = [
       { id: "lingot", nom: "Lingot" },
     ],
     texte: "Du minerai brut à la barre de métal : la fonte change ce qu'on peut faire.",
+  },
+];
+
+/** Où l'on fabrique : trois niveaux, chacun ouvre le suivant. */
+export interface Poste {
+  numero: string;
+  nom: string;
+  role: string;
+  exemples: string[];
+}
+
+export const postes: Poste[] = [
+  {
+    numero: "1",
+    nom: "À la main",
+    role: "Partout, sans rien. Le strict nécessaire pour passer la première nuit.",
+    exemples: ["Bâton", "Hache et pioche de pierre", "Lance", "Torche", "Établi"],
+  },
+  {
+    numero: "2",
+    nom: "À l'établi",
+    role: "On travaille le bois et on assemble. L'établi se pose dans le monde et sert à tous.",
+    exemples: ["Planches", "Arc et flèches", "Arbalète", "Coffres", "Table de cartographie", "Forge"],
+  },
+  {
+    numero: "3",
+    nom: "À la forge",
+    role: "On fond le métal et on le travaille. Les outils changent de catégorie.",
+    exemples: ["Lingots", "Hache et pioche de métal", "Pièces d'armes à feu"],
   },
 ];
 
@@ -104,14 +133,22 @@ export const armes: Objet[] = [
 
 export const munitions: Objet[] = [
   { id: "fleche", nom: "Flèches", texte: "La même pour l'arc et l'arbalète." },
-  { id: "munitions_pistolet", nom: "Balles de pistolet", texte: "De petits tas de cartouches retrouvés dans les ruines. Elles ne se fabriquent pas." },
+  { id: "munitions_pistolet", nom: "Balles de pistolet", texte: "De petits tas de cartouches retrouvés dans les ruines. Elles sont rares." },
   { id: "munitions_fusil", nom: "Cartouches de fusil", texte: "Lourdes, bruyantes, précieuses. On les compte avant d'entrer quelque part." },
+];
+
+export const reperes: Objet[] = [
+  { id: "carte", nom: "Carte", texte: "Vierge au réveil, sauf la zone de départ. Le reste se dessine à mesure qu'on explore." },
+  { id: "gps", nom: "GPS", texte: "Une flèche vers le prochain lieu repéré mais pas encore visité. Il marche avec des piles." },
+  { id: "pile", nom: "Piles", texte: "À glaner dans les ruines. Elles font vivre le GPS comme la lampe, et elles s'usent." },
+  { id: "lampe", nom: "Lampe", texte: "Les ruines sont sombres, les nuits aussi. Elle consomme les mêmes piles que le GPS." },
+  { id: "jumelles", nom: "Jumelles", texte: "Repérer avant d'avancer : ce qu'on voit de loin évite des ennuis." },
 ];
 
 export const equipement: Objet[] = [
   { id: "lampe", nom: "Lampe", texte: "Les ruines sont sombres, les nuits aussi." },
   { id: "pile", nom: "Pile", texte: "Récupérée dans les vestiges, elle fait vivre la lampe et le GPS." },
-  { id: "gps", nom: "GPS", texte: "Un vieil appareil qui fonctionne encore, par endroits." },
+  { id: "gps", nom: "GPS", texte: "Un vieil appareil qui fonctionne encore, sur piles. Il pointe vers les lieux à découvrir." },
   { id: "jumelles", nom: "Jumelles", texte: "Repérer avant d'avancer : ce qu'on voit de loin évite des ennuis." },
   { id: "pied_de_biche", nom: "Pied-de-biche", texte: "Pour forcer ce que les anciens ont fermé." },
 ];

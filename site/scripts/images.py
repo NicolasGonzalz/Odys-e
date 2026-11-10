@@ -53,7 +53,7 @@ DECORS = {
     "ruines": ("decors/vegetation-ruines-campement.jpg", None),
     "monde-sauvage": ("ambiances/zones-1-3-5-lieux.jpeg", None),
 }
-ICONS = ["baton", "planches", "lingot", "munitions_pistolet", "munitions_fusil", "hache_pierre", "pioche_pierre", "hache_metal", "pioche_metal", "buche", "pierre", "minerai",
+ICONS = ["carte", "baton", "planches", "lingot", "munitions_pistolet", "munitions_fusil", "hache_pierre", "pioche_pierre", "hache_metal", "pioche_metal", "buche", "pierre", "minerai",
          "arc", "fleche", "lance", "arbalete", "pistolet", "fusil_pompe", "lampe", "pile", "gps",
          "jumelles", "pied_de_biche"]
 EXPORTS = ROOT / "art" / "exports" / "icones"
