@@ -4,12 +4,12 @@ import { Image } from "astro:assets";
 import etabli from "../assets/etabli.webp";
 import feu from "../assets/feu.webp";
 import ObjetCard from "../components/ObjetCard.astro";
-import { armes, equipement, icone, paliers, ressources } from "../data/items";
+import { armes, chaines, equipement, icone, munitions, paliers, ressources, transformes } from "../data/items";
 import Base from "../layouts/Base.astro";
 ---
 <Base
   title="Fabriquer"
-  description="Bois, pierre, minerai : de la pioche de pierre aux outils de métal, tout ce qu'on récolte, fabrique et emporte dans Odyssée."
+  description="Bûches, planches, minerai, lingots : du bâton et du caillou aux outils de métal, tout ce qu'on récolte, fabrique et emporte dans Odyssée."
 >
   <section class="conteneur entete-page">
     <span class="surtitre">Récolter · Fabriquer · Survivre</span>
@@ -28,9 +28,44 @@ import Base from "../layouts/Base.astro";
     </div>
   </section>
 
+  <section class="section bande">
+    <div class="conteneur">
+      <span class="surtitre">Transformer</span>
+      <h2>De la matière à l'outil</h2>
+      <p class="intro">
+        Rien ne s'utilise tel quel. Le bois devient planches, puis bâtons ; le minerai devient lingots.
+        Chaque matière transformée ouvre de nouveaux objets.
+      </p>
+      <div class="chaines">
+        {
+          chaines.map((chaine) => (
+            <div class="chaine reveal">
+              <h3>{chaine.titre}</h3>
+              <ol>
+                {chaine.etapes.map((etape, i) => (
+                  <li>
+                    {i > 0 && <span class="fleche" aria-hidden="true">→</span>}
+                    <figure>
+                      <Image src={icone(etape.id)} alt="" width={112} height={112} loading="eager" />
+                      <figcaption>{etape.nom}</figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ol>
+              <p>{chaine.texte}</p>
+            </div>
+          ))
+        }
+      </div>
+      <div class="grille grille--objets">
+        {transformes.map((objet) => <ObjetCard objet={objet} />)}
+      </div>
+    </div>
+  </section>
+
   {
     paliers.map((palier) => (
-      <section class:list={["section", "palier", { bande: palier.id === "metal" }]}>
+      <section class:list={["section", "palier", { bande: palier.id === "pierre" }]}>
         <div class="conteneur">
           <span class="numero-palier">{palier.numero}</span>
           <span class="surtitre">Palier {palier.numero}</span>
@@ -76,6 +111,11 @@ import Base from "../layouts/Base.astro";
       </p>
       <div class="grille grille--objets">
         {armes.map((objet) => <ObjetCard objet={objet} />)}
+      </div>
+      <h3 class="sous-titre">Munitions</h3>
+      <p class="intro">Les flèches se fabriquent. Les balles et les cartouches, elles, se trouvent : mieux vaut les garder pour quand il le faut.</p>
+      <div class="grille grille--objets">
+        {munitions.map((objet) => <ObjetCard objet={objet} />)}
       </div>
     </div>
   </section>
@@ -167,6 +207,66 @@ import Base from "../layouts/Base.astro";
   .bande {
     background: var(--surface);
     border-block: 1px solid var(--bord);
+  }
+  .chaines {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .chaine {
+    padding: 1.4rem;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface-haute);
+  }
+  .chaine h3 {
+    margin-bottom: 1rem;
+  }
+  .chaine ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+  .chaine li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .chaine figure {
+    display: grid;
+    place-items: center;
+    width: 112px;
+    border: 0;
+    background: none;
+    text-align: center;
+  }
+  .chaine figure img {
+    width: 100px;
+    height: 80px;
+    aspect-ratio: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.45));
+  }
+  .chaine figcaption {
+    padding: 0.2rem 0;
+    background: none;
+    font-size: 0.9rem;
+  }
+  .fleche {
+    color: var(--mousse);
+    font-size: 1.5rem;
+  }
+  .chaine p {
+    margin: 0;
+    color: var(--texte-doux);
+  }
+  .sous-titre {
+    margin-top: 2.5rem;
   }
   .note {
     margin-top: 1.5rem;

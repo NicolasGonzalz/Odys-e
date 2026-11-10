@@ -9,7 +9,7 @@ const { objet } = Astro.props;
 ---
 <article class="objet reveal">
   <div class="icone">
-    <Image src={icone(objet.id)} alt={objet.nom} width={128} height={128} />
+    <Image src={icone(objet.id)} alt={objet.nom} width={128} height={128} loading="eager" />
   </div>
   <div>
     <h3>{objet.nom}</h3>
