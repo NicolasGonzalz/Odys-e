@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\Odysse.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F31BBDD1-B3E8-3BCC-9652-680E16935819}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Odysse.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\OdysseEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <Filter Include="Config">
+      <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEditorPerProjectUserSettings.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\Odysse">
+      <UniqueIdentifier>{FFAB3C30-E044-36C8-9720-5403F0468DFF}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Odysse\Odysse.Build.cs">
+      <Filter>Source\Odysse</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\Odysse\Odysse.cpp">
+      <Filter>Source\Odysse</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Odysse.h">
+      <Filter>Source\Odysse</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\OdysseCameraManager.cpp">
+      <Filter>Source\Odysse</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\OdysseCameraManager.h">
+      <Filter>Source\Odysse</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\OdysseCharacter.cpp">
+      <Filter>Source\Odysse</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\OdysseCharacter.h">
+      <Filter>Source\Odysse</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\OdysseGameMode.cpp">
+      <Filter>Source\Odysse</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\OdysseGameMode.h">
+      <Filter>Source\Odysse</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\OdyssePlayerController.cpp">
+      <Filter>Source\Odysse</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\OdyssePlayerController.h">
+      <Filter>Source\Odysse</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Horror">
+      <UniqueIdentifier>{DB23E3EF-DEA9-3EF8-B8C9-384F271EDA43}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Horror\HorrorCharacter.cpp">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Horror\HorrorCharacter.h">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Horror\HorrorGameMode.cpp">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Horror\HorrorGameMode.h">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Horror\HorrorPlayerController.cpp">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Horror\HorrorPlayerController.h">
+      <Filter>Source\Odysse\Variant_Horror</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Horror\UI">
+      <UniqueIdentifier>{A8A52BCF-6FEC-391F-8977-03597694BB92}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Horror\UI\HorrorUI.cpp">
+      <Filter>Source\Odysse\Variant_Horror\UI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Horror\UI\HorrorUI.h">
+      <Filter>Source\Odysse\Variant_Horror\UI</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Shooter">
+      <UniqueIdentifier>{CD17E47E-41EE-3B29-8002-21B42F1CA574}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\ShooterCharacter.cpp">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\ShooterCharacter.h">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\ShooterGameMode.cpp">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\ShooterGameMode.h">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\ShooterPlayerController.cpp">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\ShooterPlayerController.h">
+      <Filter>Source\Odysse\Variant_Shooter</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Shooter\AI">
+      <UniqueIdentifier>{34DBBCB3-989F-3120-AE30-DF20BE40A1F3}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\AI\EnvQueryContext_Target.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\AI\EnvQueryContext_Target.h">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterAIController.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterAIController.h">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterNPC.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterNPC.h">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterStateTreeUtility.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\AI\ShooterStateTreeUtility.h">
+      <Filter>Source\Odysse\Variant_Shooter\AI</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Shooter\UI">
+      <UniqueIdentifier>{D4205B33-9937-3716-81B2-FB73652FA70E}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\UI\ShooterBulletCounterUI.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\UI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\UI\ShooterBulletCounterUI.h">
+      <Filter>Source\Odysse\Variant_Shooter\UI</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\UI\ShooterUI.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\UI</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\UI\ShooterUI.h">
+      <Filter>Source\Odysse\Variant_Shooter\UI</Filter>
+    </ClInclude>
+    <Filter Include="Source\Odysse\Variant_Shooter\Weapons">
+      <UniqueIdentifier>{AA195FCF-87C1-36F6-B7AE-15449EFA3F4B}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterPickup.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterPickup.h">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterProjectile.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterProjectile.h">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterWeapon.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterWeapon.h">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterWeaponHolder.cpp">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Odysse\Variant_Shooter\Weapons\ShooterWeaponHolder.h">
+      <Filter>Source\Odysse\Variant_Shooter\Weapons</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

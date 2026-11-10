@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "Odysse",
+			"Path": "..\\Source\\Odysse.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "OdysseEditor",
+			"Path": "..\\Source\\OdysseEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
