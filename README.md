@@ -20,7 +20,7 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 |---|---|
 | Langage | C++20 |
 | Build | CMake ≥ 3.24, dépendances via `FetchContent` |
-| Client | [Unreal Engine 5](https://www.unrealengine.com/) + plugin C++ `OdysseeNet` — voir [ADR 0003](docs/adr/0003-client-unreal.md) |
+| Client | [Unreal Engine **5.6**](https://www.unrealengine.com/) (version figée) + plugin C++ `OdysseeNet` — voir [ADR 0003](docs/adr/0003-client-unreal.md) |
 | Client de debug | raylib (Linux, tests serveur et réseau sans Unreal) |
 | Serveur | C++20 headless, autoritaire — homelab Proxmox ou local (solo) |
 | Assets | Figma (2D, UI, concepts) → Blender (3D, animations) → Unreal (Git LFS) |
@@ -34,7 +34,8 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 .
 ├── shared/   # Code commun client/serveur : protocole, sérialisation, simulation
 ├── server/   # Serveur dédié autoritaire (headless)
-├── client/   # Client de debug raylib (le client Unreal arrivera dans client-unreal/)
+├── client/   # Client de debug raylib (tests serveur/réseau sous Linux)
+├── UnrealEngine/Odysse/  # Client Unreal 5.6 (C++ dans Source/, assets via Git LFS)
 ├── tests/    # Tests unitaires
 ├── cmake/    # Modules CMake (warnings, dépendances)
 ├── docs/     # Conception : vision, architecture, réseau, roadmap, planning, ADR
