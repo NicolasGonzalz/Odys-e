@@ -1,6 +1,11 @@
 """Assemblage d'un modèle : une seule pièce, pivot au pied, prête à exporter."""
+import math
+
+import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Euler, Vector
+
+from .outline import mark_outlined
 
 
 def _select_only(objects):
@@ -16,13 +21,36 @@ def join(objects, name):
         _select_only([obj])
         for modifier in list(obj.modifiers):
             bpy.ops.object.modifier_apply(modifier=modifier.name)
+        mark_outlined(obj)
     _select_only(objects)
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     bpy.ops.object.join()
     model = bpy.context.active_object
     model.name = name
     model.data.name = name
+    outward_normals(model)
     return model
+
+
+def turned(objects, rotation_deg):
+    """Tourne un ensemble de pièces autour de l'origine. Ex. : une bûche construite debout
+    (comme un manche, selon z) puis couchée."""
+    bpy.context.view_layer.update()  # matrices à jour pour les pièces placées par location
+    rotation = Euler(tuple(math.radians(a) for a in rotation_deg)).to_matrix().to_4x4()
+    for obj in objects:
+        obj.matrix_world = rotation @ obj.matrix_world
+    return objects
+
+
+def outward_normals(obj):
+    """Oriente toutes les faces vers l'extérieur. Indispensable : une face tournée vers l'intérieur
+    disparaît quand les faces arrière sont masquées (Unreal, contour noir) et laisse un trou noir."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
 
 
 def origin_at_base(obj):

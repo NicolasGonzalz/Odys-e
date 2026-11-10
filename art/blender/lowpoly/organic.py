@@ -47,15 +47,39 @@ def _frame(tangent):
     return side, side.cross(tangent).normalized()
 
 
-def tube(name, points, radii, material, sides=6):
-    """Tube passant par `points` (x, y, z), avec un rayon par point : il suit la courbe."""
+def _follow(side, tangent):
+    """Repère suivant le long d'une courbe : l'axe latéral précédent, redressé contre la nouvelle
+    direction. Sans ça, le repère bascule d'un coup quand la courbe passe à l'horizontale
+    (col de cygne, arc) et le tube se pince."""
+    side = (side - tangent * side.dot(tangent)).normalized()
+    return side, side.cross(tangent).normalized()
+
+
+def tube(name, points, radii, material, sides=6, flatten=1.0):
+    """Tube passant par `points` (x, y, z), avec un rayon par point : il suit la courbe.
+    `flatten` < 1 aplatit la section sur le côté (manche ovale, plus large dans le sens du coup)."""
     points = [Vector(p) for p in points]
-    rings = []
+    rings, side = [], None
     for i, point in enumerate(points):
         before = points[max(i - 1, 0)]
         after = points[min(i + 1, len(points) - 1)]
-        side, up = _frame((after - before).normalized())
-        rings.append(_ring(point, side, up, radii[i], radii[i], sides))
+        tangent = (after - before).normalized()
+        side, up = _frame(tangent) if side is None else _follow(side, tangent)
+        rings.append(_ring(point, side, up, radii[i] * flatten, radii[i], sides))
+    return _mesh_from_rings(name, rings, material)
+
+
+def band(name, points, width, height, material):
+    """Bande à section rectangulaire qui suit `points` : `width` à plat (horizontal),
+    `height` debout. Ex. la lame de ressort de l'arc d'une arbalète."""
+    corner = math.sqrt(2)  # un carré tourné de 45° : ses coins tombent sur les demi-côtés × √2
+    points = [Vector(p) for p in points]
+    rings = []
+    for i, point in enumerate(points):
+        tangent = (points[min(i + 1, len(points) - 1)] - points[max(i - 1, 0)]).normalized()
+        side, up = _frame(tangent)
+        rings.append(_ring(point, side, up, width / 2 * corner, height / 2 * corner, 4,
+                           math.pi / 4))
     return _mesh_from_rings(name, rings, material)
 
 

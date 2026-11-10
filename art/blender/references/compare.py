@@ -4,6 +4,7 @@
 Usage : python3 art/blender/references/compare.py <nom> [noms…]
 Sortie : art/blender/apercus/<nom>_comparaison.png
 """
+import json
 import sys
 from pathlib import Path
 
@@ -19,8 +20,18 @@ def _fit(image):
     return image.convert("RGB").resize((round(image.width * ratio), HEIGHT))
 
 
+def _reference_for(name):
+    """Image de référence d'un modèle : la sienne, ou celle qu'il partage (clé « modeles » de
+    references.json : la découpe « hache » sert à hache_metal)."""
+    data = json.loads((HERE / "references.json").read_text(encoding="utf-8"))
+    for ref, spec in data.items():
+        if name in spec.get("modeles", []) if isinstance(spec, dict) else False:
+            return HERE / f"{ref}.png"
+    return HERE / f"{name}.png"
+
+
 def compare(name):
-    reference = _fit(Image.open(HERE / f"{name}.png"))
+    reference = _fit(Image.open(_reference_for(name)))
     render = _fit(Image.open(PREVIEWS / f"{name}.png"))
     sheet = Image.new("RGB", (reference.width + render.width + 10, HEIGHT + 30), (40, 40, 45))
     sheet.paste(reference, (0, 30))

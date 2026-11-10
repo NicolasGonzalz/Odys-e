@@ -20,11 +20,25 @@ PALETTE = {
 _cache = {}
 
 
+def srgb_to_linear(color):
+    """Les couleurs sont données comme dans une image (sRGB) ; Blender calcule en linéaire.
+    Sans cette conversion, un brun 0,48 s'afficherait comme un beige clair."""
+    return tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in color)
+
+
+def _still_exists(material):
+    """Un matériau mis en cache a pu être supprimé (scène remise à zéro entre deux modèles)."""
+    try:
+        return material.name in bpy.data.materials
+    except ReferenceError:
+        return False
+
+
 def flat_material(name, color=None, emission=0.0, roughness=0.85):
     """Matériau uni. `name` peut être une entrée de PALETTE (la couleur est alors facultative)."""
-    color = color or PALETTE[name]
+    color = srgb_to_linear(color or PALETTE[name])
     key = (name, tuple(round(c, 3) for c in color), emission)
-    if key in _cache:
+    if key in _cache and _still_exists(_cache[key]):
         return _cache[key]
 
     material = bpy.data.materials.new(f"M_{name}")

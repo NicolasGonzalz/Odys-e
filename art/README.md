@@ -76,10 +76,22 @@ blender -b --python art/blender/build.py -- --all        # tous
 | `blender/sources/<catégorie>/<nom>.blend` | Le modèle, **retouchable à la main** dans Blender |
 | `exports/<catégorie>/<nom>.fbx` | Le modèle prêt pour Unreal (mètres → centimètres, pivot au pied) |
 | `blender/apercus/<nom>.png` | Rendu de vérification |
+| `exports/icones/<nom>.png` | Icône d'inventaire (PNG transparent 256 px), pour les modèles qui déclarent `ICON = True` |
+
+Options d'un modèle (variables de son fichier) : `VIEW` (angle de l'aperçu), `ICON = True` (objet
+d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLINE = False` (sans contour noir).
 
 | Modèle | Statut |
 |---|---|
-| `outils/hache` | ✅ fidèle à la planche (144 faces) |
+| `outils/hache_metal`, `outils/pioche_metal` | ✅ d'après la planche (tête de hache redessinée) ; bois retravaillé (fil, nœud, manche ovale) |
+| `outils/hache_pierre`, `outils/pioche_pierre` | ✅ sans concept, style de la plaine ; bois retravaillé |
+| `armes/arbalete` | 🟡 d'après la planche, ajouts de design à valider (arc en lame de ressort, étrier) |
+| `ressources/buche`, `ressources/pierre`, `ressources/minerai` | ✅ objets au sol et d'inventaire, + icône |
+| `outils/jumelles`, `outils/lampe`, `outils/gps`, `outils/pied_de_biche` | 🟡 d'après les ambiances (Site des Portes, Ville engloutie), à valider |
+| `armes/arc`, `armes/lance`, `armes/pistolet`, `armes/fusil_pompe` | 🟡 d'après les ambiances (Abri, Lac gelé, Cœur, hangar, Grande Porte), à valider |
+| `armes/fleche` | 🟡 flèche universelle : même munition pour l'arc et l'arbalète (`lowpoly/arrow.py`) |
+| `objets/pile` | 🟡 pile récupérée, énergie de la lampe et du GPS |
+| `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |
 | `vegetation/sapin` | ✅ fidèle à la planche (40 faces) |
 | `animaux/chien` | ✅ proche du concept : proportions, couleurs, pose (442 faces) ; pelage hirsute et gueule à affiner |
 | `animaux/loup` | 🟡 ancienne ébauche (gris, sans concept) : à remplacer par le loup végétal de Gaïa |
