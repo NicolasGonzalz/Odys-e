@@ -1,0 +1,177 @@
+---
+// Fabriquer : les ressources, les paliers d'outils, les armes et l'équipement.
+import { Image } from "astro:assets";
+import etabli from "../assets/etabli.webp";
+import feu from "../assets/feu.webp";
+import ObjetCard from "../components/ObjetCard.astro";
+import { armes, equipement, icone, paliers, ressources } from "../data/items";
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="Fabriquer"
+  description="Bois, pierre, minerai : de la pioche de pierre aux outils de métal, tout ce qu'on récolte, fabrique et emporte dans Odyssée."
+>
+  <section class="conteneur entete-page">
+    <span class="surtitre">Récolter · Fabriquer · Survivre</span>
+    <h1><span class="degrade">Tout part d'un bâton</span><br />et d'un caillou</h1>
+    <p class="intro">
+      Personne ne vous attend avec un équipement. On frappe un arbre, on ramasse une pierre, on lie le tout.
+      Puis le minerai apparaît, et chaque outil ouvre un peu plus le monde.
+    </p>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">Les matières premières</span>
+    <h2>Ce que la terre donne</h2>
+    <div class="grille grille--objets">
+      {ressources.map((objet) => <ObjetCard objet={objet} />)}
+    </div>
+  </section>
+
+  {
+    paliers.map((palier) => (
+      <section class:list={["section", "palier", { bande: palier.id === "metal" }]}>
+        <div class="conteneur">
+          <span class="numero-palier">{palier.numero}</span>
+          <span class="surtitre">Palier {palier.numero}</span>
+          <h2>{palier.titre}</h2>
+          <p class="intro">{palier.accroche}</p>
+          <p class="materiaux">
+            {palier.materiaux.map((m) => <span class="etiquette">{m}</span>)}
+          </p>
+          <div class="duo">
+            {palier.objets.map((objet) => (
+              <article class="vedette reveal">
+                <Image src={icone(objet.id)} alt={objet.nom} width={256} height={256} />
+                <h3>{objet.nom}</h3>
+                <p>{objet.texte}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section conteneur">
+    <span class="surtitre">Le camp</span>
+    <h2>Un feu, un établi, un coffre</h2>
+    <p class="intro">
+      Dès qu'on a de quoi se poser, on s'installe. Le feu chasse le froid, l'établi transforme ce qu'on rapporte, les
+      coffres gardent ce qu'on ne peut pas porter. À plusieurs, la base devient commune.
+    </p>
+    <div class="camp">
+      <figure class="reveal"><Image src={etabli} alt="Établi" widths={[480, 770]} sizes="(max-width: 720px) 90vw, 380px" /><figcaption>L'établi</figcaption></figure>
+      <figure class="reveal"><Image src={feu} alt="Feu de camp" widths={[480, 565]} sizes="(max-width: 720px) 90vw, 380px" /><figcaption>Le feu de camp</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="section bande">
+    <div class="conteneur">
+      <span class="surtitre">S'armer</span>
+      <h2>Se défendre, ou chasser</h2>
+      <p class="intro">
+        Le combat reste simple et lisible : attaque, esquive, blocage, endurance. Mieux vaut savoir quand ne pas
+        se battre.
+      </p>
+      <div class="grille grille--objets">
+        {armes.map((objet) => <ObjetCard objet={objet} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">S'équiper</span>
+    <h2>Ce qu'on glane dans les ruines</h2>
+    <p class="intro">Certains objets ne se fabriquent pas : on les trouve, on les répare, on s'en sert.</p>
+    <div class="grille grille--objets">
+      {equipement.map((objet) => <ObjetCard objet={objet} />)}
+    </div>
+    <p class="note">Objets en cours de conception : noms, effets et recettes peuvent évoluer.</p>
+  </section>
+</Base>
+<style>
+  .palier {
+    position: relative;
+  }
+  .numero-palier {
+    position: absolute;
+    top: 20px;
+    right: max(16px, calc(50% - 560px));
+    font-family: var(--titres);
+    font-size: clamp(6rem, 18vw, 13rem);
+    line-height: 1;
+    color: var(--bord);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .palier .conteneur {
+    position: relative;
+  }
+  .materiaux {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .duo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .vedette {
+    padding: 1.5rem;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: radial-gradient(circle at 50% 28%, #2c4034, var(--surface) 65%);
+    text-align: center;
+  }
+  .vedette img {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 0.5rem;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 14px rgb(0 0 0 / 0.5));
+    transition: transform 0.3s ease;
+  }
+  .vedette:hover img {
+    transform: rotate(-6deg) scale(1.06);
+  }
+  .vedette p {
+    margin: 0;
+    color: var(--texte-doux);
+  }
+  .camp {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  figure {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: #6b7f8e;
+  }
+  figure img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  figcaption {
+    padding: 0.7rem 1rem;
+    background: var(--surface);
+    font-family: var(--titres);
+  }
+  .bande {
+    background: var(--surface);
+    border-block: 1px solid var(--bord);
+  }
+  .note {
+    margin-top: 1.5rem;
+    color: var(--texte-doux);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+</style>

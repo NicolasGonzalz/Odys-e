@@ -1,11 +1,22 @@
 ---
-// Accueil : la prémisse, ce qu'on fait dans le jeu, puis le monde zone par zone.
+// Accueil : le réveil, ce qu'on fait, ce qu'on fabrique, le monde, ce qu'on y croise, les survivants.
+// Sans spoiler : uniquement la prémisse et l'ambiance.
 import { Image } from "astro:assets";
-
 import hero from "../assets/zone-1.webp";
+import ruines from "../assets/ruines.webp";
 import ZoneCard from "../components/ZoneCard.astro";
+import { familles } from "../data/creatures";
+import { icone } from "../data/items";
+import { survivants } from "../data/survivants";
 import { zones } from "../data/zones";
 import Base from "../layouts/Base.astro";
+
+const chiffres = [
+  { valeur: "1–4", legende: "joueurs en coop" },
+  { valeur: "5", legende: "zones à traverser" },
+  { valeur: "4", legende: "survivants uniques" },
+  { valeur: "∞", legende: "un monde qui persiste" },
+];
 
 const piliers = [
   {
@@ -14,7 +25,7 @@ const piliers = [
   },
   {
     titre: "Survivre et fabriquer",
-    texte: "Récolter le bois, la pierre, le métal ; fabriquer ses outils, ses armes, son abri. Faim, soif et endurance comptent.",
+    texte: "Du bâton et du caillou jusqu'aux outils de métal. Faim, soif et endurance comptent.",
   },
   {
     titre: "Enquêter",
@@ -22,20 +33,22 @@ const piliers = [
   },
   {
     titre: "Ensemble ou seul",
-    texte: "Tout se fait en solo, mais à deux, trois ou quatre on va plus loin. Le monde persiste : ce qu'on bâtit reste.",
+    texte: "Tout se fait en solo, mais à deux, trois ou quatre on va plus loin. Ce qu'on bâtit reste.",
   },
 ];
----
 
+const vitrine = ["pioche_pierre", "hache_pierre", "pioche_metal", "hache_metal", "arc", "lampe"];
+const apercu = familles.map((f) => f.creatures[0]).concat(familles[1].creatures[2]);
+---
 <Base
   title="Odyssée"
-  description="Odyssée : un jeu de survie et d'aventure en coopération (1 à 4 joueurs), dans un monde redevenu sauvage."
+  description="Odyssée : un jeu de survie et d'aventure en coopération (1 à 4 joueurs), dans un monde redevenu sauvage. Explorez, fabriquez, enquêtez."
 >
   <section class="hero">
     <Image src={hero} alt="" class="hero-fond" widths={[800, 1200, 1600]} sizes="100vw" loading="eager" />
     <div class="conteneur hero-texte">
       <span class="surtitre">Survie · aventure · coop 1 à 4 joueurs</span>
-      <h1>Odyssée</h1>
+      <h1 class="degrade">Odyssée</h1>
       <p class="accroche">Le monde a continué sans nous.</p>
       <p class="intro">
         On se réveille dans une capsule. Dehors, la nature a tout repris : les champs, les routes, les
@@ -43,15 +56,26 @@ const piliers = [
       </p>
       <div class="actions">
         <a class="bouton" href="#monde">Découvrir le monde</a>
-        <a class="bouton bouton--discret" href="/survivants">Les survivants</a>
+        <a class="bouton bouton--discret" href="/artisanat">Ce qu'on fabrique</a>
       </div>
     </div>
+  </section>
+
+  <section class="chiffres conteneur">
+    {
+      chiffres.map(({ valeur, legende }) => (
+        <div class="chiffre reveal">
+          <strong>{valeur}</strong>
+          <span>{legende}</span>
+        </div>
+      ))
+    }
   </section>
 
   <section class="section conteneur">
     <span class="surtitre">Le réveil</span>
     <h2>Où sont passés les humains ?</h2>
-    <div class="premisse">
+    <div class="premisse reveal">
       <p>
         Combien de temps a-t-on dormi ? Assez pour que les arbres poussent au milieu des avenues et
         que les animaux aient oublié la peur des hommes. Pas assez pour effacer les enseignes, les
@@ -71,7 +95,7 @@ const piliers = [
       <div class="piliers">
         {
           piliers.map(({ titre, texte }) => (
-            <div class="pilier">
+            <div class="pilier reveal">
               <h3>{titre}</h3>
               <p>{texte}</p>
             </div>
@@ -79,6 +103,27 @@ const piliers = [
         }
       </div>
     </div>
+  </section>
+
+  <section class="section conteneur fabrication">
+    <div class="fabrication-texte">
+      <span class="surtitre">Fabriquer</span>
+      <h2>Tout part d'un bâton et d'un caillou</h2>
+      <p class="intro">
+        Une pioche de pierre pour casser la roche, une hache pour le bois. Puis le minerai, le métal, et
+        des outils qui vous mènent plus loin. Chaque palier ouvre de nouveaux endroits.
+      </p>
+      <a class="bouton" href="/artisanat">Voir les objets</a>
+    </div>
+    <ul class="vitrine" aria-label="Quelques objets du jeu">
+      {
+        vitrine.map((id, i) => (
+          <li class="reveal" style={`--d:${i * 70}ms`}>
+            <Image src={icone(id)} alt={id.replaceAll("_", " ")} width={160} height={160} />
+          </li>
+        ))
+      }
+    </ul>
   </section>
 
   <section class="section conteneur" id="monde">
@@ -92,59 +137,137 @@ const piliers = [
       {zones.map((zone) => <ZoneCard zone={zone} />)}
     </div>
   </section>
-</Base>
 
+  <section class="bandeau">
+    <Image src={ruines} alt="" class="bandeau-fond" widths={[800, 1600]} sizes="100vw" />
+    <div class="conteneur bandeau-texte reveal">
+      <h2>La nature a repris ses droits. Pas tous les secrets.</h2>
+      <p>Chaque lieu garde une trace de ce qu'il était. À vous de la lire.</p>
+    </div>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">Bestiaire</span>
+    <h2>Vous n'êtes pas seul</h2>
+    <p class="intro">
+      Des bêtes redevenues sauvages, des choses qui ont poussé de travers, des machines qui tournent
+      encore. Certaines rencontres se négocient, d'autres se fuient.
+    </p>
+    <div class="creatures">
+      {
+        apercu.map((c) => (
+          <figure class="reveal">
+            <Image src={c.image} alt={c.nom} widths={[240, 400]} sizes="(max-width: 720px) 45vw, 260px" />
+            <figcaption>{c.nom}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+    <a class="bouton bouton--discret" href="/bestiaire">Tout le bestiaire</a>
+  </section>
+
+  <section class="section bande">
+    <div class="conteneur">
+      <span class="surtitre">Les survivants</span>
+      <h2>Quatre réveils, quatre passés</h2>
+      <div class="portraits">
+        {
+          survivants.map((s) => (
+            <a class="portrait reveal" href={`/survivants#${s.id}`}>
+              <Image src={s.image} alt={s.nom} widths={[240, 400]} sizes="(max-width: 720px) 45vw, 240px" />
+              <span class="nom">{s.nom}</span>
+              <span class="role">{s.role} · {s.specialite}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section conteneur final">
+    <h2 class="degrade">Réveillez-vous.</h2>
+    <p class="intro">Le jeu est en développement. Le monde, lui, vous attend.</p>
+    <div class="actions">
+      <a class="bouton" href="/survivants">Rencontrer les survivants</a>
+      <a class="bouton bouton--discret" href="/bestiaire">Ce qui rôde</a>
+    </div>
+  </section>
+</Base>
 <style>
   .hero {
     position: relative;
     display: grid;
     align-items: end;
-    min-height: min(88vh, 760px);
+    min-height: min(92vh, 800px);
     overflow: hidden;
   }
-
   .hero :global(.hero-fond) {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    animation: derive 40s ease-in-out infinite alternate;
   }
-
+  @keyframes derive {
+    from { transform: scale(1.02); }
+    to { transform: scale(1.12) translate(-1.5%, -1%); }
+  }
   .hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, var(--fond) 8%, rgb(14 20 17 / 0.55) 55%, rgb(14 20 17 / 0.15));
+    background: linear-gradient(to top, var(--fond) 6%, rgb(14 20 17 / 0.55) 55%, rgb(14 20 17 / 0.12));
   }
-
   .hero-texte {
     position: relative;
     z-index: 1;
     padding-block: 72px;
   }
-
   h1 {
-    font-size: clamp(3.2rem, 10vw, 6.5rem);
-    margin-bottom: 0.1em;
+    font-size: clamp(3.6rem, 12vw, 7.5rem);
+    letter-spacing: -0.02em;
   }
-
   .accroche {
     font-family: var(--titres);
-    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    font-size: clamp(1.3rem, 3vw, 1.9rem);
   }
-
   .hero .intro {
     color: var(--texte);
   }
-
   .actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 1.5rem;
   }
-
+  .chiffres {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: -28px;
+    position: relative;
+    z-index: 2;
+  }
+  .chiffre {
+    padding: 1.1rem 1rem;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+    text-align: center;
+  }
+  .chiffre strong {
+    display: block;
+    font-family: var(--titres);
+    font-size: 2rem;
+    color: var(--mousse);
+    line-height: 1.1;
+  }
+  .chiffre span {
+    color: var(--texte-doux);
+    font-size: 0.9rem;
+  }
   .premisse {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
@@ -152,35 +275,173 @@ const piliers = [
     color: var(--texte-doux);
     font-size: 1.1rem;
   }
-
   .bande {
     background: var(--surface);
     border-block: 1px solid var(--bord);
   }
-
   .piliers {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
     gap: 1.25rem;
     margin-top: 2rem;
   }
-
   .pilier {
     padding: 1.4rem;
     border-radius: var(--rayon);
     background: var(--surface-haute);
     border-top: 3px solid var(--mousse-sombre);
   }
-
   .pilier p {
     margin: 0;
     color: var(--texte-doux);
   }
-
+  .fabrication {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .vitrine {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .vitrine li {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: radial-gradient(circle at 50% 40%, #2c4034, var(--surface) 72%);
+    transition-delay: var(--d);
+  }
+  .vitrine li:hover {
+    border-color: var(--mousse-sombre);
+  }
+  .vitrine img {
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.5));
+  }
   .zones {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
     gap: 1.5rem;
     margin-top: 2.5rem;
+  }
+  .bandeau {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 420px;
+    overflow: hidden;
+    text-align: center;
+  }
+  .bandeau :global(.bandeau-fond) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bandeau::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(rgb(14 20 17 / 0.8), rgb(14 20 17 / 0.55), rgb(14 20 17 / 0.8));
+  }
+  .bandeau-texte {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    padding-block: 60px;
+  }
+  .bandeau-texte h2 {
+    font-size: clamp(1.9rem, 5vw, 3.2rem);
+  }
+  .bandeau-texte p {
+    color: var(--texte-doux);
+    font-size: 1.15rem;
+  }
+  .creatures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 1.1rem;
+    margin: 2.25rem 0;
+  }
+  .creatures figure {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: #6b7f8e;
+  }
+  .creatures img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .creatures figure:hover img {
+    transform: scale(1.07);
+  }
+  .creatures figcaption {
+    padding: 0.6rem 0.9rem;
+    background: var(--surface);
+    font-family: var(--titres);
+  }
+  .portraits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  .portrait {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface-haute);
+    color: var(--texte);
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .portrait:hover {
+    transform: translateY(-5px);
+    border-color: var(--mousse-sombre);
+  }
+  .portrait img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: top;
+  }
+  .nom {
+    display: block;
+    padding: 0.8rem 1rem 0;
+    font-family: var(--titres);
+    font-size: 1.15rem;
+  }
+  .role {
+    display: block;
+    padding: 0 1rem 1rem;
+    color: var(--texte-doux);
+    font-size: 0.88rem;
+  }
+  .final {
+    text-align: center;
+  }
+  .final h2 {
+    font-size: clamp(2.6rem, 8vw, 5rem);
+  }
+  .final .intro,
+  .final .actions {
+    margin-inline: auto;
+    justify-content: center;
   }
 </style>

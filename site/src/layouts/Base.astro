@@ -38,10 +38,31 @@ const ogImage = new URL("/og.jpg", Astro.site).href;
     />
   </head>
   <body>
+    <div class="lucioles" aria-hidden="true">
+      {Array.from({ length: 14 }, (_, i) => <i style={`--i:${i}`} />)}
+    </div>
     <Header />
     <main>
       <slot />
     </main>
     <Footer />
+    <script>
+      // Les blocs « reveal » apparaissent en douceur quand ils entrent à l'écran.
+      const blocs = document.querySelectorAll<HTMLElement>(".reveal");
+      if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("anime");
+        const observateur = new IntersectionObserver(
+          (entrees) =>
+            entrees.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add("visible");
+                observateur.unobserve(e.target);
+              }
+            }),
+          { threshold: 0.12 },
+        );
+        blocs.forEach((b) => observateur.observe(b));
+      }
+    </script>
   </body>
 </html>

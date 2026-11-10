@@ -1,0 +1,39 @@
+---
+// Bestiaire : trois familles de créatures, présentées sans rien dévoiler de leur rôle.
+import CreatureCard from "../components/CreatureCard.astro";
+import { familles } from "../data/creatures";
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="Bestiaire"
+  description="Faune revenue, créatures étranges, machines qui tournent encore : ce qu'on croise dans le monde d'Odyssée."
+>
+  <section class="conteneur entete-page">
+    <span class="surtitre">Bestiaire</span>
+    <h1><span class="degrade">Vous n'êtes pas seul</span></h1>
+    <p class="intro">
+      Le monde est vide d'hommes, pas de vie. Certaines rencontres sont paisibles, d'autres moins.
+      Toutes ont quelque chose à raconter, à qui sait observer.
+    </p>
+  </section>
+  {
+    familles.map((famille, i) => (
+      <section class:list={["section", { bande: i % 2 === 1 }]}>
+        <div class="conteneur">
+          <span class="surtitre">Famille {i + 1}</span>
+          <h2>{famille.titre}</h2>
+          <p class="intro">{famille.accroche}</p>
+          <div class="grille grille--creatures">
+            {famille.creatures.map((creature) => <CreatureCard creature={creature} />)}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</Base>
+<style>
+  .bande {
+    background: var(--surface);
+    border-block: 1px solid var(--bord);
+  }
+</style>

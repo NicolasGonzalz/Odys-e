@@ -1,0 +1,59 @@
+---
+// Un objet : son icône d'inventaire sur fond lumineux, son nom et une phrase.
+import { Image } from "astro:assets";
+import { icone, type Objet } from "../data/items";
+interface Props {
+  objet: Objet;
+}
+const { objet } = Astro.props;
+---
+<article class="objet reveal">
+  <div class="icone">
+    <Image src={icone(objet.id)} alt={objet.nom} width={128} height={128} />
+  </div>
+  <div>
+    <h3>{objet.nom}</h3>
+    <p>{objet.texte}</p>
+  </div>
+</article>
+<style>
+  .objet {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem 1rem 0.8rem;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .objet:hover {
+    transform: translateY(-3px);
+    border-color: var(--mousse-sombre);
+  }
+  .icone {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 50% 45%, #2b3d31, var(--surface-haute) 70%);
+  }
+  .icone img {
+    width: 84px;
+    height: 84px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.45));
+  }
+  h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.15rem;
+  }
+  p {
+    margin: 0;
+    color: var(--texte-doux);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>

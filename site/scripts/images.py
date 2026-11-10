@@ -35,6 +35,39 @@ IMAGES = {
 }
 
 
+# Découpes sans les titres des planches (qui nomment les factions : spoiler).
+CREATURES = {
+    "chien": ("creatures/bestiaire.jpg", (70, 80, 540, 540)),
+    "sanglier": ("creatures/bestiaire.jpg", (640, 110, 1090, 520)),
+    "loup": ("creatures/bestiaire.jpg", (75, 605, 695, 1050)),
+    "insecte": ("creatures/bestiaire.jpg", (735, 680, 1040, 1030)),
+    "plante": ("creatures/bestiaire.jpg", (1100, 545, 1730, 1070)),
+    "drone": ("creatures/bestiaire.jpg", (1870, 130, 2210, 500)),
+    "robot": ("creatures/bestiaire.jpg", (1730, 630, 2190, 1165)),
+    "colosse": ("creatures/bestiaire.jpg", (2265, 510, 2695, 1045)),
+}
+DECORS = {
+    "etabli": ("objets/objets-interactifs.jpg", (1900, 75, 2670, 650)),
+    "feu": ("objets/objets-interactifs.jpg", (695, 535, 1260, 940)),
+    "coffre": ("objets/objets-interactifs.jpg", (115, 65, 825, 640)),
+    "ruines": ("decors/vegetation-ruines-campement.jpg", None),
+    "monde-sauvage": ("ambiances/zones-1-3-5-lieux.jpeg", None),
+}
+ICONS = ["hache_pierre", "pioche_pierre", "hache_metal", "pioche_metal", "buche", "pierre", "minerai",
+         "arc", "fleche", "lance", "arbalete", "pistolet", "fusil_pompe", "lampe", "pile", "gps",
+         "jumelles", "pied_de_biche"]
+EXPORTS = ROOT / "art" / "exports" / "icones"
+
+
+def export_icons():
+    """Icônes d'inventaire (PNG transparents 256 px) → WebP dans src/assets/items/."""
+    out = ASSETS / "items"
+    out.mkdir(parents=True, exist_ok=True)
+    for name in ICONS:
+        Image.open(EXPORTS / f"{name}.png").convert("RGBA").save(out / f"{name}.webp", "WEBP", quality=88, method=6)
+    print(f"{len(ICONS)} icônes → {out.relative_to(ROOT)}")
+
+
 def export(name, source, box):
     image = Image.open(CONCEPTS / source).convert("RGB")
     if box:
@@ -60,7 +93,8 @@ def export_og():
 def main():
     ASSETS.mkdir(parents=True, exist_ok=True)
     PUBLIC.mkdir(parents=True, exist_ok=True)
-    results = [export(name, source, box) for name, (source, box) in IMAGES.items()]
+    export_icons()
+    results = [export(name, source, box) for name, (source, box) in {**IMAGES, **CREATURES, **DECORS}.items()]
     for path, size in results + [export_og()]:
         print(f"{path.relative_to(ROOT)} : {size[0]}×{size[1]}, {path.stat().st_size // 1024} Ko")
 
