@@ -65,4 +65,4 @@ T054	21	M5	nicolas	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage s
 T055	22	M5	both	client,ui	8	Menu principal et serveur local intégré	Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant.
 T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.
 T057	23	M5	both	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.
-T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.
+T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.

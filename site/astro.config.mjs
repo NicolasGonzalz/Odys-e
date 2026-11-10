@@ -2,5 +2,5 @@
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: "https://odyssee.vercel.app",
+  site: "https://odyssee-sage.vercel.app", // odyssee.vercel.app était déjà pris
 });

@@ -49,7 +49,7 @@
 | ☐ | T007 | Coéquipier | Guide de style visuel (Figma) | 3 | Moodboard « retour à l'état sauvage », palette par zone, références de silhouettes low-poly. |
 | ☐ | T008 | Les deux | Construction, jour/nuit et météo | 2 | Choix documentés : type de construction, durée d'une journée, impact de la nuit. |
 | ☐ | T009 | Les deux | Fiche détaillée de chaque zone | 3 | Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact. |
-| ☐ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
+| ☐ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
 
 ### Semaine 3 — du 30 nov. 2026 · M0.5 · Nicolas 5 h · Coéquipier 8 h
 

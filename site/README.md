@@ -1,6 +1,7 @@
 # Site de présentation d'Odyssée
 
-Site public du jeu (accueil, univers, survivants), en [Astro](https://astro.build/), déployé sur Vercel.
+Site public du jeu (accueil, univers, survivants), en [Astro](https://astro.build/), déployé sur Vercel :
+**https://odyssee-sage.vercel.app** (projet Vercel `odyssee`, équipe `shadow-05fa`).
 
 ## Règle d'or : pas de spoiler
 
@@ -29,8 +30,13 @@ python3 site/scripts/images.py
 
 ## Vercel
 
-Projet relié au dépôt GitHub, réglages :
+Déploiement depuis sa machine, dans `site/` (le dossier est relié au projet par `vercel link`) :
 
-- **Root Directory** : `site` (framework détecté : Astro, sortie `dist/`) ;
-- un push sur `main` déploie le site en production, une PR donne un aperçu ;
-- les changements qui ne touchent pas `site/` ne relancent pas de déploiement (voir `vercel.json`).
+```sh
+vercel            # aperçu (adresse temporaire, protégée)
+vercel --prod     # mise en ligne sur odyssee-sage.vercel.app
+```
+
+Déploiement automatique à chaque push (pas encore actif) : autoriser l'application Vercel sur le dépôt
+GitHub privé, puis dans le projet Vercel régler **Root Directory = `site`**. `vercel.json` évite alors de
+redéployer quand `site/` n'a pas changé.
