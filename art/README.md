@@ -71,7 +71,8 @@ blender -b --python art/blender/build.py -- --all        # tous
 | Dossier | Contenu |
 |---|---|
 | `blender/modeles/<catégorie>/<nom>.py` | Un fichier = un modèle (fonction `build()`), d'après les planches de `concepts/` |
-| `blender/lowpoly/` | Outils communs : matériaux, formes, assemblage, export, aperçu |
+| `blender/lowpoly/` | Outils communs : matériaux, formes, **formes organiques** (tubes courbés, volumes par tranches), assemblage, export, aperçu |
+| `blender/references/` | L'image de concept de chaque modèle, découpée dans les planches (`crop.py`), et `compare.py` qui met concept et rendu côte à côte |
 | `blender/sources/<catégorie>/<nom>.blend` | Le modèle, **retouchable à la main** dans Blender |
 | `exports/<catégorie>/<nom>.fbx` | Le modèle prêt pour Unreal (mètres → centimètres, pivot au pied) |
 | `blender/apercus/<nom>.png` | Rendu de vérification |
@@ -80,5 +81,8 @@ blender -b --python art/blender/build.py -- --all        # tous
 |---|---|
 | `outils/hache` | ✅ fidèle à la planche (144 faces) |
 | `vegetation/sapin` | ✅ fidèle à la planche (40 faces) |
-| `animaux/loup` | 🟡 ébauche : base de départ ou modèle provisoire, à retravailler et animer à la main |
+| `animaux/chien` | ✅ proche du concept : proportions, couleurs, pose (442 faces) ; pelage hirsute et gueule à affiner |
+| `animaux/loup` | 🟡 ancienne ébauche (gris, sans concept) : à remplacer par le loup végétal de Gaïa |
+
+Pour vérifier un modèle : `python3 art/blender/references/compare.py <nom>` → `blender/apercus/<nom>_comparaison.png`.
 

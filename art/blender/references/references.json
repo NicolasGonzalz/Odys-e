@@ -1,0 +1,11 @@
+{
+  "_doc": [
+    "Image de référence de chaque modèle, découpée dans les planches de art/concepts/.",
+    "  source : planche d'origine ; box : [gauche, haut, droite, bas] en pixels de la planche.",
+    "Sert à comparer le modèle à son concept (python3 art/blender/references/compare.py <nom>)."
+  ],
+  "hache": { "source": "art/concepts/objets/outils-et-ressources.png", "box": [10, 10, 115, 200] },
+  "loup_gaia": { "source": "art/concepts/creatures/bestiaire.jpg", "box": [62, 612, 690, 1060] },
+  "chien": { "source": "art/concepts/creatures/bestiaire.jpg", "box": [83, 89, 516, 523] },
+  "sapin": { "source": "art/concepts/decors/vegetation-ruines-campement.jpg", "box": [791, 158, 1058, 640] }
+}

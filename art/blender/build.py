@@ -6,7 +6,8 @@ Usage (depuis la racine du dépôt) :
     blender -b --python art/blender/build.py -- --all            # tous
 
 Chaque modèle est un fichier art/blender/modeles/<catégorie>/<nom>.py qui définit build()
-et renvoie la liste de ses pièces. Ce script s'occupe du reste :
+et renvoie la liste de ses pièces (et, s'il le veut, VIEW : la direction de la caméra d'aperçu,
+pour le montrer sous le même angle que son concept). Ce script s'occupe du reste :
 assemblage, pivot au pied, .blend, .fbx (art/exports/) et aperçu (art/blender/apercus/).
 """
 import importlib.util
@@ -18,7 +19,7 @@ sys.path.insert(0, str(HERE))
 
 from lowpoly.export import export_model  # noqa: E402
 from lowpoly.finish import dimensions, join, origin_at_base  # noqa: E402
-from lowpoly.preview import render_preview  # noqa: E402
+from lowpoly.preview import DEFAULT_VIEW, render_preview  # noqa: E402
 from lowpoly.scene import reset_scene  # noqa: E402
 
 MODELS = HERE / "modeles"
@@ -46,10 +47,11 @@ def load_module(path):
 def build_one(path):
     category, name = path.parent.name, path.stem
     reset_scene()
-    parts = load_module(path).build()
-    model = origin_at_base(join(parts, name))
+    module = load_module(path)
+    model = origin_at_base(join(module.build(), name))
     blend, fbx = export_model(model, category, name)
-    preview = render_preview(model, HERE / "apercus" / f"{name}.png")
+    view = getattr(module, "VIEW", DEFAULT_VIEW)
+    preview = render_preview(model, HERE / "apercus" / f"{name}.png", view=view)
     print(f"[odyssee] {category}/{name} : {dimensions(model)} m, "
           f"{len(model.data.polygons)} faces -> {fbx.name}, {preview.name}")
 

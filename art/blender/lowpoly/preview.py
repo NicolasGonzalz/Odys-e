@@ -3,8 +3,11 @@ import bpy
 from mathutils import Vector
 
 
-def _camera_for(obj):
-    """Caméra orthographique de trois quarts, cadrée sur le modèle."""
+DEFAULT_VIEW = (1.0, -1.25, 0.75)  # trois quarts avant, légèrement de haut
+
+
+def _camera_for(obj, view):
+    """Caméra orthographique cadrée sur le modèle, regardant depuis la direction `view`."""
     size = max(obj.dimensions)
     center = Vector((0, 0, obj.dimensions.z / 2))
     camera_data = bpy.data.cameras.new("Apercu")
@@ -13,7 +16,7 @@ def _camera_for(obj):
     camera = bpy.data.objects.new("Apercu", camera_data)
     bpy.context.scene.collection.objects.link(camera)
 
-    direction = Vector((1.0, -1.25, 0.75)).normalized()
+    direction = Vector(view).normalized()
     camera.location = center + direction * size * 4
     camera.rotation_euler = (center - camera.location).to_track_quat("-Z", "Y").to_euler()
     bpy.context.scene.camera = camera
@@ -34,9 +37,9 @@ def _workbench(scene, color_type):
     scene.render.film_transparent = False
 
 
-def render_preview(obj, path, resolution=900, color_type="MATERIAL"):
+def render_preview(obj, path, resolution=900, color_type="MATERIAL", view=DEFAULT_VIEW):
     scene = bpy.context.scene
-    _camera_for(obj)
+    _camera_for(obj, view)
     _workbench(scene, color_type)
     scene.render.resolution_x = resolution
     scene.render.resolution_y = resolution
