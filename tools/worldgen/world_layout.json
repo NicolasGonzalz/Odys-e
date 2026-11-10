@@ -1,0 +1,139 @@
+{
+  "_doc": [
+    "Plan du monde d'Odyssée : SOURCE UNIQUE de la géographie (relief, Unreal, et plus tard le serveur).",
+    "Relevé sur art/concepts/monde/carte-du-monde-plan.png (1600 x 1200 px = 4 x 3 km, 1 px = 2,5 m).",
+    "Repère : x vers l'est, y vers le sud, origine au coin nord-ouest, en mètres.",
+    "Dans Unreal : X = x, Y = y (en cm x 100), Z vers le haut. Niveau de l'eau = 0 m."
+  ],
+  "world": { "width_m": 4032, "height_m": 3024, "water_level_m": 0 },
+
+  "zones": {
+    "abri": {
+      "name": "Zone 1 — L'Abri (plaine)",
+      "terrain": "plaine",
+      "polygon": [[0, 1825], [750, 1775], [1000, 1625], [1250, 1600], [1500, 1850], [2050, 1925],
+                  [2600, 1900], [2725, 1750], [2750, 2075], [2875, 2300], [3250, 2650], [3625, 2500],
+                  [4032, 2625], [4032, 3024], [0, 3024]]
+    },
+    "ville": {
+      "name": "Zone 2 — La Ville engloutie",
+      "terrain": "ville",
+      "polygon": [[1350, 825], [2050, 925], [2800, 900], [2825, 1250], [2725, 1750], [2600, 1900],
+                  [2050, 1925], [1500, 1850], [1250, 1600], [1000, 1625], [1175, 1400], [1250, 825]]
+    },
+    "centrale": {
+      "name": "Zone 3 — La Centrale noyée",
+      "terrain": "marais",
+      "polygon": [[2800, 900], [3700, 888], [4032, 850], [4032, 2625], [3625, 2500], [3250, 2650],
+                  [2875, 2300], [2750, 2075], [2725, 1750], [2825, 1250]]
+    },
+    "portes": {
+      "name": "Zone 4 — Le Site des Portes (neige)",
+      "terrain": "montagne",
+      "polygon": [[0, 0], [1400, 0], [1350, 300], [1250, 825], [1175, 1400], [1000, 1625],
+                  [750, 1775], [0, 1825]]
+    },
+    "coeur": {
+      "name": "Zone 5 — Le Cœur (forêt primordiale)",
+      "terrain": "foret_coeur",
+      "polygon": [[1400, 0], [4032, 0], [4032, 850], [3700, 888], [2800, 900], [2050, 925],
+                  [1350, 825], [1250, 825], [1350, 300]]
+    }
+  },
+
+  "areas": {
+    "bois_lisiere": {
+      "name": "Bois de la lisière",
+      "zone": "abri",
+      "terrain": "collines",
+      "polygon": [[0, 1875], [450, 1850], [850, 2050], [875, 2375], [750, 2700], [375, 2825], [0, 2750]]
+    }
+  },
+
+  "water": {
+    "river": {
+      "name": "La rivière",
+      "width_m": 22,
+      "depth_m": 3,
+      "path": [[840, 1390], [750, 1500], [825, 1600], [1050, 1750], [1300, 1850], [1625, 1950],
+               [1975, 1975], [2375, 1938], [2750, 1950], [3000, 2000], [3250, 2100], [3625, 2175],
+               [4032, 2200]]
+    },
+    "lakes": [
+      { "id": "lac_gele", "name": "Lac gelé", "center": [875, 1250], "radius_m": 150, "frozen": true }
+    ]
+  },
+
+  "paths": [
+    { "id": "route_pont", "kind": "route", "width_m": 8,
+      "points": [[1900, 2600], [1975, 2250], [1975, 2000]] },
+    { "id": "route_est", "kind": "route", "width_m": 8,
+      "points": [[1900, 2600], [2250, 2400], [2500, 2700], [2875, 2750], [3625, 2500]] },
+    { "id": "chemin_ferme", "kind": "chemin", "width_m": 5,
+      "points": [[1975, 2200], [1500, 2200]] },
+    { "id": "col_du_plateau", "kind": "chemin", "width_m": 6,
+      "points": [[1300, 1388], [1125, 1300], [1050, 1050], [825, 825], [670, 730]] },
+    { "id": "voie_ferree", "kind": "rails", "width_m": 4,
+      "points": [[2050, 2525], [2500, 2650], [2950, 2900], [3400, 2725], [4032, 2500]] }
+  ],
+
+  "places": [
+    { "id": "centre_stase", "name": "Centre de stase (départ)", "zone": "abri", "pos": [1900, 2600],
+      "radius_m": 40, "kind": "batiment", "spawn": true },
+    { "id": "ferme", "name": "Ferme", "zone": "abri", "pos": [1500, 2200], "radius_m": 60, "kind": "batiment" },
+    { "id": "pont_effondre", "name": "Pont effondré", "zone": "abri", "pos": [1975, 1975], "radius_m": 20,
+      "kind": "pont" },
+    { "id": "village", "name": "Village — 1er cocon", "zone": "abri", "pos": [2325, 2325], "radius_m": 70,
+      "kind": "village" },
+    { "id": "station_service", "name": "Station-service", "zone": "abri", "pos": [2650, 2750],
+      "radius_m": 30, "kind": "batiment" },
+    { "id": "metro_inonde", "name": "Métro inondé", "zone": "ville", "pos": [1600, 1725], "radius_m": 40,
+      "kind": "entree" },
+    { "id": "centre_recrutement", "name": "Centre de recrutement", "zone": "ville", "pos": [2025, 1300],
+      "radius_m": 60, "kind": "batiment" },
+    { "id": "centrale_gaia", "name": "Centrale chimique Gaïa", "zone": "centrale", "pos": [3412, 1450],
+      "radius_m": 120, "kind": "batiment" },
+    { "id": "barrage_fissure", "name": "Barrage fissuré", "zone": "centrale", "pos": [2925, 2080],
+      "radius_m": 40, "kind": "barrage" },
+    { "id": "villages_pilotis", "name": "Villages sur pilotis", "zone": "centrale", "pos": [3500, 2325],
+      "radius_m": 80, "kind": "village" },
+    { "id": "grande_porte", "name": "La Grande Porte", "zone": "portes", "pos": [588, 600],
+      "radius_m": 120, "kind": "batiment", "height_m": 180 },
+    { "id": "col_du_plateau", "name": "Col du plateau", "zone": "portes", "pos": [975, 875],
+      "radius_m": 30, "kind": "repere" },
+    { "id": "arbre_coeur", "name": "L'Arbre-Cœur", "zone": "coeur", "pos": [2375, 425], "radius_m": 90,
+      "kind": "arbre_geant" }
+  ],
+
+  "barriers": [
+    { "id": "muraille_ronces", "name": "Muraille de ronces", "width_m": 25,
+      "points": [[1350, 825], [2050, 925], [2800, 900], [3700, 888], [4032, 850]] }
+  ],
+
+  "bosses": [
+    { "id": "gardien_recrutement", "name": "Le Gardien du recrutement", "zone": "ville", "pos": [2025, 1300] },
+    { "id": "mere_des_marais", "name": "La Mère des marais", "zone": "centrale", "pos": [3412, 1462] },
+    { "id": "sentinelle_portes", "name": "La Sentinelle des Portes", "zone": "portes", "pos": [588, 750] },
+    { "id": "coeur_originel", "name": "Le Cœur originel", "zone": "coeur", "pos": [2375, 655] }
+  ],
+
+  "artifacts": [
+    { "id": "cle_acces", "name": "Clé d'accès", "zone": "ville", "pos": [2105, 1245] },
+    { "id": "souche", "name": "Souche", "zone": "centrale", "pos": [3495, 1420] },
+    { "id": "cle_de_porte", "name": "Clé de Porte", "zone": "portes", "pos": [670, 730] }
+  ],
+
+  "cocoons": [
+    [2150, 625], [2250, 750], [2525, 725], [1600, 1550], [2475, 1250], [2325, 2338],
+    [3250, 1925], [3200, 1975], [3300, 2025]
+  ],
+
+  "toxic_fog": {
+    "center": [3412, 1450],
+    "levels": [
+      { "id": "leger", "radius_m": 1100 },
+      { "id": "dense", "radius_m": 725 },
+      { "id": "mortel", "radius_m": 375 }
+    ]
+  }
+}

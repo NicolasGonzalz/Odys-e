@@ -39,3 +39,7 @@ odyssee_tests
 CLAUDE.md
 CLAUDE.local.md
 .claude/
+
+# Python
+__pycache__/
+*.pyc
