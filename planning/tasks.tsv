@@ -32,7 +32,7 @@ T026	9	M1	nicolas	server	5	Sessions et diffusion de l'état	Le serveur gère jus
 T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.
 T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.
 T062	9	M1	ami	design,figma	5	Maquettes d'UI (Figma)	HUD, inventaire, artisanat, journal d'indices, menu principal.
-T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : mouvement + collisions de base, utilisé par client et serveur.
+T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.
 T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.
 T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.
 T063	10	M2	ami	art,blender	5	Survivant 4 (Nadia) : modèle et rig	Corps + bras FPS riggés.
@@ -54,7 +54,7 @@ T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et ro
 T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.
 T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.
 T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.
-T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer un objet consomme les ressources, validé par le serveur.
+T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.
 T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.
 T049	19	M4	both	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal (commun + personnel).
 T050	19	M4	both	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.
@@ -67,3 +67,12 @@ T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le
 T057	23	M5	both	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.
 T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.
 T068	16	M4	both	art,blender	4	Matériaux transformés et munitions	Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils.
+T069	2	M0	both	doc,gameplay	3	Conception des systèmes de jeu	docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat.
+T070	16	M4	ami	art,blender	2	Objet carte (Blender)	Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire.
+T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.
+T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal.
+T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.
+T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.
+T075	21	M4	ami	client,ui,unreal	6	Grande carte plein écran	Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte.
+T076	20	M5	both	gameplay,client	4	GPS et piles	Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS).
+T077	22	M5	both	client,ui,server	6	Menu pause, touches et sauvegardes	Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique.
