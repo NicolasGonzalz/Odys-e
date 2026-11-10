@@ -1,0 +1,179 @@
+---
+// Explorer : la carte qui se dessine, le GPS, les piles, et le rythme de jeu (sauvegarde, coop).
+// Sans spoiler : on décrit les outils, jamais ce qu'ils permettent de trouver.
+import { Image } from "astro:assets";
+import ObjetCard from "../components/ObjetCard.astro";
+import { icone, reperes } from "../data/items";
+import Base from "../layouts/Base.astro";
+
+const etapes = [
+  { titre: "On se réveille", texte: "La carte est presque vierge. Seule la zone de départ est dessinée, le reste est blanc." },
+  { titre: "On explore", texte: "En marchant, on mémorise les régions traversées et les lieux aperçus : ruines, villages, chemins." },
+  { titre: "On rentre au camp", texte: "À la table de cartographie, on reporte ce qu'on a vu. Une notification rappelle qu'il y a du nouveau." },
+  { titre: "La carte s'enrichit", texte: "Biomes, routes et lieux apparaissent. Ce qu'on n'a pas vu reste blanc." },
+];
+
+const rythme = [
+  { titre: "Solo : une vraie pause", texte: "Ouvrir le menu arrête le monde. On sauvegarde à la main, ou automatiquement toutes les quelques minutes." },
+  { titre: "Coop : le monde continue", texte: "À plusieurs, pas de pause : le monde vit pendant qu'on règle ses options. La sauvegarde est automatique." },
+  { titre: "Une carte pour tous", texte: "En coop, ce qu'un joueur reporte à la table apparaît pour tout le groupe. Chacun garde ses souvenirs jusqu'à son passage." },
+  { titre: "Touches à votre main", texte: "ZQSD ou WASD, tout se remappe dans les options. Maj pour courir : l'endurance se paie." },
+];
+---
+<Base
+  title="Explorer"
+  description="Une grande carte qui se dessine en explorant, un GPS à piles, pas de mini-carte : comment on se repère dans le monde d'Odyssée."
+>
+  <section class="conteneur entete-page">
+    <span class="surtitre">Se repérer · Explorer · Revenir</span>
+    <h1><span class="degrade">Une carte blanche</span><br />à dessiner</h1>
+    <p class="intro">
+      Pas de mini-carte, pas de marqueur qui vous tient la main. On regarde le paysage, on retient ce qu'on voit,
+      et on rapporte tout au camp pour l'ajouter à sa carte.
+    </p>
+  </section>
+
+  <section class="section conteneur carte-bloc">
+    <div class="carte-image reveal">
+      <Image src={icone("carte")} alt="La carte, presque vierge au réveil" width={320} height={320} loading="eager" />
+    </div>
+    <ol class="etapes">
+      {
+        etapes.map((e, i) => (
+          <li class="etape reveal">
+            <span class="num">{i + 1}</span>
+            <div>
+              <h3>{e.titre}</h3>
+              <p>{e.texte}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="section bande">
+    <div class="conteneur">
+      <span class="surtitre">Les repères</span>
+      <h2>Ce qu'on garde dans le sac</h2>
+      <p class="intro">
+        La grande carte s'ouvre d'une touche. Pour le reste, quelques vieux appareils qui marchent encore, tant
+        qu'il reste des piles.
+      </p>
+      <div class="grille grille--objets">
+        {reperes.map((objet) => <ObjetCard objet={objet} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">À votre rythme</span>
+    <h2>Seul ou à plusieurs</h2>
+    <div class="rythme">
+      {
+        rythme.map((r) => (
+          <div class="bloc reveal">
+            <h3>{r.titre}</h3>
+            <p>{r.texte}</p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="note">Touches, durées et vitesses sont provisoires et seront réglées en jouant.</p>
+  </section>
+</Base>
+<style>
+  .carte-bloc {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) 1fr;
+    gap: clamp(1.5rem, 5vw, 3.5rem);
+    align-items: center;
+  }
+  .carte-image {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: radial-gradient(circle at 50% 40%, #2c4034, var(--surface) 72%);
+  }
+  .carte-image img {
+    width: 90%;
+    height: auto;
+    filter: drop-shadow(0 12px 16px rgb(0 0 0 / 0.5));
+    transition: transform 0.4s ease;
+  }
+  .carte-image:hover img {
+    transform: rotate(-4deg) scale(1.05);
+  }
+  .etapes {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .etape {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface);
+  }
+  .num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--mousse);
+    color: #11180f;
+    font-weight: 600;
+  }
+  .etape h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.15rem;
+  }
+  .etape p {
+    margin: 0;
+    color: var(--texte-doux);
+  }
+  .bande {
+    background: var(--surface);
+    border-block: 1px solid var(--bord);
+  }
+  .rythme {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  .bloc {
+    padding: 1.3rem;
+    border-radius: var(--rayon);
+    background: var(--surface-haute);
+    border-top: 3px solid var(--mousse-sombre);
+  }
+  .bloc p {
+    margin: 0;
+    color: var(--texte-doux);
+  }
+  .note {
+    margin-top: 1.5rem;
+    color: var(--texte-doux);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+  @media (max-width: 760px) {
+    .carte-bloc {
+      grid-template-columns: 1fr;
+    }
+    .carte-image {
+      max-width: 320px;
+      margin-inline: auto;
+    }
+  }
+</style>
