@@ -1,0 +1,54 @@
+{
+  "_doc": [
+    "Végétation et détails par zone (ou sous-région, ex. bois_lisiere). Pour chaque règle :",
+    "  element    : nom dans elements.json",
+    "  per_ha     : densité moyenne (nombre par hectare = 100 m x 100 m)",
+    "  cluster    : 0 = réparti uniformément, 1 = en bosquets avec des clairières",
+    "  max_slope  : pente maximale en degrés (défaut 30)",
+    "  min_height / max_height : altitude autorisée en mètres (défaut : hors de l'eau, sans limite)",
+    "Les chemins, la rivière et l'emprise des lieux restent toujours dégagés."
+  ],
+
+  "abri": [
+    { "element": "chene", "per_ha": 0.8, "cluster": 0.7 },
+    { "element": "buisson", "per_ha": 4, "cluster": 0.5 },
+    { "element": "herbe_haute", "per_ha": 40, "cluster": 0.4 },
+    { "element": "fleurs", "per_ha": 12, "cluster": 0.6 },
+    { "element": "rocher_mousse", "per_ha": 0.8, "cluster": 0.3 }
+  ],
+  "bois_lisiere": [
+    { "element": "chene", "per_ha": 35, "cluster": 0.65 },
+    { "element": "sapin", "per_ha": 25, "cluster": 0.7 },
+    { "element": "buisson", "per_ha": 18, "cluster": 0.3 },
+    { "element": "fougere", "per_ha": 35, "cluster": 0.3 },
+    { "element": "herbe_haute", "per_ha": 15, "cluster": 0.3 },
+    { "element": "rocher_mousse", "per_ha": 3, "cluster": 0.4 }
+  ],
+  "ville": [
+    { "element": "chene", "per_ha": 4, "cluster": 0.6 },
+    { "element": "buisson", "per_ha": 12, "cluster": 0.4 },
+    { "element": "herbe_haute", "per_ha": 20, "cluster": 0.4 },
+    { "element": "debris", "per_ha": 10, "cluster": 0.3 },
+    { "element": "voiture_rouillee", "per_ha": 0.6, "cluster": 0.2 }
+  ],
+  "centrale": [
+    { "element": "arbre_mort", "per_ha": 5, "cluster": 0.5 },
+    { "element": "roseaux", "per_ha": 70, "cluster": 0.3, "min_height": 0.1, "max_height": 2.5 },
+    { "element": "plante_carnivore", "per_ha": 0.6, "cluster": 0.5 },
+    { "element": "champignon_lumineux", "per_ha": 2, "cluster": 0.7 },
+    { "element": "futs", "per_ha": 1.2, "cluster": 0.6 },
+    { "element": "herbe_haute", "per_ha": 10, "cluster": 0.4 }
+  ],
+  "portes": [
+    { "element": "sapin_neige", "per_ha": 7, "cluster": 0.5, "max_height": 260, "max_slope": 32 },
+    { "element": "rocher_neige", "per_ha": 3, "cluster": 0.3, "max_slope": 40 }
+  ],
+  "coeur": [
+    { "element": "arbre_geant", "per_ha": 1.5, "cluster": 0.4 },
+    { "element": "chene", "per_ha": 12, "cluster": 0.4 },
+    { "element": "fougere", "per_ha": 30, "cluster": 0.3 },
+    { "element": "champignon_lumineux", "per_ha": 8, "cluster": 0.6 },
+    { "element": "buisson", "per_ha": 10, "cluster": 0.4 },
+    { "element": "rocher_mousse", "per_ha": 2, "cluster": 0.4 }
+  ]
+}
