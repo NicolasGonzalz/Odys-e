@@ -22,3 +22,5 @@
 *.ogg    filter=lfs diff=lfs merge=lfs -text
 *.mp3    filter=lfs diff=lfs merge=lfs -text
 *.mp4    filter=lfs diff=lfs merge=lfs -text
+# Données générées du monde (relief)
+tools/worldgen/output/*.bin filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,29 @@
+{
+  "heightmap": {
+    "file": "heightmap.png",
+    "width": 4033,
+    "height": 3025
+  },
+  "coarse": {
+    "file": "heights_4m.bin",
+    "width": 1009,
+    "height": 757,
+    "step_m": 4,
+    "dtype": "uint16-le",
+    "row_major": true
+  },
+  "encoding": "hauteur_m = (valeur - 32768) / 64",
+  "unreal_landscape": {
+    "location_cm": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      100,
+      100,
+      200
+    ]
+  },
+  "seed": 2026
+}
