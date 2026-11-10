@@ -247,7 +247,47 @@ def raise_world_border(shape, height):
     return height + border * 45.0
 
 
+def _cave_frame(height, cave, reach_m):
+    """Fenêtre autour d'une grotte et coordonnées locales de chaque point :
+    a = distance vers l'extérieur (sens de l'ouverture), b = distance latérale."""
+    x0, y0 = cave["pos"]
+    rows = slice(max(0, int(y0 - reach_m)), min(height.shape[0], int(y0 + reach_m) + 1))
+    cols = slice(max(0, int(x0 - reach_m)), min(height.shape[1], int(x0 + reach_m) + 1))
+    ys, xs = np.mgrid[rows, cols].astype(np.float32)
+    yaw = np.radians(cave["yaw_deg"])
+    ux, uy = np.cos(yaw), np.sin(yaw)
+    dx, dy = xs - x0, ys - y0
+    return (rows, cols), dx * ux + dy * uy, -dx * uy + dy * ux
+
+
+def carve_caves(layout, height):
+    """Grottes de montagne : un replat devant l'entrée, à la hauteur du sol de la grotte.
+
+    Le tunnel et la salle ne sont PAS creusés ici : une heightmap n'a pas de plafond (creuser
+    enlèverait aussi la montagne au-dessus). Ils sont construits en roche sous le relief dans
+    Unreal, et le Landscape est percé (couche de visibilité) là où le tunnel sort de la pente.
+    Renvoie aussi la hauteur du sol de chaque grotte ({id: m}).
+    """
+    shapes = layout["cave_shapes"]
+    wall, apron = shapes["wall_m"], shapes["apron_m"]
+    half_tunnel = shapes["montagne"]["tunnel"][1] / 2 + wall
+    floors = {}
+    for cave in layout.get("caves", []):
+        if cave["type"] != "montagne":
+            continue
+        window, a, b = _cave_frame(height, cave, apron + 10)
+        sub = height[window]
+        floor = float(sub[(np.abs(a) <= 2) & (np.abs(b) <= 2)].mean())
+
+        ahead = np.clip(1.0 - (a - 1.0) / apron, 0.0, 1.0) * (a > -0.5)
+        beside = np.clip(1.0 - (np.abs(b) - half_tunnel - 1.0) / 4.0, 0.0, 1.0)
+        height[window] = lerp(sub, np.float32(floor), ahead * beside)
+        floors[cave["id"]] = round(floor, 3)
+    return height, floors
+
+
 def build_height(layout):
+    """Relief complet (m) et hauteur du sol de chaque grotte de montagne ({id: m})."""
     shape = grid_shape(layout)
     rng = np.random.default_rng(SEED)
     noise = fractal_noise(shape, rng, base_cell_m=400, octaves=6)
@@ -260,7 +300,8 @@ def build_height(layout):
     height = smooth_paths(layout, shape, height)
     height = flatten_places(layout, shape, height)
     height = raise_world_border(shape, height)
-    return np.clip(height, -100.0, 500.0)
+    height, cave_floors = carve_caves(layout, height)
+    return np.clip(height, -100.0, 500.0), cave_floors
 
 
 # --- Écriture des fichiers --------------------------------------------------------------------
@@ -270,10 +311,11 @@ def encode(height):
 
 
 def write_heightmap(height):
-    Image.fromarray(encode(height), mode="I;16").save(OUTPUT / "heightmap.png")
+    # uint16 → image 16 bits « I;16 » (Pillow 13 refuse le paramètre mode pour ce type).
+    Image.fromarray(encode(height)).save(OUTPUT / "heightmap.png")
 
 
-def write_coarse_heights(height, step_m=4):
+def write_coarse_heights(height, cave_floors, step_m=4):
     coarse = encode(height[::step_m, ::step_m])
     coarse.astype("<u2").tofile(OUTPUT / "heights_4m.bin")
     meta = {
@@ -283,6 +325,8 @@ def write_coarse_heights(height, step_m=4):
         "encoding": "hauteur_m = (valeur - 32768) / 64",
         "unreal_landscape": {"location_cm": [0, 0, 0], "scale": [100, 100, 200]},
         "seed": SEED,
+        # Sol des grottes creusées : trop étroites pour la grille à 4 m, on le donne exactement.
+        "cave_floors_m": cave_floors,
     }
     (OUTPUT / "terrain_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     return coarse
@@ -291,9 +335,9 @@ def write_coarse_heights(height, step_m=4):
 def main():
     OUTPUT.mkdir(exist_ok=True)
     layout = load_layout()
-    height = build_height(layout)
+    height, cave_floors = build_height(layout)
     write_heightmap(height)
-    write_coarse_heights(height)
+    write_coarse_heights(height, cave_floors)
 
     from preview import write_preview  # aperçu dans son propre fichier (une notion par fichier)
     write_preview(layout, height, OUTPUT / "preview.png")

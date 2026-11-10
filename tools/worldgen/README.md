@@ -28,14 +28,46 @@ Le résultat est **déterministe** (graine fixe) : même plan → même relief.
 
 ## Importer le relief dans Unreal (5.6)
 
-1. Créer un niveau vide de type **Open World** (World Partition), par ex. `Lvl_Monde`.
-2. Mode **Landscape** → **Manage** → **New** → **Import from File** → `tools/worldgen/output/heightmap.png`.
+Le niveau déjà prêt est **`Content/Odyssee/Maps/Lvl_Relief`** (relief + blockout, voir plus bas).
+Pour refaire un niveau :
+
+1. Créer un niveau vide de type **Open World** (World Partition).
+2. Mode **Paysage** → **Gestion** → **Nouveau** → **Importer depuis un fichier** → `tools/worldgen/output/heightmap.png`.
 3. Réglages :
-   - **Location** : 0, 0, 0
-   - **Scale** : X = 100, Y = 100, **Z = 200** (1 m par point, hauteurs de −512 à +512 m)
-   - **Section Size** : 63 × 63 quads, **Sections per Component** : 1
-   - **Number of Components** : 64 × 48 → **Overall Resolution 4033 × 3025** (doit correspondre)
-4. **Import**. Ajouter ensuite un grand plan d'eau à Z = 0 pour la rivière, le lac et les mares.
+   - **Emplacement** : **201600, 151200, 0** (Unreal centre le Landscape sur ce point : son coin
+     nord-ouest tombe en 0, 0, comme le repère de `world_layout.json`)
+   - **Échelle** : X = 100, Y = 100, **Z = 200** (1 m par point, hauteurs de −512 à +512 m)
+   - **Taille de section** : 63 × 63 quads, **Sections par composant** : **2 × 2**
+   - **Nombre de composants** : **32 × 24** → **résolution globale 4033 × 3025** (doit correspondre).
+     Ne pas utiliser 1 section × 64 × 48 composants : 3072 composants font planter le GPU (TDR).
+4. **Importer**. En World Partition, l'import peut ne remplir qu'un carré de ~2 km : charger tout le
+   Landscape (Fenêtre → World Partition → sélectionner toute la carte → Charger la région), puis
+   **Gestion → Importer** la même heightmap sur le Landscape existant.
+5. `unreal/relief_preview.py` (Outils → Exécuter un script Python…) : couleur du sol, ciel, soleil,
+   plan d'eau à Z = 0 et caméra d'ensemble.
+
+Après chaque `generate_terrain.py`, réimporter `heightmap.png` (**Gestion → Importer**, heightmap seule).
+
+## Blockout : spawn, lieux, grottes (`unreal/build_blockout.py`)
+
+Blocs gris pour juger tailles et trajets, sans végétation. Relançable (remplace son blockout).
+
+- **Centre de stase** semi-enterré : salle des capsules, couloir, sortie vers le sud ; le `PlayerStart`
+  est dans la salle (Jouer = réveil dans la capsule, avec le personnage FirstPerson du template).
+- **Lieux, boss, artefacts, cocons** en formes provisoires (comme `build_map.py`).
+- **Grottes** (`caves` dans `world_layout.json`, dimensions dans `cave_shapes`) : tunnel, salle, deux
+  lumières et un point de loot doré.
+  - `montagne` : sous le relief. `generate_terrain.py` fait un replat devant l'entrée ; le tunnel et la
+    salle sont en roche **sous** le Landscape. Une heightmap n'a pas de plafond : on ne creuse pas le
+    relief, on **perce** le Landscape là où le tunnel sort de la pente. L'import automatique de la
+    couche de visibilité est refusé avec les couches d'édition : **à peindre à la main** sur les
+    repères rouges (`Odyssee/Blockout/A percer`) : Mode Paysage → Sculpture → **Visibilité**,
+    taille du pinceau 250, atténuation 0 ; Maj + clic pour reboucher. Supprimer ensuite les repères.
+  - `butte` : butte rocheuse creuse posée sur un terrain plat (rien à percer).
+- Tout reste chargé en jeu (pas de streaming World Partition) pour marcher sur toute la carte.
+
+`build_map.py` (végétation complète) supprime ce blockout et pose son propre bloc sur le centre de
+stase : à adapter avant de le relancer sur `Lvl_Relief`.
 
 ## Vérifications faites
 

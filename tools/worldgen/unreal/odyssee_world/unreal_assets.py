@@ -4,6 +4,7 @@ import unreal
 GENERATED_DIR = "/Game/Odyssee/Generated"
 MATERIALS_DIR = f"{GENERATED_DIR}/Materials"
 BASE_MATERIAL_NAME = "M_OdysseeProvisoire"
+LANDSCAPE_MATERIAL_NAME = "M_OdysseeSol"
 
 SHAPES = {
     "cube": "/Engine/BasicShapes/Cube",
@@ -42,6 +43,28 @@ class AssetLibrary:
         if key not in self._materials:
             self._materials[key] = self._create_instance(key[0], key[1])
         return self._materials[key]
+
+    def landscape_material(self, color):
+        """Matériau du Landscape : couleur unie, et trous possibles (couche de visibilité, utilisée
+        pour les entrées de grotte). Créé une seule fois ; la couleur est celle du premier appel."""
+        path = f"{GENERATED_DIR}/{LANDSCAPE_MATERIAL_NAME}"
+        if unreal.EditorAssetLibrary.does_asset_exist(path):
+            return unreal.EditorAssetLibrary.load_asset(path)
+
+        material = self._tools.create_asset(LANDSCAPE_MATERIAL_NAME, GENERATED_DIR, unreal.Material,
+                                            unreal.MaterialFactoryNew())
+        material.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
+        library = unreal.MaterialEditingLibrary
+        base = library.create_material_expression(
+            material, unreal.MaterialExpressionConstant3Vector, -400, 0)
+        base.set_editor_property("constant", unreal.LinearColor(*color, 1))
+        library.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
+        holes = library.create_material_expression(
+            material, unreal.MaterialExpressionLandscapeVisibilityMask, -400, 250)
+        library.connect_material_property(holes, "", unreal.MaterialProperty.MP_OPACITY_MASK)
+        library.recompile_material(material)
+        unreal.EditorAssetLibrary.save_loaded_asset(material)
+        return material
 
     def save(self):
         unreal.EditorAssetLibrary.save_directory(GENERATED_DIR, only_if_is_dirty=True)

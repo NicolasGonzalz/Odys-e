@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import unreal
 
-from .unreal_util import safe_set, spawn, to_cm
+from .unreal_util import disable_collision, spawn, to_cm
 
 CHUNK_M = 256  # un acteur de végétation par élément et par carré de 256 m (World Partition)
 
@@ -85,7 +85,7 @@ def spawn_labeled(labeled, catalog, assets):
             if material is not None:
                 component.set_material(0, material)
             if not element.collision:
-                safe_set(component, "collision_enabled", unreal.CollisionEnabled.NO_COLLISION)
+                disable_collision(component)
 
 
 def spawn_player_start(position):
