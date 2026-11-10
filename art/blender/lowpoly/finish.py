@@ -42,6 +42,14 @@ def turned(objects, rotation_deg):
     return objects
 
 
+def posed(objects, rotation_deg, offset):
+    """Tourne un ensemble de pièces autour de l'origine, puis le déplace de `offset` : pour poser
+    une même pièce plusieurs fois (cartouches en tas, planches empilées)."""
+    for obj in turned(objects, rotation_deg):
+        obj.location = obj.location + Vector(offset)
+    return objects
+
+
 def outward_normals(obj):
     """Oriente toutes les faces vers l'extérieur. Indispensable : une face tournée vers l'intérieur
     disparaît quand les faces arrière sont masquées (Unreal, contour noir) et laisse un trou noir."""

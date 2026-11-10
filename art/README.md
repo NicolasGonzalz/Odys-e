@@ -91,6 +91,8 @@ d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLI
 | `armes/arc`, `armes/lance`, `armes/pistolet`, `armes/fusil_pompe` | 🟡 d'après les ambiances (Abri, Lac gelé, Cœur, hangar, Grande Porte), à valider |
 | `armes/fleche` | 🟡 flèche universelle : même munition pour l'arc et l'arbalète (`lowpoly/arrow.py`) |
 | `objets/pile` | 🟡 pile récupérée, énergie de la lampe et du GPS |
+| `ressources/planches`, `ressources/baton`, `ressources/lingot` | 🟡 matériaux transformés : pile de 3 planches, branche, lingot fondu main |
+| `munitions/munitions_pistolet`, `munitions/munitions_fusil` | 🟡 petits tas de 3 cartouches (`lowpoly/cartridge.py`), contour plus fin |
 | `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |
 | `vegetation/sapin` | ✅ fidèle à la planche (40 faces) |
 | `animaux/chien` | ✅ proche du concept : proportions, couleurs, pose (442 faces) ; pelage hirsute et gueule à affiner |
