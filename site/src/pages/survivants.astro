@@ -1,0 +1,37 @@
+---
+// Les quatre survivants : un par joueur, chacun avec sa spécialité.
+import SurvivantCard from "../components/SurvivantCard.astro";
+import { survivants } from "../data/survivants";
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Les survivants"
+  description="Les quatre survivants d'Odyssée : l'ingénieure, le biologiste, le débrouillard et l'agente."
+>
+  <section class="section conteneur">
+    <span class="surtitre">Les survivants</span>
+    <h1>Quatre réveils, quatre passés</h1>
+    <p class="intro">
+      Ils ne se connaissaient pas avant de s'endormir. Chaque joueur en incarne un, et chacun est
+      unique dans une partie. Leur spécialité aide sans jamais bloquer : tout reste faisable seul,
+      autrement ou plus lentement.
+    </p>
+
+    <div class="liste">
+      {survivants.map((survivant) => <SurvivantCard survivant={survivant} />)}
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 {
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+  }
+
+  .liste {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+</style>

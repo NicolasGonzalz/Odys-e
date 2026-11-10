@@ -1,0 +1,29 @@
+---
+// Pied de page : rappel que le jeu est en développement et que les noms sont provisoires.
+const annee = new Date().getFullYear();
+---
+
+<footer class="pied">
+  <div class="conteneur">
+    <p>
+      <strong>Odyssée</strong> est un jeu en développement, fait à deux. Les noms, les images et les
+      détails sont provisoires et peuvent changer.
+    </p>
+    <p class="petit">© {annee} Odyssée · Images : concepts de la direction artistique.</p>
+  </div>
+</footer>
+
+<style>
+  .pied {
+    padding-block: 40px;
+    border-top: 1px solid var(--bord);
+    color: var(--texte-doux);
+    font-size: 0.95rem;
+  }
+
+  .petit {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+</style>

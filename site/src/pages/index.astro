@@ -1,0 +1,186 @@
+---
+// Accueil : la prémisse, ce qu'on fait dans le jeu, puis le monde zone par zone.
+import { Image } from "astro:assets";
+
+import hero from "../assets/zone-1.webp";
+import ZoneCard from "../components/ZoneCard.astro";
+import { zones } from "../data/zones";
+import Base from "../layouts/Base.astro";
+
+const piliers = [
+  {
+    titre: "Explorer",
+    texte: "Une carte faite main, zone par zone. Chaque ruine, chaque lieu a quelque chose à raconter.",
+  },
+  {
+    titre: "Survivre et fabriquer",
+    texte: "Récolter le bois, la pierre, le métal ; fabriquer ses outils, ses armes, son abri. Faim, soif et endurance comptent.",
+  },
+  {
+    titre: "Enquêter",
+    texte: "Journaux, inscriptions, objets oubliés : l'histoire se reconstitue par fragments, sans cinématique.",
+  },
+  {
+    titre: "Ensemble ou seul",
+    texte: "Tout se fait en solo, mais à deux, trois ou quatre on va plus loin. Le monde persiste : ce qu'on bâtit reste.",
+  },
+];
+---
+
+<Base
+  title="Odyssée"
+  description="Odyssée : un jeu de survie et d'aventure en coopération (1 à 4 joueurs), dans un monde redevenu sauvage."
+>
+  <section class="hero">
+    <Image src={hero} alt="" class="hero-fond" widths={[800, 1200, 1600]} sizes="100vw" loading="eager" />
+    <div class="conteneur hero-texte">
+      <span class="surtitre">Survie · aventure · coop 1 à 4 joueurs</span>
+      <h1>Odyssée</h1>
+      <p class="accroche">Le monde a continué sans nous.</p>
+      <p class="intro">
+        On se réveille dans une capsule. Dehors, la nature a tout repris : les champs, les routes, les
+        villes. Il n'y a plus personne. Alors on explore, on survit, et on cherche à comprendre.
+      </p>
+      <div class="actions">
+        <a class="bouton" href="#monde">Découvrir le monde</a>
+        <a class="bouton bouton--discret" href="/survivants">Les survivants</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">Le réveil</span>
+    <h2>Où sont passés les humains ?</h2>
+    <div class="premisse">
+      <p>
+        Combien de temps a-t-on dormi ? Assez pour que les arbres poussent au milieu des avenues et
+        que les animaux aient oublié la peur des hommes. Pas assez pour effacer les enseignes, les
+        affiches, les derniers messages laissés derrière eux.
+      </p>
+      <p>
+        Quatre survivants se réveillent, sans se connaître. Chacun garde des souvenirs que les autres
+        n'ont pas. C'est en avançant, de ruine en ruine, qu'on reconstitue ce qui s'est passé.
+      </p>
+    </div>
+  </section>
+
+  <section class="section bande">
+    <div class="conteneur">
+      <span class="surtitre">Le jeu</span>
+      <h2>Ce qu'on y fait</h2>
+      <div class="piliers">
+        {
+          piliers.map(({ titre, texte }) => (
+            <div class="pilier">
+              <h3>{titre}</h3>
+              <p>{texte}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section conteneur" id="monde">
+    <span class="surtitre">Le monde</span>
+    <h2>Cinq zones, de plus en plus dangereuses</h2>
+    <p class="intro">
+      Autour d'une campagne calme, des territoires de plus en plus hostiles. Chacun a ses
+      ressources, sa faune, ses ruines… et ce qu'on y découvre ouvre le chemin vers le suivant.
+    </p>
+    <div class="zones">
+      {zones.map((zone) => <ZoneCard zone={zone} />)}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: min(88vh, 760px);
+    overflow: hidden;
+  }
+
+  .hero :global(.hero-fond) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--fond) 8%, rgb(14 20 17 / 0.55) 55%, rgb(14 20 17 / 0.15));
+  }
+
+  .hero-texte {
+    position: relative;
+    z-index: 1;
+    padding-block: 72px;
+  }
+
+  h1 {
+    font-size: clamp(3.2rem, 10vw, 6.5rem);
+    margin-bottom: 0.1em;
+  }
+
+  .accroche {
+    font-family: var(--titres);
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+  }
+
+  .hero .intro {
+    color: var(--texte);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .premisse {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1rem 3rem;
+    color: var(--texte-doux);
+    font-size: 1.1rem;
+  }
+
+  .bande {
+    background: var(--surface);
+    border-block: 1px solid var(--bord);
+  }
+
+  .piliers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .pilier {
+    padding: 1.4rem;
+    border-radius: var(--rayon);
+    background: var(--surface-haute);
+    border-top: 3px solid var(--mousse-sombre);
+  }
+
+  .pilier p {
+    margin: 0;
+    color: var(--texte-doux);
+  }
+
+  .zones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+</style>

@@ -1,0 +1,98 @@
+---
+// Fiche d'un survivant : portrait, rôle, ce qu'on sait de lui, sa spécialité et sa silhouette.
+import { Image } from "astro:assets";
+
+import type { Survivant } from "../data/survivants";
+
+interface Props {
+  survivant: Survivant;
+}
+
+const { survivant } = Astro.props;
+---
+
+<article class="fiche" id={survivant.id}>
+  <div class="portrait">
+    <Image
+      src={survivant.image}
+      alt={`Concept de ${survivant.nom}`}
+      widths={[320, 520, 800]}
+      sizes="(max-width: 720px) 60vw, 280px"
+    />
+  </div>
+  <div class="texte">
+    <span class="surtitre">{survivant.role} · {survivant.age} ans</span>
+    <h3>{survivant.nom}</h3>
+    <p>{survivant.avant}</p>
+
+    <h4>Spécialité : {survivant.specialite}</h4>
+    <ul>
+      {survivant.atouts.map((atout) => <li>{atout}</li>)}
+    </ul>
+
+    <p class="silhouette">{survivant.silhouette}</p>
+  </div>
+</article>
+
+<style>
+  .fiche {
+    display: grid;
+    grid-template-columns: minmax(0, 280px) 1fr;
+    gap: clamp(1.25rem, 4vw, 2.5rem);
+    align-items: center;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface);
+    scroll-margin-top: 80px;
+  }
+
+  .portrait {
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--surface-haute);
+    aspect-ratio: 800 / 1536;
+  }
+
+  .portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  h3 {
+    font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+  }
+
+  h4 {
+    margin: 1.25rem 0 0.4rem;
+    color: var(--mousse);
+    font-size: 1rem;
+  }
+
+  ul {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+    color: var(--texte-doux);
+  }
+
+  .silhouette {
+    margin: 0;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--bord);
+    color: var(--texte-doux);
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 720px) {
+    .fiche {
+      grid-template-columns: 1fr;
+    }
+
+    .portrait {
+      width: min(60%, 260px);
+      margin-inline: auto;
+    }
+  }
+</style>

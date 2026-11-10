@@ -6,7 +6,7 @@
 - **Début :** lundi 16 nov. 2026 · **Fin prévue du MVP :** semaine 23 (25 avr. 2027)
 - **Équipe :** Nicolas (code, serveur, réseau) et son coéquipier (Unreal, art, cartes) — voir [TEAM.md](TEAM.md)
 - **Rythme :** ~12 h/semaine pour Nicolas (10–15 h), objectifs fixés semaine par semaine
-- **Charge totale :** 303 h, 66 tâches
+- **Charge totale :** 307 h, 67 tâches
 - **Suivi au quotidien :** GitHub Issues + Project (une issue par tâche)
 
 ## Règles du jeu
@@ -41,7 +41,7 @@
 | ☐ | T004 | Nicolas | Logger commun | 2 | Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé. |
 | ☐ | T005 | Nicolas | Vérifier la CI et le badge | 1 | CI verte sur main, badge dans le README. |
 
-### Semaine 2 — du 23 nov. 2026 · M0 · Nicolas 5 h · Coéquipier 12 h
+### Semaine 2 — du 23 nov. 2026 · M0 · Nicolas 9 h · Coéquipier 16 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
@@ -49,6 +49,7 @@
 | ☐ | T007 | Coéquipier | Guide de style visuel (Figma) | 3 | Moodboard « retour à l'état sauvage », palette par zone, références de silhouettes low-poly. |
 | ☐ | T008 | Les deux | Construction, jour/nuit et météo | 2 | Choix documentés : type de construction, durée d'une journée, impact de la nuit. |
 | ☐ | T009 | Les deux | Fiche détaillée de chaque zone | 3 | Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact. |
+| ☐ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
 
 ### Semaine 3 — du 30 nov. 2026 · M0.5 · Nicolas 5 h · Coéquipier 8 h
 
