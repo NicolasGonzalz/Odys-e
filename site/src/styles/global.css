@@ -1,0 +1,138 @@
+/* Palette reprise des concepts : forêt sombre, mousse, sable, rouille. */
+:root {
+  --fond: #0e1411;
+  --surface: #161f1a;
+  --surface-haute: #1d2922;
+  --bord: #2b3a31;
+  --texte: #ebe6d9;
+  --texte-doux: #a9b3a7;
+  --mousse: #9cc36a;
+  --mousse-sombre: #5f8a3a;
+  --rouille: #c8773f;
+  --lueur: #7dffb0;
+
+  --titres: "Fraunces", Georgia, serif;
+  --corps: "Inter", system-ui, sans-serif;
+  --largeur: 1120px;
+  --rayon: 14px;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--corps);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--mousse);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--titres);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 0 0.5em;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+h3 {
+  font-size: 1.35rem;
+}
+
+p {
+  margin: 0 0 1em;
+}
+
+.conteneur {
+  width: min(var(--largeur), 100% - 32px);
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(56px, 9vw, 110px);
+}
+
+.surtitre {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: var(--mousse);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.intro {
+  max-width: 62ch;
+  color: var(--texte-doux);
+  font-size: 1.125rem;
+}
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 999px;
+  background: var(--mousse);
+  color: #11180f;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.bouton:hover {
+  background: #b3d985;
+  transform: translateY(-1px);
+}
+
+.bouton--discret {
+  background: transparent;
+  color: var(--texte);
+  border: 1px solid var(--bord);
+}
+
+.bouton--discret:hover {
+  background: var(--surface-haute);
+}
+
+:focus-visible {
+  outline: 2px solid var(--lueur);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  * {
+    transition: none !important;
+  }
+}

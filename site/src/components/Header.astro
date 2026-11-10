@@ -1,0 +1,78 @@
+---
+// Barre de navigation : la page courante est mise en évidence.
+const liens = [
+  { href: "/", texte: "Le jeu" },
+  { href: "/#monde", texte: "Le monde" },
+  { href: "/survivants", texte: "Survivants" },
+];
+const courant = Astro.url.pathname.replace(/\/$/, "") || "/";
+---
+
+<header class="entete">
+  <nav class="conteneur barre" aria-label="Navigation principale">
+    <a href="/" class="logo">Odyssée</a>
+    <ul>
+      {
+        liens.map(({ href, texte }) => (
+          <li>
+            <a href={href} aria-current={href === courant ? "page" : undefined}>
+              {texte}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .entete {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--fond) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--bord);
+  }
+
+  .barre {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: var(--titres);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--texte);
+    text-decoration: none;
+  }
+
+  ul {
+    display: flex;
+    gap: clamp(0.75rem, 3vw, 2rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ul a {
+    color: var(--texte-doux);
+    font-size: 0.95rem;
+    text-decoration: none;
+  }
+
+  ul a:hover,
+  ul a[aria-current="page"] {
+    color: var(--texte);
+  }
+
+  ul a[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-color: var(--mousse);
+    text-underline-offset: 6px;
+  }
+</style>

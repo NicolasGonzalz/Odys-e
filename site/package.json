@@ -1,0 +1,14 @@
+{
+  "name": "odyssee-site",
+  "private": true,
+  "type": "module",
+  "description": "Site de présentation d'Odyssée (accueil, univers, survivants), déployé sur Vercel.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "5.18.2"
+  }
+}

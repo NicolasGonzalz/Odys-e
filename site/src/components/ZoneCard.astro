@@ -1,0 +1,95 @@
+---
+// Carte d'une zone : image d'ambiance, nom, paysage, niveau de danger. Une zone « mystère »
+// est floutée : on la devine sans la voir.
+import { Image } from "astro:assets";
+
+import type { Zone } from "../data/zones";
+
+interface Props {
+  zone: Zone;
+}
+
+const { zone } = Astro.props;
+const etoiles = "★".repeat(zone.danger) + "☆".repeat(5 - zone.danger);
+---
+
+<article class:list={["carte", { mystere: zone.mystere }]}>
+  <div class="visuel">
+    <Image
+      src={zone.image}
+      alt={zone.mystere ? "Zone inconnue, image floutée" : `Ambiance de la zone ${zone.nom}`}
+      widths={[480, 800, 1200]}
+      sizes="(max-width: 720px) 100vw, 50vw"
+    />
+    <span class="numero">Zone {zone.numero}</span>
+  </div>
+  <div class="texte">
+    <h3>{zone.nom}</h3>
+    <p class="meta">
+      <span>{zone.paysage}</span>
+      <span class="danger" aria-label={`Danger ${zone.danger} sur 5`}>{etoiles}</span>
+    </p>
+    <p>{zone.ambiance}</p>
+  </div>
+</article>
+
+<style>
+  .carte {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--bord);
+    border-radius: var(--rayon);
+    background: var(--surface);
+  }
+
+  .visuel {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .visuel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mystere .visuel img {
+    filter: blur(14px) saturate(1.3);
+    transform: scale(1.15);
+  }
+
+  .numero {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgb(14 20 17 / 0.8);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .texte {
+    padding: 1.25rem 1.4rem 1.4rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--texte-doux);
+    font-size: 0.9rem;
+  }
+
+  .danger {
+    color: var(--rouille);
+    letter-spacing: 0.1em;
+  }
+
+  .texte p:last-child {
+    margin: 0;
+  }
+</style>
