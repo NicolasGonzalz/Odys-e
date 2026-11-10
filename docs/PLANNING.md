@@ -6,7 +6,7 @@
 - **Début :** lundi 16 nov. 2026 · **Fin prévue du MVP :** semaine 23 (25 avr. 2027)
 - **Équipe :** Nicolas (code, serveur, réseau) et son coéquipier (Unreal, art, cartes) — voir [TEAM.md](TEAM.md)
 - **Rythme :** ~12 h/semaine pour Nicolas (10–15 h), objectifs fixés semaine par semaine
-- **Charge totale :** 307 h, 67 tâches
+- **Charge totale :** 311 h, 68 tâches
 - **Suivi au quotidien :** GitHub Issues + Project (une issue par tâche)
 
 ## Règles du jeu
@@ -157,13 +157,14 @@
 | ☐ | T042 | Nicolas | Zone d'intérêt (AOI) | 4 | Chaque joueur ne reçoit que les entités proches. |
 | ☐ | T065 | Coéquipier | Habillage de la zone de départ | 6 | Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place. |
 
-### Semaine 16 — du 1 mars 2027 · M4 · Nicolas 12 h · Coéquipier 5 h
+### Semaine 16 — du 1 mars 2027 · M4 · Nicolas 16 h · Coéquipier 9 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T043 | Nicolas | ECS serveur | 6 | Entités et composants, système de mise à jour par tick. |
 | ☐ | T044 | Nicolas | Ressources récoltables avec repousse | 6 | Arbres et rochers récoltables, repousse côté serveur. |
 | ☐ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
+| ☐ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |
 
 ### Semaine 17 — du 8 mars 2027 · M4 · Nicolas 12 h · Coéquipier 0 h
 
