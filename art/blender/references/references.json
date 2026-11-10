@@ -1,0 +1,169 @@
+{
+  "_doc": [
+    "Image de référence de chaque modèle, découpée dans les planches de art/concepts/.",
+    "  source : planche d'origine ; box : [gauche, haut, droite, bas] en pixels de la planche.",
+    "Sert à comparer le modèle à son concept (python3 art/blender/references/compare.py <nom>).",
+    "  mode : « lignes » (défaut, ex. hache) ou « couleur » (tête en métal qui enjambe le manche, ex. pioche).",
+    "  modeles : les modèles qui comparent leur rendu à cette référence, quand leur nom diffère (hache → hache_metal)."
+  ],
+  "hache": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      10,
+      10,
+      115,
+      200
+    ],
+    "modeles": [
+      "hache_metal"
+    ]
+  },
+  "loup_gaia": {
+    "source": "art/concepts/creatures/bestiaire.jpg",
+    "box": [
+      62,
+      612,
+      690,
+      1060
+    ]
+  },
+  "chien": {
+    "source": "art/concepts/creatures/bestiaire.jpg",
+    "box": [
+      83,
+      89,
+      516,
+      523
+    ]
+  },
+  "sapin": {
+    "source": "art/concepts/decors/vegetation-ruines-campement.jpg",
+    "box": [
+      791,
+      158,
+      1058,
+      640
+    ]
+  },
+  "pioche": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      115,
+      12,
+      255,
+      200
+    ],
+    "mode": "couleur",
+    "modeles": [
+      "pioche_metal"
+    ]
+  },
+  "arbalete": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      15,
+      212,
+      220,
+      362
+    ]
+  },
+  "buche": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      265,
+      18,
+      380,
+      108
+    ]
+  },
+  "pierre": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      395,
+      25,
+      475,
+      92
+    ]
+  },
+  "minerai": {
+    "source": "art/concepts/objets/outils-et-ressources.png",
+    "box": [
+      492,
+      28,
+      580,
+      92
+    ]
+  },
+  "jumelles": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      300,
+      500,
+      720,
+      780
+    ]
+  },
+  "fusil_pompe": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      1380,
+      460,
+      1830,
+      770
+    ]
+  },
+  "arc": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      2300,
+      60,
+      2752,
+      760
+    ]
+  },
+  "lampe": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      140,
+      1180,
+      460,
+      1450
+    ]
+  },
+  "pied_de_biche": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      640,
+      1000,
+      920,
+      1536
+    ]
+  },
+  "gps": {
+    "source": "art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg",
+    "box": [
+      1460,
+      1240,
+      1700,
+      1510
+    ]
+  },
+  "pistolet": {
+    "source": "art/concepts/ambiances/zones-1-a-5-planche-a.jpeg",
+    "box": [
+      1460,
+      1180,
+      1760,
+      1536
+    ]
+  },
+  "lance": {
+    "source": "art/concepts/ambiances/zones-1-a-5-planche-b.jpeg",
+    "box": [
+      2340,
+      780,
+      2620,
+      1536
+    ]
+  }
+}
