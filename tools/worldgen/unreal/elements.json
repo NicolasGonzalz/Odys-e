@@ -1,0 +1,93 @@
+{
+  "_doc": [
+    "Catalogue des éléments du monde. Pour chaque élément :",
+    "  mesh       : chemin du VRAI modèle dans Unreal (ex. /Game/Odyssee/Vegetation/SM_Chene).",
+    "               Vide => la forme provisoire « parts » est utilisée. Remplir puis relancer build_map.py.",
+    "  parts      : forme provisoire faite de formes simples (cube, sphere, cylinder, cone) ;",
+    "               size et offset en mètres (offset = centre de la forme, depuis le pied de l'élément).",
+    "  emissive   : intensité lumineuse de la couleur (cocons, champignons, marqueurs).",
+    "  collision  : le joueur se cogne dedans (arbres, rochers) ou non (herbe, fleurs).",
+    "  cull_m     : distance au-delà de laquelle l'élément n'est plus dessiné (0 = jamais).",
+    "  scale      : variation de taille aléatoire [min, max] ; yaw_only : rotation sur l'axe vertical seulement."
+  ],
+
+  "chene": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.3], "parts": [
+    { "shape": "cylinder", "color": [0.36, 0.24, 0.13], "size": [0.9, 0.9, 5], "offset": [0, 0, 2.5] },
+    { "shape": "sphere", "color": [0.33, 0.52, 0.19], "size": [6.5, 6.5, 5], "offset": [0, 0, 7] } ] },
+
+  "sapin": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.4], "parts": [
+    { "shape": "cylinder", "color": [0.33, 0.21, 0.12], "size": [0.6, 0.6, 2], "offset": [0, 0, 1] },
+    { "shape": "cone", "color": [0.12, 0.36, 0.17], "size": [4, 4, 8], "offset": [0, 0, 5.5] } ] },
+
+  "sapin_neige": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.7, 1.4], "parts": [
+    { "shape": "cylinder", "color": [0.33, 0.21, 0.12], "size": [0.6, 0.6, 2], "offset": [0, 0, 1] },
+    { "shape": "cone", "color": [0.62, 0.74, 0.70], "size": [4, 4, 8], "offset": [0, 0, 5.5] } ] },
+
+  "arbre_mort": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.3], "parts": [
+    { "shape": "cylinder", "color": [0.30, 0.25, 0.22], "size": [0.5, 0.5, 6], "offset": [0, 0, 3] } ] },
+
+  "arbre_geant": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.2], "parts": [
+    { "shape": "cylinder", "color": [0.28, 0.20, 0.14], "size": [4, 4, 26], "offset": [0, 0, 13] },
+    { "shape": "sphere", "color": [0.08, 0.38, 0.34], "size": [24, 24, 16], "offset": [0, 0, 30] } ] },
+
+  "buisson": { "mesh": "", "collision": false, "cull_m": 250, "scale": [0.7, 1.3], "parts": [
+    { "shape": "sphere", "color": [0.30, 0.48, 0.17], "size": [2.6, 2.6, 1.8], "offset": [0, 0, 0.6] } ] },
+
+  "ronce": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.4], "parts": [
+    { "shape": "sphere", "color": [0.22, 0.26, 0.11], "size": [5, 5, 4], "offset": [0, 0, 1.6] } ] },
+
+  "herbe_haute": { "mesh": "", "collision": false, "cull_m": 120, "scale": [0.7, 1.3], "parts": [
+    { "shape": "cone", "color": [0.48, 0.66, 0.26], "size": [0.7, 0.7, 1.2], "offset": [0, 0, 0.6] } ] },
+
+  "fleurs": { "mesh": "", "collision": false, "cull_m": 90, "scale": [0.8, 1.2], "parts": [
+    { "shape": "sphere", "color": [0.92, 0.55, 0.75], "size": [0.4, 0.4, 0.4], "offset": [0, 0, 0.3] } ] },
+
+  "fougere": { "mesh": "", "collision": false, "cull_m": 150, "scale": [0.7, 1.4], "parts": [
+    { "shape": "cone", "color": [0.25, 0.50, 0.20], "size": [1.4, 1.4, 1.0], "offset": [0, 0, 0.5] } ] },
+
+  "roseaux": { "mesh": "", "collision": false, "cull_m": 150, "scale": [0.7, 1.3], "parts": [
+    { "shape": "cylinder", "color": [0.45, 0.48, 0.22], "size": [0.2, 0.2, 2], "offset": [0, 0, 1] } ] },
+
+  "champignon_lumineux": { "mesh": "", "collision": false, "cull_m": 200, "scale": [0.6, 1.6],
+    "emissive": 4, "parts": [
+    { "shape": "cylinder", "color": [0.80, 0.80, 0.75], "size": [0.15, 0.15, 0.5], "offset": [0, 0, 0.25] },
+    { "shape": "sphere", "color": [0.55, 0.25, 0.95], "size": [0.6, 0.6, 0.3], "offset": [0, 0, 0.55] } ] },
+
+  "rocher_mousse": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.6, 1.8], "parts": [
+    { "shape": "sphere", "color": [0.45, 0.48, 0.40], "size": [2.6, 2.2, 1.5], "offset": [0, 0, 0.4] } ] },
+
+  "rocher_neige": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.7, 2.0], "parts": [
+    { "shape": "sphere", "color": [0.80, 0.83, 0.87], "size": [4, 3.5, 2.5], "offset": [0, 0, 0.6] } ] },
+
+  "plante_carnivore": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.8, 1.3], "parts": [
+    { "shape": "cylinder", "color": [0.25, 0.45, 0.18], "size": [0.3, 0.3, 2.2], "offset": [0, 0, 1.1] },
+    { "shape": "sphere", "color": [0.62, 0.15, 0.22], "size": [1.4, 1.4, 1.0], "offset": [0, 0, 2.4] } ] },
+
+  "futs": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.9, 1.1], "parts": [
+    { "shape": "cylinder", "color": [0.55, 0.30, 0.15], "size": [0.6, 0.6, 0.9], "offset": [0, 0, 0.45] } ] },
+
+  "debris": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.6, 1.6], "parts": [
+    { "shape": "cube", "color": [0.55, 0.53, 0.50], "size": [2, 1.5, 0.6], "offset": [0, 0, 0.3] } ] },
+
+  "voiture_rouillee": { "mesh": "", "collision": true, "cull_m": 0, "scale": [1, 1], "parts": [
+    { "shape": "cube", "color": [0.52, 0.32, 0.20], "size": [4.2, 1.8, 1.4], "offset": [0, 0, 0.7] } ] },
+
+  "immeuble": { "mesh": "", "collision": true, "cull_m": 0, "scale": [1, 1], "parts": [
+    { "shape": "cube", "color": [0.60, 0.60, 0.57], "size": [1, 1, 1], "offset": [0, 0, 0.5] } ] },
+
+  "batiment": { "mesh": "", "collision": true, "cull_m": 0, "scale": [1, 1], "parts": [
+    { "shape": "cube", "color": [0.50, 0.50, 0.52], "size": [1, 1, 1], "offset": [0, 0, 0.5] } ] },
+
+  "maison": { "mesh": "", "collision": true, "cull_m": 0, "scale": [1, 1], "parts": [
+    { "shape": "cube", "color": [0.55, 0.42, 0.30], "size": [8, 6, 5], "offset": [0, 0, 2.5] },
+    { "shape": "cone", "color": [0.45, 0.20, 0.15], "size": [9, 7, 3], "offset": [0, 0, 6.5] } ] },
+
+  "cocon": { "mesh": "", "collision": true, "cull_m": 0, "scale": [0.9, 1.2], "emissive": 6, "parts": [
+    { "shape": "sphere", "color": [0.25, 0.95, 0.35], "size": [1.3, 1.3, 1.9], "offset": [0, 0, 0.9] } ] },
+
+  "marqueur_boss": { "mesh": "", "collision": false, "cull_m": 0, "scale": [1, 1], "emissive": 3, "parts": [
+    { "shape": "cylinder", "color": [0.85, 0.10, 0.10], "size": [3, 3, 12], "offset": [0, 0, 6] } ] },
+
+  "marqueur_artefact": { "mesh": "", "collision": false, "cull_m": 0, "scale": [1, 1], "emissive": 5, "parts": [
+    { "shape": "cube", "color": [1.00, 0.80, 0.10], "size": [1, 1, 1], "offset": [0, 0, 1.5] } ] }
+}
