@@ -27,6 +27,11 @@ jobs:
       - name: Tests
         run: ctest --test-dir build --output-on-failure
 
+      # Le plugin Unreal n'est pas compilé en CI (ADR 0003) : on vérifie au moins qu'il embarque
+      # bien tous les fichiers de shared/src (un oubli ne se verrait qu'à l'édition de liens).
+      - name: Sources de shared/ dans le plugin OdysseeNet
+        run: python3 scripts/odysseenet_sources.py
+
   windows:
     name: Windows (MSVC)
     runs-on: windows-2022
