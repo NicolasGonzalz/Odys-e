@@ -5,6 +5,14 @@
 
 ## Vue d'ensemble
 
+![Carte du monde](../art/concepts/monde/carte-du-monde-plan.png)
+
+*Carte de référence : 4 × 3 km. Version illustrée : [carte-du-monde-illustree.jpeg](../art/concepts/monde/carte-du-monde-illustree.jpeg).
+Les coordonnées exactes sont dans [`tools/worldgen/world_layout.json`](../tools/worldgen/world_layout.json).*
+
+![Fiche des biomes](../art/concepts/monde/fiche-des-biomes.png)
+
+
 ```
                  ┌──────────────────────┐
                  │  5. LE CŒUR          │  forêt primordiale
@@ -40,6 +48,9 @@ Les zones 2 et 3 sont accessibles dans l'ordre qu'on veut après la zone 1, mais
 
 ## 1. L'Abri — la campagne du réveil
 
+![L'Abri](../art/concepts/ambiances/zone-1-plaine.jpg)
+
+
 **Ambiance :** collines douces, prairies qui ont recouvert les champs, vergers redevenus sauvages, brume du matin.
 Calme, presque beau. Le joueur doit d'abord se dire : *« où est passé tout le monde ? »*, pas encore *« j'ai peur »*.
 
@@ -56,6 +67,9 @@ Calme, presque beau. Le joueur doit d'abord se dire : *« où est passé tout le
 - **Sortie :** réparer le pont pour rejoindre la ville.
 
 ## 2. La Ville engloutie — Odyssée et les non-choisis
+
+![La Ville engloutie](../art/concepts/ambiances/zone-2-ville-engloutie.jpg)
+
 
 **Ambiance :** une ville moyenne avalée par la forêt. Tours éventrées couvertes de lierre, arbres qui poussent dans
 les avenues, métro inondé, lumière verte filtrée par la canopée. Les enseignes sont encore lisibles.
@@ -74,6 +88,12 @@ les avenues, métro inondé, lumière verte filtrée par la canopée. Les enseig
   - plusieurs cocons dans les parcs et les appartements.
 
 ## 3. Les Terres noyées — Gaïa
+
+![Les Terres noyées](../art/concepts/ambiances/zone-3-terres-noyees.jpg)
+
+> ⚠️ La fiche des biomes appelle cette zone **« La Centrale noyée »** (usine chimique de Gaïa, brouillard
+> toxique en 3 niveaux). Nom et détails à harmoniser avec le texte ci-dessous.
+
 
 **Ambiance :** une plaine fluviale inondée. Le fleuve a changé de lit, les routes sont sous l'eau, les marais
 sont parsemés de lucioles et de spores qui flottent. Au centre, les **serres géantes de Gaïa**, à moitié effondrées,
@@ -94,6 +114,9 @@ d'où tout est parti.
 
 ## 4. Le Site des Portes — le départ
 
+![Le Site des Portes](../art/concepts/ambiances/zone-4-site-des-portes-lieux.jpeg)
+
+
 **Ambiance :** un haut plateau froid, un immense complexe industriel et militaire, des **Portes** monumentales éteintes.
 Moins de végétation : la nature a eu plus de mal ici. Neige, vent, béton et métal.
 
@@ -111,6 +134,9 @@ Moins de végétation : la nature a eu plus de mal ici. Neige, vent, béton et m
 
 ## 5. Le Cœur — la vérité
 
+![Le Cœur et d'autres lieux](../art/concepts/ambiances/zones-1-3-5-lieux.jpeg)
+
+
 **Ambiance :** une forêt primordiale aux arbres gigantesques, une ancienne métropole entièrement absorbée,
 de la **bioluminescence** partout. Des milliers de cocons reliés par des racines lumineuses. Beau et écrasant.
 
@@ -122,6 +148,9 @@ de la **bioluminescence** partout. Des milliers de cocons reliés par des racine
 ---
 
 ## Bestiaire
+
+![Bestiaire](../art/concepts/creatures/bestiaire.jpg)
+
 
 Trois familles, chacune avec un rôle dans le récit :
 

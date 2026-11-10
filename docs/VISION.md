@@ -124,10 +124,25 @@ et les personnages d'Odyssée restent **originaux**. On évite notamment de repr
 
 ## Direction artistique
 
+![Les cinq zones](../art/concepts/ambiances/zones-1-a-5-planche-a.jpeg)
+
+
 Low-poly stylisé, couleurs franches, flat shading, éclairage simple mais lisible. Ce style est rapide à produire seul,
 léger à afficher et vieillit bien. Les assets sont soit faits maison, soit sous licence libre (CC0).
 
 Chaîne de production : **Figma** (concepts de personnages, palettes, maquettes d'UI, icônes) → **Blender** (modèles, rig, animations) → import dans **Unreal**.
+
+### Éléments du monde (à modéliser)
+
+![Végétation, ruines et campement](../art/concepts/decors/vegetation-ruines-campement.jpg)
+![Flore de Gaïa, industriel et neige](../art/concepts/decors/flore-gaia-industriel-neige.jpg)
+
+### Objets
+
+![Objets interactifs](../art/concepts/objets/objets-interactifs.jpg)
+![Outils et ressources](../art/concepts/objets/outils-et-ressources.png)
+
+Toutes les références et leur description : [art/README.md](../art/README.md).
 
 ## Public & plateforme
 

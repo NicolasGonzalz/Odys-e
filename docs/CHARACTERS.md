@@ -28,6 +28,9 @@ juste plus lentement ou autrement.
 ## Les quatre
 
 ### Mara Velin — l'ingénieure
+
+<img src="../art/concepts/personnages/mara-velin.jpg" alt="Mara Velin" width="320">
+
 - **Avant** : technicienne de maintenance du réseau des Portes, 34 ans. Placée en stase pour être réveillée
   « à l'arrivée » et remettre les Portes en route de l'autre côté.
 - **Ce qu'elle ignore** : que son départ n'a jamais eu lieu.
@@ -36,6 +39,9 @@ juste plus lentement ou autrement.
 - **Silhouette** : combinaison de travail, harnais d'outils, cheveux attachés, gestes précis.
 
 ### Ilian Sorel — le biologiste
+
+<img src="../art/concepts/personnages/ilian-sorel.jpg" alt="Ilian Sorel" width="320">
+
 - **Avant** : chercheur du Projet Gaïa, 51 ans. A participé à l'écriture de la **règle fondatrice** de Gaïa
   (« protéger la vie »). Rongé par la culpabilité quand la Floraison a commencé, il a rejoint Odyssée sous un faux nom.
 - **Ce qu'il ignore** : que Gaïa n'a pas tué les humains. Sa règle les a sauvés.
@@ -44,6 +50,9 @@ juste plus lentement ou autrement.
 - **Silhouette** : grand, maigre, blouse usée sous un manteau, lunettes fêlées.
 
 ### Teo Brandt — le non-choisi
+
+<img src="../art/concepts/personnages/teo-brandt.jpg" alt="Teo Brandt" width="320">
+
 - **Avant** : 19 ans, sans qualification particulière, **jamais sélectionné** par Odyssée. Il s'est introduit
   dans le centre de stase pendant la panique de la dernière nuit et s'est glissé dans une capsule vide.
 - **Ce qu'il ignore** : ce qu'est devenue sa famille, restée dehors quand la forêt est arrivée.
@@ -52,6 +61,9 @@ juste plus lentement ou autrement.
 - **Silhouette** : vêtements de ville déchirés, capuche, sac à dos, débrouillard.
 
 ### Nadia Okoro — l'agente
+
+<img src="../art/concepts/personnages/nadia-okoro.jpg" alt="Nadia Okoro" width="320">
+
 - **Avant** : 42 ans, agente de sécurité du site de stase. Elle a reçu l'ordre de **tenir les portes du centre
   fermées** face à la foule des non-choisis. Mise en stase en dernière minute, quand les opérateurs ont fui.
 - **Ce qu'elle ignore** : qui a donné les ordres, et pourquoi on l'a laissée là.
