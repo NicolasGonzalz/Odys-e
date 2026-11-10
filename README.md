@@ -38,6 +38,7 @@ C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 ├── UnrealEngine/Odysse/  # Client Unreal 5.6 (C++ dans Source/, assets via Git LFS)
 ├── tests/    # Tests unitaires
 ├── cmake/    # Modules CMake (warnings, dépendances)
+├── art/      # Références visuelles (concepts de la direction artistique, via Git LFS)
 ├── docs/     # Conception : vision, architecture, réseau, roadmap, planning, ADR
 ├── planning/ # Source du planning (tâches + jalons, TSV)
 └── scripts/  # Outils (planning.py : génère PLANNING.md et les issues GitHub)
