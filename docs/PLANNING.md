@@ -6,7 +6,7 @@
 - **Début :** lundi 16 nov. 2026 · **Fin prévue du MVP :** semaine 23 (25 avr. 2027)
 - **Équipe :** Nicolas (code, serveur, réseau) et son coéquipier (Unreal, art, cartes) — voir [TEAM.md](TEAM.md)
 - **Rythme :** ~12 h/semaine pour Nicolas (10–15 h), objectifs fixés semaine par semaine
-- **Charge totale :** 311 h, 68 tâches
+- **Charge totale :** 355 h, 77 tâches
 - **Suivi au quotidien :** GitHub Issues + Project (une issue par tâche)
 
 ## Règles du jeu
@@ -41,7 +41,7 @@
 | ☐ | T004 | Nicolas | Logger commun | 2 | Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé. |
 | ☐ | T005 | Nicolas | Vérifier la CI et le badge | 1 | CI verte sur main, badge dans le README. |
 
-### Semaine 2 — du 23 nov. 2026 · M0 · Nicolas 9 h · Coéquipier 16 h
+### Semaine 2 — du 23 nov. 2026 · M0 · Nicolas 12 h · Coéquipier 19 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
@@ -50,6 +50,7 @@
 | ☐ | T008 | Les deux | Construction, jour/nuit et météo | 2 | Choix documentés : type de construction, durée d'une journée, impact de la nuit. |
 | ☐ | T009 | Les deux | Fiche détaillée de chaque zone | 3 | Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact. |
 | ☐ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
+| ☐ | T069 | Les deux | Conception des systèmes de jeu | 3 | docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat. |
 
 ### Semaine 3 — du 30 nov. 2026 · M0.5 · Nicolas 5 h · Coéquipier 8 h
 
@@ -114,7 +115,7 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T029 | Nicolas | Simulation de mouvement partagée | 5 | shared/sim : mouvement + collisions de base, utilisé par client et serveur. |
+| ☐ | T029 | Nicolas | Simulation de mouvement partagée | 5 | shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur. |
 | ☐ | T030 | Nicolas | Tests de déterminisme | 3 | Même suite d'inputs = même état, client et serveur. |
 | ☐ | T031 | Nicolas | Prédiction côté client | 4 | Le joueur local bouge sans attendre le serveur. |
 | ☐ | T063 | Coéquipier | Survivant 4 (Nadia) : modèle et rig | 5 | Corps + bras FPS riggés. |
@@ -149,15 +150,16 @@
 | ☐ | T039 | Nicolas | Outil d'export de la carte | 6 | Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs). |
 | ☐ | T040 | Nicolas | Format du fichier monde | 2 | Format documenté et versionné. |
 
-### Semaine 15 — du 22 févr. 2027 · M3 · Nicolas 12 h · Coéquipier 6 h
+### Semaine 15 — du 22 févr. 2027 · M3, M4 · Nicolas 12 h · Coéquipier 12 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T041 | Nicolas | Chargement de la carte et collisions serveur | 8 | Le serveur charge la carte par chunks et applique les collisions du terrain. |
 | ☐ | T042 | Nicolas | Zone d'intérêt (AOI) | 4 | Chaque joueur ne reçoit que les entités proches. |
 | ☐ | T065 | Coéquipier | Habillage de la zone de départ | 6 | Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place. |
+| ☐ | T071 | Coéquipier | Postes d'artisanat (Blender) | 6 | Établi, forge et table de cartographie : modèles posables, .fbx et icônes. |
 
-### Semaine 16 — du 1 mars 2027 · M4 · Nicolas 16 h · Coéquipier 9 h
+### Semaine 16 — du 1 mars 2027 · M4 · Nicolas 16 h · Coéquipier 11 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
@@ -165,20 +167,23 @@
 | ☐ | T044 | Nicolas | Ressources récoltables avec repousse | 6 | Arbres et rochers récoltables, repousse côté serveur. |
 | ☐ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
 | ☐ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |
+| ☐ | T070 | Coéquipier | Objet carte (Blender) | 2 | Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire. |
 
-### Semaine 17 — du 8 mars 2027 · M4 · Nicolas 12 h · Coéquipier 0 h
+### Semaine 17 — du 8 mars 2027 · M4 · Nicolas 12 h · Coéquipier 8 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T045 | Nicolas | Inventaire synchronisé | 6 | Inventaire serveur, mis à jour via le canal fiable. |
 | ☐ | T046 | Nicolas | Objets et recettes data-driven | 6 | Objets et recettes décrits dans des fichiers de données. |
+| ☐ | T072 | Coéquipier | Animations de combat | 8 | Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal. |
 
-### Semaine 18 — du 15 mars 2027 · M4 · Nicolas 4 h · Coéquipier 8 h
+### Semaine 18 — du 15 mars 2027 · M4 · Nicolas 10 h · Coéquipier 8 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T047 | Nicolas | Artisanat | 4 | Fabriquer un objet consomme les ressources, validé par le serveur. |
+| ☐ | T047 | Nicolas | Artisanat | 4 | Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur. |
 | ☐ | T048 | Coéquipier | UI d'inventaire et d'artisanat | 8 | Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet. |
+| ☐ | T074 | Nicolas | Exploration et carte commune (serveur) | 6 | Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde. |
 
 ### Semaine 19 — du 22 mars 2027 · M4 · Nicolas 12 h · Coéquipier 12 h
 
@@ -187,26 +192,30 @@
 | ☐ | T049 | Les deux | Indices lisibles et journal du joueur | 8 | Lire un journal ou une inscription l'ajoute au journal (commun + personnel). |
 | ☐ | T050 | Les deux | Tampon + post d'avancement M3/M4 | 4 | Retard rattrapé, post publié. |
 
-### Semaine 20 — du 29 mars 2027 · M5 · Nicolas 12 h · Coéquipier 6 h
+### Semaine 20 — du 29 mars 2027 · M5 · Nicolas 16 h · Coéquipier 10 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T051 | Les deux | Santé, faim, soif, endurance | 6 | Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier). |
 | ☐ | T052 | Nicolas | Mort, sac au sol et réapparition | 6 | Inventaire laissé sur place, récupérable ; réapparition au point de repos. |
+| ☐ | T076 | Les deux | GPS et piles | 4 | Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS). |
 
-### Semaine 21 — du 5 avr. 2027 · M5 · Nicolas 12 h · Coéquipier 0 h
+### Semaine 21 — du 5 avr. 2027 · M4, M5 · Nicolas 12 h · Coéquipier 9 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T053 | Nicolas | Persistance SQLite | 10 | Joueurs, inventaires et modifications du monde sauvegardés et rechargés. |
 | ☐ | T054 | Nicolas | Test de redémarrage du serveur | 2 | Arrêt/redémarrage sans perte, automatisé. |
+| ☐ | T073 | Coéquipier | Notifications du HUD | 3 | Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu. |
+| ☐ | T075 | Coéquipier | Grande carte plein écran | 6 | Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte. |
 
-### Semaine 22 — du 12 avr. 2027 · M5 · Nicolas 12 h · Coéquipier 8 h
+### Semaine 22 — du 12 avr. 2027 · M5 · Nicolas 18 h · Coéquipier 14 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T055 | Les deux | Menu principal et serveur local intégré | 8 | Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant. |
 | ☐ | T056 | Nicolas | Codes d'invitation V1 | 4 | Connexion refusée sans le bon code. |
+| ☐ | T077 | Les deux | Menu pause, touches et sauvegardes | 6 | Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique. |
 
 ### Semaine 23 — du 19 avr. 2027 · M5 · Nicolas 12 h · Coéquipier 12 h
 

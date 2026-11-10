@@ -60,16 +60,23 @@ explorer → récolter → fabriquer → (construire / s'équiper) → survivre 
 
 ## Systèmes de jeu (périmètre cible)
 
+Le fonctionnement détaillé de chaque système (artisanat, carte, GPS, menus, notifications, animations de combat)
+est décrit dans [GAMEPLAY.md](GAMEPLAY.md).
+
 | Système | Description | Priorité |
 |---|---|---|
-| Déplacement | Marche, course, saut, collisions avec le terrain | MVP |
+| Déplacement | Marche, course (endurance), saut, collisions avec le terrain | MVP |
 | Monde | Carte faite main découpée en chunks, zones, végétation | MVP |
 | Indices & journal | Objets lisibles, journal du joueur, progression du mystère | MVP |
 | Artefacts & zones | Artefacts qui débloquent zones et capacités | v1 |
 | Boss | Gardiens de zone, combats scriptés | v1 |
 | Récolte | Ressources (bois, pierre, fibres…) avec repousse | MVP |
 | Inventaire | Emplacements, piles, glisser-déposer | MVP |
-| Artisanat | Recettes, établis, paliers | MVP |
+| Artisanat | Recettes et paliers : à la main, à l'établi, à la forge | MVP |
+| Carte & exploration | Grande carte plein écran (pas de mini-carte), dévoilée en explorant, mise à jour à une table de cartographie, commune en coop | MVP |
+| GPS | Pointe vers les nouveaux points d'intérêt, détecteur de cocons et d'artefacts, fonctionne sur piles | v1 |
+| Menus & sauvegarde | Menu pause (vraie pause en solo), touches modifiables, sauvegarder, charger, nouvelle partie | MVP |
+| Notifications | Messages courts : découvertes, objets, coop, sauvegarde | MVP |
 | Survie | Santé, faim, soif, endurance | MVP |
 | Persistance | Sauvegarde monde + joueurs | MVP |
 | Construction | Pose de pièces sur grille (murs, sols, portes) | v1 |
