@@ -91,6 +91,7 @@ d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLI
 | `armes/arc`, `armes/lance`, `armes/pistolet`, `armes/fusil_pompe` | 🟡 d'après les ambiances (Abri, Lac gelé, Cœur, hangar, Grande Porte), à valider |
 | `armes/fleche` | 🟡 flèche universelle : même munition pour l'arc et l'arbalète (`lowpoly/arrow.py`) |
 | `objets/pile` | 🟡 pile récupérée, énergie de la lampe et du GPS |
+| `objets/carte` | 🟡 carte vierge : seule la zone de départ est dessinée, le reste se dévoile en jeu (docs/GAMEPLAY.md § 3) |
 | `ressources/planches`, `ressources/baton`, `ressources/lingot` | 🟡 matériaux transformés : pile de 3 planches, branche, lingot fondu main |
 | `munitions/munitions_pistolet`, `munitions/munitions_fusil` | 🟡 petits tas de 3 cartouches (`lowpoly/cartridge.py`), contour plus fin |
 | `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |
