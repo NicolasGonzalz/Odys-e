@@ -4,7 +4,7 @@ import { Image } from "astro:assets";
 import etabli from "../assets/etabli.webp";
 import feu from "../assets/feu.webp";
 import ObjetCard from "../components/ObjetCard.astro";
-import { armes, chaines, equipement, icone, munitions, paliers, ressources, transformes } from "../data/items";
+import { armes, chaines, equipement, icone, munitions, paliers, postes, ressources, transformes } from "../data/items";
 import Base from "../layouts/Base.astro";
 ---
 <Base
@@ -25,6 +25,29 @@ import Base from "../layouts/Base.astro";
     <h2>Ce que la terre donne</h2>
     <div class="grille grille--objets">
       {ressources.map((objet) => <ObjetCard objet={objet} />)}
+    </div>
+  </section>
+
+  <section class="section conteneur">
+    <span class="surtitre">Où fabriquer</span>
+    <h2>À la main, à l'établi, à la forge</h2>
+    <p class="intro">
+      Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut se tenir à côté. Établi et forge
+      se posent dans le monde : ils restent, et à plusieurs ils servent à tous.
+    </p>
+    <div class="postes">
+      {
+        postes.map((poste) => (
+          <article class="poste reveal">
+            <span class="poste-num">{poste.numero}</span>
+            <h3>{poste.nom}</h3>
+            <p>{poste.role}</p>
+            <p class="liste">
+              {poste.exemples.map((e) => <span class="etiquette">{e}</span>)}
+            </p>
+          </article>
+        ))
+      }
     </div>
   </section>
 
@@ -113,7 +136,7 @@ import Base from "../layouts/Base.astro";
         {armes.map((objet) => <ObjetCard objet={objet} />)}
       </div>
       <h3 class="sous-titre">Munitions</h3>
-      <p class="intro">Les flèches se fabriquent. Les balles et les cartouches, elles, se trouvent : mieux vaut les garder pour quand il le faut.</p>
+      <p class="intro">Les flèches se fabriquent. Les balles et les cartouches se trouvent surtout dans les ruines, et elles sont rares : mieux vaut les garder pour quand il le faut.</p>
       <div class="grille grille--objets">
         {munitions.map((objet) => <ObjetCard objet={objet} />)}
       </div>
@@ -207,6 +230,38 @@ import Base from "../layouts/Base.astro";
   .bande {
     background: var(--surface);
     border-block: 1px solid var(--bord);
+  }
+  .postes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  .poste {
+    position: relative;
+    padding: 1.5rem;
+    border: 1px solid var(--bord);
+    border-top: 3px solid var(--mousse-sombre);
+    border-radius: var(--rayon);
+    background: var(--surface);
+  }
+  .poste-num {
+    position: absolute;
+    top: 0.4rem;
+    right: 1rem;
+    font-family: var(--titres);
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--bord);
+  }
+  .poste p {
+    color: var(--texte-doux);
+  }
+  .liste {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
   }
   .chaines {
     display: grid;

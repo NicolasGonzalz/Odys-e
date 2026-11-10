@@ -21,7 +21,7 @@ const chiffres = [
 const piliers = [
   {
     titre: "Explorer",
-    texte: "Une carte faite main, zone par zone. Chaque ruine, chaque lieu a quelque chose à raconter.",
+    texte: "Une carte faite main, zone par zone. Pas de mini-carte : on se repère au paysage, et on dessine la sienne en avançant.",
   },
   {
     titre: "Survivre et fabriquer",
@@ -57,6 +57,7 @@ const apercu = familles.map((f) => f.creatures[0]).concat(familles[1].creatures[
       <div class="actions">
         <a class="bouton" href="#monde">Découvrir le monde</a>
         <a class="bouton bouton--discret" href="/artisanat">Ce qu'on fabrique</a>
+        <a class="bouton bouton--discret" href="/explorer">Explorer</a>
       </div>
     </div>
   </section>
