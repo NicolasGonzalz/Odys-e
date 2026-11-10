@@ -54,7 +54,7 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T010 | Coéquipier | Projet Unreal, version figée et Git LFS | 3 | Projet dans client-unreal/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux. |
+| ☐ | T010 | Coéquipier | Projet Unreal, version figée et Git LFS | 3 | Projet dans UnrealEngine/Odysse/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux. |
 | ☐ | T011 | Nicolas | Plugin OdysseeNet embarquant odyssee_shared | 5 | Le plugin compile sous Windows ; un Blueprint appelle une fonction C++ qui utilise ByteWriter/ByteReader de shared. |
 | ☐ | T012 | Coéquipier | Pion 1re personne et terrain de test | 3 | Déplacement, saut, souris, sur un terrain de test. |
 | ☐ | T013 | Coéquipier | Blockout du premier survivant | 2 | Silhouette low-poly validée par rapport au concept Figma. |

@@ -25,13 +25,12 @@ odyssee_tests
 *.so
 
 # Unreal (générés, jamais versionnés)
-client-unreal/Binaries/
-client-unreal/Intermediate/
-client-unreal/Saved/
-client-unreal/DerivedDataCache/
-client-unreal/Build/
-client-unreal/Plugins/*/Binaries/
-client-unreal/Plugins/*/Intermediate/
+# Motifs valables quel que soit l'emplacement du projet (aujourd'hui UnrealEngine/Odysse/),
+# y compris pour les plugins (Plugins/*/Binaries…).
+**/Binaries/
+**/Intermediate/
+**/Saved/
+**/DerivedDataCache/
 *.sln
 *.VC.db
 .vs/

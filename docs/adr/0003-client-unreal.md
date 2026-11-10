@@ -63,7 +63,7 @@ théoriques de Godot (légèreté, fichiers texte, Linux). Nicolas dispose de Li
 2. **Unités** : `shared/` travaille en **mètres, Z vers le haut**. Le plugin convertit vers Unreal (centimètres, repère main gauche).
 3. **`shared/` sans exceptions ni RTTI**, compilable avec MSVC, GCC et Clang (Unreal les désactive par défaut).
 4. **Intégration** : les sources de `shared/` sont compilées directement dans le module du plugin.
-5. **Version d'Unreal figée** au spike (T010), notée dans le README.
+5. **Version d'Unreal figée : 5.6** (projet `UnrealEngine/Odysse/`, novembre 2026), notée dans le README.
 6. **Pas de CI pour Unreal** : la CI couvre `shared/`, le serveur et les tests ; le plugin est compilé localement.
 7. **Client Windows uniquement** pour le MVP ; le client de debug raylib couvre Linux.
 8. **Quota Git LFS** surveillé ; repli : Forgejo auto-hébergé sur le homelab pour les assets.
