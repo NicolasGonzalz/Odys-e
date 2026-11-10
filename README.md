@@ -14,6 +14,10 @@ Le défi est surtout invisible :
 
 C'est la suite logique de mes projets réseau et 3D (Zappy, Raytracer, Arcade).
 
+![Odyssée — les cinq zones](art/concepts/ambiances/zones-1-a-5-planche-b.jpeg)
+
+*Concepts de la direction artistique (voir [art/README.md](art/README.md)) : les cinq zones, de la plaine du réveil à la forêt du Cœur.*
+
 ## Stack
 
 | Domaine | Choix |
