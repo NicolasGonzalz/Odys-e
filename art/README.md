@@ -56,3 +56,29 @@ sur tout ce qui est humain, lumière verte des cocons et de Gaïa, brume en zone
 - Noms en **minuscules, sans espaces ni parenthèses**, mots séparés par des tirets.
 - Toutes les images passent par **Git LFS** (voir `.gitattributes`).
 - Une image qui change le design (nouveau lieu, nouvelle mécanique) → mettre aussi à jour la doc (`docs/ZONES.md`…).
+
+## Modèles 3D générés par script (`blender/`)
+
+Les objets et décors simples sont **construits par script** dans Blender (style low-poly des planches),
+pour avancer sans attendre la modélisation à la main. Les personnages et créatures restent à faire à la main :
+les versions scriptées ne sont que des ébauches.
+
+```sh
+blender -b --python art/blender/build.py -- hache        # un modèle
+blender -b --python art/blender/build.py -- --all        # tous
+```
+
+| Dossier | Contenu |
+|---|---|
+| `blender/modeles/<catégorie>/<nom>.py` | Un fichier = un modèle (fonction `build()`), d'après les planches de `concepts/` |
+| `blender/lowpoly/` | Outils communs : matériaux, formes, assemblage, export, aperçu |
+| `blender/sources/<catégorie>/<nom>.blend` | Le modèle, **retouchable à la main** dans Blender |
+| `exports/<catégorie>/<nom>.fbx` | Le modèle prêt pour Unreal (mètres → centimètres, pivot au pied) |
+| `blender/apercus/<nom>.png` | Rendu de vérification |
+
+| Modèle | Statut |
+|---|---|
+| `outils/hache` | ✅ fidèle à la planche (144 faces) |
+| `vegetation/sapin` | ✅ fidèle à la planche (40 faces) |
+| `animaux/loup` | 🟡 ébauche : base de départ ou modèle provisoire, à retravailler et animer à la main |
+

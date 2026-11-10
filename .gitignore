@@ -43,3 +43,7 @@ CLAUDE.local.md
 # Python
 __pycache__/
 *.pyc
+
+# Sauvegardes automatiques de Blender
+*.blend1
+*.blend2
