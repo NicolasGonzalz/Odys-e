@@ -32,6 +32,11 @@ def safe_set(target, name, value):
         return False
 
 
+def disable_collision(component):
+    """Sans collision (le réglage n'est pas une propriété éditable : il passe par une fonction)."""
+    component.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+
+
 def clear_generated():
     """Supprime ce qu'une génération précédente a posé (le reste du niveau n'est pas touché)."""
     generated = [a for a in actors().get_all_level_actors() if a.actor_has_tag(GENERATED_TAG)]
