@@ -21,6 +21,9 @@ add_library(odyssee_shared STATIC
     src/sim/FixedMath.cpp
     src/sim/Movement.cpp
     src/sim/Replication.cpp
+    src/world/HeightField.cpp
+    src/world/WorldFileReader.cpp
+    src/world/WorldFileWriter.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

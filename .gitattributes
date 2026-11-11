@@ -24,6 +24,7 @@
 *.mp4    filter=lfs diff=lfs merge=lfs -text
 # Données générées du monde (relief)
 tools/worldgen/output/*.bin filter=lfs diff=lfs merge=lfs -text
+tools/worldgen/output/*.world filter=lfs diff=lfs merge=lfs -text
 
 # Images web du site (versions légères tirées de art/) : hors LFS, pour que Vercel les lise.
 site/src/assets/** -filter -diff -merge

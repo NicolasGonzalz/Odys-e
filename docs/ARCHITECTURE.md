@@ -71,6 +71,9 @@ Figma (plans de zones, concepts) ──┘                    │
 Les **marqueurs** (acteurs Unreal dédiés, définis en C++ dans le plugin : `ResourceSpawn`, `ClueSpot`, `BossArena`, `ZoneGate`…) portent les données
 de gameplay. Le serveur charge le fichier exporté au démarrage ; ce fichier est versionné avec le reste du projet.
 
+En attendant les marqueurs Unreal, le fichier monde est écrit par `tools/worldgen/export_world.py` à partir des mêmes
+données que le niveau (relief, plan du blockout) ; son format est décrit dans [WORLD_FORMAT.md](WORLD_FORMAT.md).
+
 ## Rendu & performances (client)
 
 **Objectif : 60 FPS sur un PC moyen**, avec des préréglages graphiques (bas / moyen / haut / ultra) pour les portables.

@@ -12,6 +12,7 @@ Outils qui construisent la **base de la carte** d'Odyssée à partir d'un seul f
 | `unreal/elements.json` | Catalogue des éléments : forme provisoire **ou chemin du vrai modèle** |
 | `unreal/scatter_rules.json` | Végétation et détails par zone : éléments, densités, bosquets, altitudes, pentes |
 | `unreal/odyssee_world/` | Le code du script, une notion par fichier (plan, dispersion, ville, pose dans Unreal…) |
+| `export_world.py` | Écrit le **fichier monde du serveur** `output/odyssee.world` (relief, trous, collisions, marqueurs ; format : `docs/WORLD_FORMAT.md`) |
 | `dry_run.py` | Calcule **la même génération hors d'Unreal** et la vérifie (Linux, sans éditeur) |
 
 Repère : **x vers l'est, y vers le sud**, origine au coin nord-ouest, en mètres. Monde : 4032 × 3024 m.
@@ -22,6 +23,7 @@ Toute l'eau (rivière, lac, mares) est au **niveau 0 m** : un seul plan d'eau su
 ```sh
 pip install -r tools/worldgen/requirements.txt   # une fois (numpy, Pillow)
 python3 tools/worldgen/generate_terrain.py        # ~15 s
+python3 tools/worldgen/export_world.py            # fichier monde du serveur, < 1 s
 ```
 
 Le résultat est **déterministe** (graine fixe) : même plan → même relief.
