@@ -6,6 +6,7 @@ Sorties (dans tools/worldgen/output/) :
   heights_4m.bin     hauteurs tous les 4 m (uint16 little-endian) : lues par le script Unreal
   terrain_meta.json  dimensions, échelle et encodage des hauteurs
   preview.png        aperçu en couleur (zones, eau, relief, lieux) pour vérifier sans Unreal
+  colormap.png       couleurs du sol (4 m par pixel) pour le matériau du Landscape
 
 Encodage des hauteurs (identique pour les deux fichiers) : valeur = 32768 + hauteur_m * 64.
 Dans Unreal : Landscape à l'origine, échelle (100, 100, 200) => 1 m par point, ±512 m.
@@ -523,6 +524,9 @@ def main():
 
     from preview import write_preview  # aperçu dans son propre fichier (une notion par fichier)
     write_preview(layout, height, OUTPUT / "preview.png")
+
+    from colormap import write_colormap  # couleurs du sol pour le matériau Unreal
+    write_colormap(layout, height, OUTPUT / "colormap.png")
 
     print(f"Relief : {height.shape[1]} x {height.shape[0]} points, "
           f"de {height.min():.1f} m à {height.max():.1f} m ; fichiers dans {OUTPUT}")

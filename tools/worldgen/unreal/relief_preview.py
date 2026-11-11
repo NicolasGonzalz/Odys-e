@@ -33,7 +33,6 @@ WORLDGEN = HERE.parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-GROUND_COLOR = (0.30, 0.35, 0.25)  # gris-vert neutre : on lit le relief, pas les zones
 
 
 def _load(name):
@@ -96,6 +95,7 @@ def _frame_camera(util, landscape, layout):
 def main():
     util = _load("unreal_util")
     assets_module = _load("unreal_assets")
+    ground = _load("unreal_ground")
     ambiance = _load("unreal_ambiance")
 
     landscapes = _landscapes(util)
@@ -108,7 +108,7 @@ def main():
     assets = assets_module.AssetLibrary()
 
     # Matériau qui gère les trous (entrées de grotte percées par build_blockout.py).
-    _paint_ground(util, landscapes, assets.landscape_material(GROUND_COLOR))
+    _paint_ground(util, landscapes, ground.ground_material(WORLDGEN))
     ambiance._sky()
     _remove_previous_water(util)
     main_landscape = next((l for l in landscapes if isinstance(l, unreal.Landscape)), landscapes[0])

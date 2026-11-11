@@ -39,7 +39,6 @@ if str(HERE) not in sys.path:
 
 BLOCKOUT_TAG = "blockout"
 SPAWN_PLACE = "centre_stase"
-GROUND_COLOR = (0.30, 0.35, 0.25)  # même gris-vert que relief_preview.py
 HOLE_GUIDE_TAG = "a_percer"  # repères des trous à peindre (à supprimer une fois percés)
 
 
@@ -183,7 +182,7 @@ def main():
     global m
     m = {name: _load(name) for name in
          ("layout", "terrain", "catalog", "placement", "city", "scatter", "plan", "blockout",
-          "unreal_util", "unreal_assets", "unreal_spawn")}
+          "unreal_util", "unreal_assets", "unreal_spawn", "unreal_ground")}
     util = m["unreal_util"]
     layout = m["layout"].Layout.load(WORLDGEN / "world_layout.json")
     terrain = m["terrain"].Terrain(WORLDGEN / "output")
@@ -206,7 +205,7 @@ def main():
 
 def _use_landscape_material_with_holes(util, assets):
     """Les trous ne s'affichent qu'avec un matériau qui lit la couche de visibilité."""
-    material = assets.landscape_material(GROUND_COLOR)
+    material = m["unreal_ground"].ground_material(WORLDGEN)
     for landscape in util.actors().get_all_level_actors():
         if isinstance(landscape, unreal.LandscapeProxy):
             util.safe_set(landscape, "landscape_material", material)
