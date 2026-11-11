@@ -16,6 +16,12 @@ void InputQueue::push(const net::InputBatch& batch) {
     }
 }
 
+void InputQueue::skip(net::Tick tick) {
+    if (!_newestReceived || tick > *_newestReceived) {
+        _newestReceived = tick;
+    }
+}
+
 bool InputQueue::isAcceptable(net::Tick tick) const {
     if (tick == 0) {
         return false; // 0 veut dire « aucun input appliqué » : les ticks commencent à 1

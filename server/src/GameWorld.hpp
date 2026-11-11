@@ -34,7 +34,19 @@ class GameWorld {
     /// Inputs reçus d'un joueur (ignorés s'il n'est pas dans le monde).
     void receiveInputs(net::PlayerId player, const net::InputBatch& batch);
 
-    /// Avance d'un tick : applique au plus un input par joueur.
+    /// Inputs manquants devinés d'affilée, au plus (200 ms). Voir step().
+    static constexpr std::uint32_t kMaxGuessedInputs = 4;
+
+    /// Avance d'un tick : **chaque** joueur est simulé, qu'un input soit arrivé ou non (sinon
+    /// un client qui se tait resterait suspendu en l'air, à l'abri de la gravité).
+    ///
+    /// - Un input en attente : il est appliqué (au plus un par tick).
+    /// - Aucun, mais le joueur en a déjà envoyé : le tick manquant est **deviné** en rejouant le
+    ///   dernier input, et compté comme traité (lastProcessedInput avance). S'il arrive plus
+    ///   tard, il est ignoré : le serveur reste aligné sur les ticks du client, qui corrige sa
+    ///   prédiction si l'input deviné n'était pas le bon.
+    /// - Au-delà de kMaxGuessedInputs d'affilée, ou avant le tout premier input : input neutre
+    ///   (aucune touche, même orientation), sans avancer les ticks du client.
     void step();
 
     /// Ce que voit `player` : tous les joueurs, et son dernier input appliqué.
@@ -52,8 +64,12 @@ class GameWorld {
         sim::PlayerState motion;
         net::Tick lastProcessedInput = 0;
         InputQueue inputs;
+        net::InputCommand lastCommand;     ///< dernier input appliqué (reçu ou deviné)
+        std::uint32_t guessedInARow = 0;   ///< inputs devinés depuis le dernier input reçu
     };
 
+    void stepPlayer(PlayerState& player) const;
+    void apply(PlayerState& player, const net::InputCommand& command, net::Tick tick) const;
     static PlayerState spawn(const ConnectedPlayer& player);
 
     sim::FlatTerrain _terrain; ///< sol plat à la hauteur du point d'apparition, en attendant T041

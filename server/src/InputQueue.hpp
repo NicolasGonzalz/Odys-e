@@ -37,6 +37,10 @@ class InputQueue {
     /// Input à appliquer à ce tick (le plus ancien en attente), s'il y en a un.
     [[nodiscard]] std::optional<Entry> pop();
 
+    /// Le tick `tick` a été joué sans attendre son input (deviné par le serveur) : s'il arrive
+    /// plus tard, il sera ignoré comme un input déjà reçu.
+    void skip(net::Tick tick);
+
     [[nodiscard]] std::size_t size() const { return _pending.size(); }
 
   private:
