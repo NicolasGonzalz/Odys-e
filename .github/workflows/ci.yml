@@ -41,7 +41,7 @@ jobs:
       # Le client raylib est un outil de debug Linux : sous Windows, on vérifie shared/, le serveur
       # (utilisé en solo) et les tests, c'est-à-dire tout ce que le plugin Unreal réutilisera.
       - name: Configuration
-        run: cmake -S . -B build -DODYSSEE_BUILD_CLIENT=OFF
+        run: cmake -S . -B build -DODYSSEE_BUILD_CLIENT=OFF -DODYSSEE_WARNINGS_AS_ERRORS=ON
 
       - name: Compilation
         run: cmake --build build --config Debug -j

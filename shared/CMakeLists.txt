@@ -39,3 +39,8 @@ target_include_directories(odyssee_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc
 target_compile_definitions(odyssee_shared PUBLIC
     ODYSSEE_VERSION_STRING="${PROJECT_VERSION}")
 odyssee_set_options(odyssee_shared)
+
+# shared/ se compile aussi dans le plugin Unreal, sans RTTI (ADR 0003) : on le vérifie ici.
+if(MSVC)
+    target_compile_options(odyssee_shared PRIVATE /GR-)
+endif()
