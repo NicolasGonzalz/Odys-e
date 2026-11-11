@@ -143,8 +143,10 @@ def _tunnel_boxes(label, tunnel, wall):
     length, width, height = tunnel
     side = width / 2 + wall / 2
     return [
-        Box(f"{label} — sol du tunnel", ((1 - length) / 2, 0, -0.2), (length + 1, width + 2 * wall,
-                                                                       0.5), DIRT),
+        # Le sol déborde de 3 m devant l'entrée : le trou du Landscape va jusqu'à +2 m (cave_hole),
+        # il ne doit jamais rester de vide sous les pieds.
+        Box(f"{label} — sol du tunnel", ((3 - length) / 2, 0, -0.2),
+            (length + 3, width + 2 * wall + 2, 0.5), DIRT),
         Box(f"{label} — paroi gauche", (-length / 2 + 0.25, -side, height / 2),
             (length + 0.5, wall, height), ROCK),
         Box(f"{label} — paroi droite", (-length / 2 + 0.25, side, height / 2),
@@ -185,13 +187,47 @@ def _beacon(label, tunnel):
                emissive=2.0, collision=False)
 
 
-def cave(label, shapes, kind):
+PLUG_FROM_M, PLUG_TO_M = -6.0, 3.0  # le trou (cave_hole) et la rangée de points du Landscape autour
+
+
+def _plugs(label, tunnel, half, relief):
+    """Bouchons de roche au-dessus de l'entrée, par tranches de 1 m le long du tunnel.
+
+    Le Landscape est percé au-dessus de la voûte (cave_hole), et le pinceau retire tous les
+    triangles qui touchent le trou : la fosse va donc 1 m plus loin que le rectangle. Là où le relief
+    monte plus haut que la voûte (une butte, une falaise), il resterait une fente ouverte dans la
+    masse, jusqu'au vide sous le terrain. Chaque tranche monte donc jusqu'au point le plus haut du
+    relief au-dessus d'elle. `relief(a, b)` : hauteur du terrain au-dessus du sol de la grotte."""
+    width = 2 * half + 3  # le trou ± 1 m de triangles retirés, ± la diagonale d'une case en biais
+    boxes = []
+    a = PLUG_FROM_M
+    while a < PLUG_TO_M:
+        top = _highest(relief, a - 1, a + 2, width / 2 + 1) + 0.3
+        if a + 1 <= 1.6:  # ancien couvercle : au moins voûte + 2,7 m (haut de la falaise)
+            top = max(top, tunnel[2] + 2.7)
+        bottom = tunnel[2] + 1.5 if a + 1 <= 0.5 else tunnel[2] - 0.25  # sur la voûte, sinon l'auvent
+        if top > bottom:
+            boxes.append(Box(f"{label} — bouchon {a:+.0f} m", (a + 0.5, 0, (top + bottom) / 2),
+                             (1.0, width, top - bottom), ROCK))
+        a += 1
+    return boxes
+
+
+def _highest(relief, a_from, a_to, half_width, step=0.5):
+    samples = [relief(a_from + i * step, -half_width + j * step)
+               for i in range(int((a_to - a_from) / step) + 1)
+               for j in range(int(2 * half_width / step) + 1)]
+    return max(samples)
+
+
+def cave(label, shapes, kind, relief):
     """Grotte cachée dans le relief (`kind` : montagne ou butte, voir cave_shapes) : l'intérieur,
-    un auvent de roche sur l'entrée et une balise. Le relief autour (falaise, butte, rochers) vient
-    de generate_terrain.py."""
+    un auvent de roche sur l'entrée, des bouchons dans le trou du Landscape et une balise. Le relief
+    autour (falaise, butte, rochers) vient de generate_terrain.py ; `relief(a, b)` le lit."""
     tunnel, chamber, wall = shapes[kind]["tunnel"], shapes[kind]["chamber"], shapes["wall_m"]
     boxes, lights = cave_interior(label, tunnel, chamber, wall)
     half = tunnel[1] / 2 + wall
+    boxes += _plugs(label, tunnel, half, relief)
     boxes += [
         Box(f"{label} — auvent", (0.8, 0, tunnel[2] + 1.0), (1.6, 2 * half + 3, 2.5), ROCK),
         Box(f"{label} — rocher gauche", (0.8, -half - 0.6, tunnel[2] / 2 + 0.5),
@@ -207,7 +243,10 @@ def cave_hole(shapes, kind, hole_length_m):
     """Rectangle (local) à percer dans le Landscape : là où le tunnel sort du relief (la face de
     la falaise). Plus étroit que les parois et la voûte : le bord en escalier du trou reste caché."""
     tunnel, wall = shapes[kind]["tunnel"], shapes["wall_m"]
-    return (-hole_length_m, 1.0), tunnel[1] / 2 + wall / 2
+    # Large marge le long de l'axe : les triangles de la face de la falaise (1 m) doivent être
+    # entièrement dans le trou, sinon des pointes de terrain restent dans l'ouverture. Derrière la
+    # face, la voûte du tunnel prend le relais.
+    return (-max(hole_length_m, 5.0), 2.0), tunnel[1] / 2 + wall / 2
 
 
 # --- Pose dans le monde -----------------------------------------------------------------------

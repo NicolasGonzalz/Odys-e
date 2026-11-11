@@ -6,7 +6,7 @@ Sorties (dans tools/worldgen/output/) :
   heights_4m.bin     hauteurs tous les 4 m (uint16 little-endian) : lues par le script Unreal
   terrain_meta.json  dimensions, échelle et encodage des hauteurs
   preview.png        aperçu en couleur (zones, eau, relief, lieux) pour vérifier sans Unreal
-  colormap.png       couleurs du sol (4 m par pixel) pour le matériau du Landscape
+  colormap.png       couleurs du sol (1 m par pixel) pour le matériau du Landscape
 
 Encodage des hauteurs (identique pour les deux fichiers) : valeur = 32768 + hauteur_m * 64.
 Dans Unreal : Landscape à l'origine, échelle (100, 100, 200) => 1 m par point, ±512 m.
