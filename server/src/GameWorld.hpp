@@ -51,7 +51,6 @@ class GameWorld {
     };
 
     static PlayerState spawn(net::PlayerId player);
-    static net::EntityState entityOf(net::PlayerId player, const sim::PlayerState& motion);
 
     sim::FlatTerrain _terrain; ///< sol plat à la hauteur du point d'apparition, en attendant T041
     std::array<std::optional<PlayerState>, kMaxPlayers> _players;

@@ -20,6 +20,7 @@ add_executable(odyssee_tests
     test_session.cpp
     test_fixed_math.cpp
     test_movement.cpp
+    test_determinism.cpp
     test_network_simulator.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
