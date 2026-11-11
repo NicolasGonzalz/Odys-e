@@ -21,6 +21,8 @@ bool isForeignConnectRequest(const net::IncomingPacket& packet) {
 /// Un Disconnect peut se perdre : à l'arrêt, le serveur l'envoie plusieurs fois (comme le client).
 constexpr int kDisconnectCopies = 3;
 
+constexpr std::chrono::seconds kDropReportInterval{10};
+
 /// Le simulateur n'existe que si quelque chose est simulé : sinon, envois directs.
 std::optional<net::NetworkSimulator> makeSimulator(const net::NetworkConditions& network,
                                                    std::uint64_t seed) {
@@ -33,21 +35,23 @@ std::optional<net::NetworkSimulator> makeSimulator(const net::NetworkConditions&
 } // namespace
 
 ConnectionService::ConnectionService(net::UdpSocket socket, const SipKey& key,
-                                     net::NetworkConditions network)
-    : _socket(std::move(socket)), _registry(key), _simulator(makeSimulator(network, ~key.k0)) {}
+                                     net::NetworkConditions network, Limits limits)
+    : _socket(std::move(socket)), _limits(limits), _registry(key, limits.registry),
+      _handshakeLimiter(limits.handshakePerIp), _simulator(makeSimulator(network, ~key.k0)) {}
 
 ConnectionService::ConnectionService(net::UdpSocket socket, std::uint64_t seed,
-                                     net::NetworkConditions network)
-    : ConnectionService(std::move(socket), SipKey::fromSeed(seed), network) {}
+                                     net::NetworkConditions network, Limits limits)
+    : ConnectionService(std::move(socket), SipKey::fromSeed(seed), network, limits) {}
 
 // --- Chaque tick ------------------------------------------------------------------------------
 
 void ConnectionService::poll(Clock::time_point now) {
     receiveAll(now);
     _registry.dropInactive(now);
-    syncLinks();
+    syncLinks(now);
     sendKeepAlives(now);
     flushSimulated(now);
+    reportDropped(now);
 }
 
 std::vector<ConnectedPlayer> ConnectionService::connectedPlayers() const {
@@ -99,7 +103,13 @@ const net::Session* ConnectionService::session(net::PlayerId player) const {
 
 void ConnectionService::receiveAll(Clock::time_point now) {
     std::array<std::byte, kMaxPacketSize> buffer{};
-    while (const auto received = _socket.receive(buffer)) {
+    // Plafonné : sous un flot de datagrammes, le tick doit quand même avoir lieu.
+    for (std::size_t handled = 0; handled < _limits.maxDatagramsPerPoll; ++handled) {
+        const auto received = _socket.receive(buffer);
+        if (!received) {
+            break;
+        }
+        ++_stats.datagramsHandled;
         handlePacket(received->from, std::span(buffer).first(received->size), now);
     }
 }
@@ -108,30 +118,44 @@ void ConnectionService::handlePacket(const net::Address& from, std::span<const s
                                      Clock::time_point now) {
     const auto packet = net::parsePacket(bytes);
     if (!packet) {
+        ++_stats.invalid;
         return; // pas un paquet d'Odyssée
     }
 
-    if (isForeignConnectRequest(*packet)) {
-        reply(from, net::Refused{net::RefuseReason::WrongVersion}, bytes.size(), now);
-        return;
-    }
-    if (!packet->header.hasCurrentProtocol()) {
-        return;
-    }
-
     // Le jeton de session d'abord : sans lui, un paquet n'est jamais traité comme celui d'un
-    // joueur, même s'il vient (ou prétend venir) de son adresse.
+    // joueur, même s'il vient (ou prétend venir) de son adresse — et il ne puise pas non plus
+    // dans le débit accordé à ce joueur.
     if (PlayerLink* link = authenticatedLink(from, *packet)) {
-        handleSessionPacket(*link, *packet, now);
+        if (link->budget.take(now)) {
+            handleSessionPacket(*link, *packet, now);
+        } else {
+            ++_stats.rateLimited;
+        }
+        return;
+    }
+    if (_handshakeLimiter.allow(from.ip, now)) {
+        handleUnknown(from, *packet, bytes.size(), now);
     } else {
-        handleHandshake(from, *packet, bytes.size(), now);
+        ++_stats.rateLimited;
+    }
+}
+
+/// Paquet de quelqu'un qui n'est pas reconnu comme joueur (débit par IP déjà vérifié).
+void ConnectionService::handleUnknown(const net::Address& from, const net::IncomingPacket& packet,
+                                      std::size_t requestSize, Clock::time_point now) {
+    if (isForeignConnectRequest(packet)) {
+        reply(from, net::Refused{net::RefuseReason::WrongVersion}, requestSize, now);
+    } else if (packet.header.hasCurrentProtocol()) {
+        handleHandshake(from, packet, requestSize, now);
+    } else {
+        ++_stats.invalid;
     }
 }
 
 ConnectionService::PlayerLink* ConnectionService::authenticatedLink(
     const net::Address& from, const net::IncomingPacket& packet) {
     const auto player = _registry.playerAt(from);
-    if (!player || !_links[*player]) {
+    if (!player || !_links[*player] || !packet.header.hasCurrentProtocol()) {
         return nullptr;
     }
     PlayerLink& link = *_links[*player];
@@ -146,15 +170,14 @@ void ConnectionService::handleSessionPacket(PlayerLink& link, const net::Incomin
         if (link.session.receive(packet, now)) {
             (void)_registry.touch(link.address, now);
         } else {
-            kLog.debug("paquet de jeu ignoré depuis {} (doublon ou invalide)",
-                       link.address.toString());
+            ++_stats.invalid; // doublon, trop vieux ou contenu invalide
         }
         return;
     }
     const net::Address from = link.address; // `link` peut disparaître : le joueur part peut-être
     if (const auto message = net::decodeControl(packet.kind, packet.body)) {
         (void)_registry.handle(from, *message, now);
-        syncLinks();
+        syncLinks(now);
     }
 }
 
@@ -168,20 +191,19 @@ void ConnectionService::handleHandshake(const net::Address& from,
     const auto message =
         isHandshake ? net::decodeControl(packet.kind, packet.body) : std::nullopt;
     if (!message) {
-        kLog.debug("paquet ignoré depuis {} (invalide ou sans jeton de session)",
-                   from.toString());
+        ++_stats.invalid; // illisible, ou paquet de session sans le bon jeton
         return;
     }
     if (const auto answer = _registry.handle(from, *message, now)) {
         reply(from, *answer, requestSize, now);
     }
-    syncLinks(); // un joueur vient peut-être d'être accepté, ou de se reconnecter
+    syncLinks(now); // un joueur vient peut-être d'être accepté, ou de se reconnecter
 }
 
 /// Une session par joueur connecté : créée à l'acceptation, oubliée au départ. Si une place est
 /// reprise (autre client, ou le même qui se reconnecte), la génération change et la session
 /// repart de zéro.
-void ConnectionService::syncLinks() {
+void ConnectionService::syncLinks(Clock::time_point now) {
     std::array<std::optional<ClientRegistry::PlayerInfo>, kMaxPlayers> connected{};
     for (auto& info : _registry.players()) {
         const net::PlayerId id = info.id;
@@ -194,7 +216,8 @@ void ConnectionService::syncLinks() {
             link.reset();
         } else if (!link || link->generation != info->generation) {
             link.emplace(PlayerLink{info->address, info->generation, info->sessionToken,
-                                    net::Session{info->sessionToken}});
+                                    net::Session{info->sessionToken},
+                                    TokenBucket(_limits.perPlayer, now)});
             link->session.acceptOnly(net::GameMessageType::Inputs);
         }
     }
@@ -256,7 +279,22 @@ void ConnectionService::shutdown() {
             sendNow(player.address, net::Disconnect{player.sessionToken});
         }
     }
-    syncLinks();
+    syncLinks(Clock::time_point{});
+}
+
+/// Les paquets écartés ne sont pas journalisés un par un (un flot remplirait le journal) : un
+/// résumé au plus toutes les dix secondes, s'il y a quelque chose à dire.
+void ConnectionService::reportDropped(Clock::time_point now) {
+    if (_lastReport && now - *_lastReport < kDropReportInterval) {
+        return;
+    }
+    _lastReport = now;
+    const std::uint64_t limited = _stats.rateLimited - _reported.rateLimited;
+    const std::uint64_t invalid = _stats.invalid - _reported.invalid;
+    if (limited + invalid > 0) {
+        kLog.warn("paquets écartés : {} hors débit, {} invalides ou sans jeton", limited, invalid);
+    }
+    _reported = _stats;
 }
 
 } // namespace odyssee::server

@@ -31,6 +31,7 @@ if(ODYSSEE_BUILD_SERVER)
         test_command_line.cpp
         test_client_registry.cpp
         test_siphash.cpp
+        test_rate_limit.cpp
         test_handshake.cpp
         test_input_queue.cpp
         test_game_world.cpp
