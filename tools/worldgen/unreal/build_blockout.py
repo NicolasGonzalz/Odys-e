@@ -3,7 +3,8 @@
 Prérequis : le relief importé (Landscape) ; idéalement relief_preview.py déjà lancé (ciel, eau).
 
 Pose :
-  1. le centre de stase semi-enterré (salle des capsules, couloir, sortie) et l'apparition dedans ;
+  1. le centre de stase enterré sous sa butte (salle des capsules, couloir, sortie dans une
+     entaille, esplanade) et l'apparition dedans ;
   2. les lieux, boss, artefacts et cocons en formes provisoires (comme build_map.py) ;
   3. les grottes de world_layout.json (« caves »), cachées dans le relief : tunnel et salle sous le
      terrain, lumières et point de loot ; Landscape percé à la main sur la face de la falaise.
@@ -39,7 +40,6 @@ if str(HERE) not in sys.path:
 
 BLOCKOUT_TAG = "blockout"
 SPAWN_PLACE = "centre_stase"
-HOLE_GUIDE_TAG = "a_percer"  # repères des trous à peindre (à supprimer une fois percés)
 
 
 def _load(name):
@@ -57,7 +57,7 @@ def _spawn_box(util, assets, box, origin, yaw, folder):
     """Un bloc (cube ou cylindre de 1 m agrandi) tourné de `yaw` autour du centre du lieu."""
     x, y, z = m["blockout"].place(box.center, origin, yaw)
     actor = util.spawn(unreal.StaticMeshActor, util.to_cm(x, y, z), box.label, folder,
-                       [BLOCKOUT_TAG], unreal.Rotator(0.0, 0.0, yaw))
+                       [BLOCKOUT_TAG], unreal.Rotator(0.0, 0.0, yaw + box.yaw))
     actor.set_actor_scale3d(unreal.Vector(*box.size))
     component = actor.static_mesh_component
     component.set_static_mesh(assets.shape_mesh(box.shape))
@@ -78,12 +78,15 @@ def _spawn_light(util, light, origin, yaw, folder):
     util.safe_set(actor, "is_spatially_loaded", False)
 
 
-def _stasis_center(util, assets, layout, terrain):
-    """Centre de stase : la sortie regarde vers le nord, vers le monde (au sud, le bord de la carte)."""
+def _stasis_center(util, assets, layout, terrain, floor):
+    """Centre de stase, enterré sous sa butte : la sortie regarde vers le monde (yaw_deg du lieu).
+    `floor` : sol du bunker (terrain_meta.json ; le relief au-dessus est celui de la butte).
+    Renvoie le trou à percer dans la face de l'entaille."""
     place = next(p for p in layout.places if p["id"] == SPAWN_PLACE)
     x, y = place["pos"]
-    origin, yaw = (x, y, terrain.height(x, y)), -90.0
-    boxes, lights, player = m["blockout"].stasis_center()
+    origin, yaw = (x, y, floor), place["yaw_deg"]
+    relief = _relief_around(terrain, place, floor)
+    boxes, lights, player = m["blockout"].stasis_center(relief)
     folder = "Odyssee/Blockout/Centre de stase"
     for box in boxes:
         _spawn_box(util, assets, box, origin, yaw, folder)
@@ -93,6 +96,8 @@ def _stasis_center(util, assets, layout, terrain):
     start = util.spawn(unreal.PlayerStart, util.to_cm(px, py, pz), "Apparition — Centre de stase",
                        "Odyssee/Joueurs", ["apparition", BLOCKOUT_TAG], unreal.Rotator(0, 0, yaw))
     util.safe_set(start, "is_spatially_loaded", False)
+    along, half_width = m["blockout"].stasis_hole()
+    return _hole(place, along, half_width)
 
 
 def _places_and_markers(util, assets, layout, terrain):
@@ -123,21 +128,22 @@ def _hole_length(terrain, cave, floor, shapes):
     return float(tunnel[0])
 
 
-def _relief_around(terrain, cave, floor):
-    """Hauteur du terrain au-dessus du sol de la grotte, en coordonnées locales (a vers dehors)."""
+def _relief_around(terrain, spot, floor):
+    """Hauteur du terrain au-dessus de `floor` autour d'une grotte ou d'un lieu, en coordonnées
+    locales (a vers la sortie)."""
     def relief(a, b):
-        px, py, _ = m["blockout"].place((a, b, 0), (*cave["pos"], 0), cave["yaw_deg"])
+        px, py, _ = m["blockout"].place((a, b, 0), (*spot["pos"], 0), spot["yaw_deg"])
         return terrain.height(px, py) - floor
     return relief
 
 
-def _hole(cave, along, half_width):
+def _hole(spot, along, half_width):
     """Trou du Landscape (unreal.OdysseeHole) : rectangle local `along` × ±half_width, en cm."""
-    middle = m["blockout"].place(((along[0] + along[1]) / 2, 0, 0), (*cave["pos"], 0),
-                                 cave["yaw_deg"])
+    middle = m["blockout"].place(((along[0] + along[1]) / 2, 0, 0), (*spot["pos"], 0),
+                                 spot["yaw_deg"])
     return unreal.OdysseeHole(center=unreal.Vector2D(middle[0] * 100, middle[1] * 100),
                               size=unreal.Vector2D((along[1] - along[0]) * 100, half_width * 200),
-                              yaw_degrees=cave["yaw_deg"])
+                              yaw_degrees=spot["yaw_deg"])
 
 
 def _apply_hole_brush(util, holes):
@@ -183,10 +189,10 @@ def main():
     assets = m["unreal_assets"].AssetLibrary()
 
     _clear_blockout(util)
-    _stasis_center(util, assets, layout, terrain)
+    stasis_hole = _stasis_center(util, assets, layout, terrain, meta["stasis_floor_m"])
     places = _places_and_markers(util, assets, layout, terrain)
     holes = _caves(util, assets, layout, terrain, meta["cave_floors_m"])
-    _apply_hole_brush(util, holes)
+    _apply_hole_brush(util, holes + [stasis_hole])
 
     _use_landscape_material_with_holes(util, assets)
 

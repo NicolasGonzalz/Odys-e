@@ -66,9 +66,9 @@
 
   "paths": [
     { "id": "route_pont", "kind": "route", "width_m": 8,
-      "points": [[1900, 2600], [1975, 2250], [1975, 2000]] },
+      "points": [[1900, 2552], [1975, 2250], [1975, 2000]] },
     { "id": "route_est", "kind": "route", "width_m": 8,
-      "points": [[1900, 2600], [2250, 2400], [2500, 2700], [2875, 2750], [3625, 2500]] },
+      "points": [[1900, 2552], [2250, 2400], [2500, 2700], [2875, 2750], [3625, 2500]] },
     { "id": "chemin_ferme", "kind": "chemin", "width_m": 5,
       "points": [[1975, 2200], [1500, 2200]] },
     { "id": "col_du_plateau", "kind": "chemin", "width_m": 6,
@@ -79,7 +79,8 @@
 
   "places": [
     { "id": "centre_stase", "name": "Centre de stase (départ)", "zone": "abri", "pos": [1900, 2600],
-      "radius_m": 40, "kind": "batiment", "spawn": true },
+      "radius_m": 40, "kind": "batiment", "spawn": true, "yaw_deg": -90,
+      "ground": { "pos": [1900, 2556], "radius_m": 18 } },
     { "id": "ferme", "name": "Ferme", "zone": "abri", "pos": [1500, 2200], "radius_m": 60, "kind": "batiment" },
     { "id": "pont_effondre", "name": "Pont effondré", "zone": "abri", "pos": [1975, 1975], "radius_m": 20,
       "kind": "pont" },
@@ -139,6 +140,8 @@
     "  pas autour des grottes, dont l'entrée doit rester une falaise nette."
   ],
   "relief": {
+    "stasis_hill": { "top_m": 7.5, "slope_m": 18, "footprint_m": [-11, 29, 9], "mouth_m": 29,
+                     "notch_m": 5, "notch_flare": 0.9, "front_m": 15 },
     "hills": { "cell_m": 240, "amplitude_m": { "plaine": 14, "collines": 16, "foret_coeur": 10, "marais": 1, "ville": 0, "montagne": 0 } },
     "ravines": [
       { "id": "ravin_ouest", "points": [[900, 2960], [1000, 2700], [950, 2460], [1060, 2260]], "width_m": 14, "depth_m": 9 },

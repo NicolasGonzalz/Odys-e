@@ -12,6 +12,10 @@ ROCK = (0.30, 0.29, 0.27)
 VOID = (0.01, 0.01, 0.01)
 CAPSULE = (0.70, 0.85, 0.90)
 BEACON = (1.00, 0.80, 0.10)
+STEEL = (0.20, 0.22, 0.24)
+RUST = (0.33, 0.15, 0.08)
+WOOD = (0.36, 0.25, 0.14)
+WARNING = (0.90, 0.10, 0.05)
 
 
 @dataclass
@@ -23,6 +27,7 @@ class Box:
     shape: str = "cube"
     emissive: float = 0.0
     collision: bool = True
+    yaw: float = 0.0  # rotation propre du bloc (degrés), en plus de celle du lieu
 
 
 @dataclass
@@ -34,20 +39,36 @@ class Light:
 
 
 # --- Centre de stase ---------------------------------------------------------------------------
-# Salle 16 x 12 m, haute de 4 m, six capsules ; couloir de 20 m vers la sortie ; le tout recouvert
-# d'un tertre de terre pour donner l'impression d'émerger de sous terre.
+# Salle 16 x 12 m, haute de 4 m, six capsules ; couloir de 20 m vers la sortie. Le tout est enterré
+# sous une butte (generate_terrain.raise_stasis_hill) : seule la sortie se voit, au fond d'une
+# entaille qui s'évase vers le monde, avec façade, murs en aile, porte blindée et esplanade.
 
 ROOM_X, ROOM_Y, ROOM_H = 16.0, 12.0, 4.0
 CORRIDOR_L, CORRIDOR_W, CORRIDOR_H = 20.0, 4.0, 3.0
 FLOOR = 0.3  # le sol du bunker dépasse un peu du terrain (évite le scintillement)
+MOUTH = ROOM_X / 2 + 1 + CORRIDOR_L  # bout du couloir = face de l'entaille (stasis_hill.mouth_m)
+FACADE_H = 6.6  # haut de la façade, sous le dessus de la butte
+NOTCH, FLARE = 5.0, 0.9  # demi-largeur de l'entaille à la sortie et son évasement (stasis_hill)
+WING_YAW = math.degrees(math.atan(FLARE))
+WING_STEPS, WING_STEP_M = 4, 4.0  # marches des murs en aile (leur hauteur suit la terre)
 
 
-def stasis_center():
-    boxes = _room() + _corridor() + _mound() + _capsules()
+def stasis_center(relief):
+    """Blocs, lumières et point d'apparition. `relief(a, b)` : hauteur du terrain au-dessus du sol
+    du bunker (pour poser l'antenne et les aérations sur la butte, et boucher le trou)."""
+    boxes = (_room() + _corridor() + _capsules() + _facade() + _wings(relief) + _door()
+             + _esplanade() + _hilltop(relief) + _stasis_plugs(relief))
     lights = [Light("Lumière — salle des capsules", (0, 0, FLOOR + 3.5), (0.6, 0.8, 1.0), 14),
-              Light("Lumière — couloir", (_corridor_mid(), 0, FLOOR + 2.6), (1.0, 0.85, 0.6), 14)]
+              Light("Lumière — couloir", (_corridor_mid(), 0, FLOOR + 2.6), (1.0, 0.85, 0.6), 14),
+              Light("Lumière — lampe de la sortie", (MOUTH + 1.5, 0, FLOOR + 4.0),
+                    (1.0, 0.6, 0.3), 12)]
     player = (-2.0, 0.0, FLOOR + 1.0)
     return boxes, lights, player
+
+
+def stasis_hole():
+    """Rectangle (local) à percer dans le Landscape : la face de l'entaille, devant le couloir."""
+    return (MOUTH - 5.0, MOUTH + 2.0), CORRIDOR_W / 2 + 0.5
 
 
 def _corridor_mid():
@@ -78,38 +99,12 @@ def _room():
 
 def _corridor():
     x, w, h = _corridor_mid(), CORRIDOR_W / 2, CORRIDOR_H
-    end = x + CORRIDOR_L / 2
     return [
         Box("Couloir — sol", (x, 0, FLOOR - 0.25), (CORRIDOR_L, CORRIDOR_W + 2, 0.5), CONCRETE),
         Box("Couloir — plafond", (x, 0, FLOOR + h + 0.5), (CORRIDOR_L, CORRIDOR_W + 2, 1), CONCRETE),
         Box("Couloir — mur gauche", (x, -w - 0.5, FLOOR + h / 2), (CORRIDOR_L, 1, h), CONCRETE),
         Box("Couloir — mur droit", (x, w + 0.5, FLOOR + h / 2), (CORRIDOR_L, 1, h), CONCRETE),
-        Box("Sortie — montant gauche", (end + 0.5, -w - 1, FLOOR + 2), (1, 1.5, 4), CONCRETE),
-        Box("Sortie — montant droit", (end + 0.5, w + 1, FLOOR + 2), (1, 1.5, 4), CONCRETE),
-        Box("Sortie — fronton", (end + 0.5, 0, FLOOR + 4.25), (1, CORRIDOR_W + 4, 0.5), BEACON),
     ]
-
-
-def _mound():
-    """Tertre de terre autour et au-dessus du bunker et du couloir (jamais à l'intérieur)."""
-    hx, hy = ROOM_X / 2 + 1, ROOM_Y / 2 + 1  # faces extérieures des murs de la salle
-    cx, cw = _corridor_mid(), CORRIDOR_W / 2 + 1  # couloir : centre, face extérieure des murs
-    boxes = [
-        Box("Tertre — dessus salle", (0, 0, FLOOR + ROOM_H + 1.6), (ROOM_X + 8, ROOM_Y + 8, 1.5),
-            EARTH),
-        Box("Tertre — arrière", (-hx - 3, 0, 2.6), (6, ROOM_Y + 12, 5.2), EARTH),
-        Box("Tertre — dessus couloir", (cx, 0, FLOOR + CORRIDOR_H + 1.6),
-            (CORRIDOR_L, CORRIDOR_W + 8, 1.5), EARTH),
-    ]
-    for sign, side in ((-1, "gauche"), (1, "droite")):
-        boxes += [
-            Box(f"Tertre — salle {side}", (0, sign * (hy + 3), 2.6), (ROOM_X + 8, 6, 5.2), EARTH),
-            Box(f"Tertre — salle {side} (pente)", (0, sign * (hy + 7.5), 1.2),
-                (ROOM_X + 4, 3, 2.4), EARTH),
-            Box(f"Tertre — couloir {side}", (cx, sign * (cw + 2.5), 2.1), (CORRIDOR_L, 5, 4.2),
-                EARTH),
-        ]
-    return boxes
 
 
 def _capsules():
@@ -118,6 +113,109 @@ def _capsules():
         boxes.append(Box(f"Capsule de stase {index + 1}", (x, y, FLOOR + 1.1), (1.2, 1.2, 2.2),
                          CAPSULE, shape="cylinder", emissive=0.4))
     return boxes
+
+
+def _facade():
+    """Mur de béton dans la face de l'entaille, percé à la taille du couloir."""
+    door, edge, x = CORRIDOR_W / 2, NOTCH + 1.0, MOUTH + 0.5
+    lintel = FACADE_H - FLOOR - CORRIDOR_H
+    panel = (1, edge - door, FACADE_H)
+    return [
+        Box("Sortie — façade gauche", (x, -(door + edge) / 2, FACADE_H / 2), panel, CONCRETE),
+        Box("Sortie — façade droite", (x, (door + edge) / 2, FACADE_H / 2), panel, CONCRETE),
+        Box("Sortie — linteau", (x, 0, FLOOR + CORRIDOR_H + lintel / 2), (1, CORRIDOR_W, lintel),
+            CONCRETE),
+        Box("Sortie — corniche", (x + 0.3, 0, FACADE_H + 0.2), (1.6, 2 * edge + 1, 0.4), CONCRETE),
+        Box("Sortie — bande de danger", (x + 0.55, 0, FLOOR + CORRIDOR_H + 0.25),
+            (0.1, CORRIDOR_W, 0.3), BEACON, emissive=1.0, collision=False),
+        Box("Sortie — lampe", (x + 0.7, 0, FLOOR + CORRIDOR_H + 1.0), (0.4, 0.8, 0.25), BEACON,
+            emissive=3.0, collision=False),
+    ]
+
+
+def _wings(relief):
+    """Murs en aile : ils retiennent la terre des deux flancs de l'entaille, en marches. Chaque
+    marche monte au niveau de la terre qu'elle retient (lue juste derrière elle)."""
+    boxes = []
+    for sign, side in ((-1, "gauche"), (1, "droite")):
+        ux, uy = math.cos(math.radians(WING_YAW)), sign * math.sin(math.radians(WING_YAW))
+        start = (MOUTH + 1.0, sign * (NOTCH + 1.0))
+        for index in range(WING_STEPS):
+            middle = (index + 0.5) * WING_STEP_M
+            center = (start[0] + middle * ux, start[1] + middle * uy)
+            height = max(_earth_behind(relief, center, (ux, uy), sign) + 0.3, 0.8)
+            boxes.append(Box(f"Mur en aile {side} {index + 1}", (*center, height / 2),
+                             (WING_STEP_M, 0.8, height), CONCRETE, yaw=sign * WING_YAW))
+    return boxes
+
+
+def _earth_behind(relief, center, direction, sign):
+    """Plus haut point du terrain sur la longueur d'une marche, à 1,2 m derrière le mur."""
+    ux, uy = direction
+    nx, ny = -uy * sign, ux * sign  # normale vers l'extérieur de l'entaille (vers la terre)
+    return max(relief(center[0] + t * ux + 1.2 * nx, center[1] + t * uy + 1.2 * ny)
+               for t in (-WING_STEP_M / 2, 0.0, WING_STEP_M / 2))
+
+
+def _door():
+    """Porte blindée : un battant entrouvert devant la façade, l'autre arraché, à plat au sol."""
+    door = CORRIDOR_W / 2
+    return [
+        Box("Porte blindée — battant ouvert", (MOUTH + 1.25, door + 0.7, FLOOR + 1.55),
+            (0.4, 3.0, 3.1), STEEL),
+        Box("Porte blindée — battant arraché", (MOUTH + 6.0, -3.0, FLOOR + 0.2), (3.1, 2.4, 0.4),
+            STEEL, yaw=28.0),
+    ]
+
+
+def _esplanade():
+    """Dalles de béton fissurées devant la sortie (elles couvrent aussi le trou du Landscape),
+    quelques fûts, une caisse et deux lampadaires."""
+    boxes = []
+    slabs = ((MOUTH, 0.0, 0.0), (MOUTH + 4.2, 1.5, -0.04), (MOUTH + 8.3, -2.0, 0.03),
+             (MOUTH + 12.5, 1.0, -0.06))
+    for index, (start, tilt, dz) in enumerate(slabs):
+        width = 2 * (NOTCH + (start + 0.5 - MOUTH) * FLARE)  # dans le fond de l'entaille
+        boxes.append(Box(f"Esplanade — dalle {index + 1}", (start + 2.0, 0, FLOOR - 0.25 + dz),
+                         (4.0, width, 0.5), CONCRETE, yaw=tilt))
+    for index, (x, y) in enumerate(((MOUTH + 8.0, 6.5), (MOUTH + 8.8, 7.4), (MOUTH + 7.6, 7.8))):
+        boxes.append(Box(f"Fût {index + 1}", (x, y, FLOOR + 0.5), (0.7, 0.7, 1.0), RUST,
+                         shape="cylinder"))
+    boxes.append(Box("Caisse", (MOUTH + 9.5, -8.0, FLOOR + 0.6), (1.2, 1.2, 1.2), WOOD, yaw=12.0))
+    for sign, side in ((-1, "gauche"), (1, "droit")):
+        x, y = MOUTH + 14.0, sign * 13.0
+        boxes += [Box(f"Lampadaire {side}", (x, y, FLOOR + 2.5), (0.25, 0.25, 5.0), STEEL),
+                  Box(f"Lampadaire {side} — tête", (x, y - sign * 0.3, FLOOR + 5.0),
+                      (0.3, 0.8, 0.2), BEACON, emissive=2.0 if sign > 0 else 0.0)]
+    return boxes
+
+
+def _hilltop(relief):
+    """Sur la butte : une antenne (feu rouge, repère de loin) et deux bouches d'aération."""
+    mast = (-4.0, 3.0)
+    ground = relief(*mast)
+    boxes = [Box("Antenne — mât", (*mast, ground + 5.5), (0.35, 0.35, 12.0), STEEL),
+             Box("Antenne — traverse basse", (*mast, ground + 8.5), (0.15, 2.6, 0.15), STEEL),
+             Box("Antenne — traverse haute", (*mast, ground + 10.5), (0.15, 1.6, 0.15), STEEL),
+             Box("Antenne — feu", (*mast, ground + 11.75), (0.5, 0.5, 0.5), WARNING,
+                 emissive=4.0, collision=False)]
+    for index, vent in enumerate(((3.0, -4.0), (14.0, 2.5))):
+        ground = relief(*vent)
+        boxes += [Box(f"Aération {index + 1}", (*vent, ground + 0.9), (1.2, 1.2, 2.4), CONCRETE,
+                      shape="cylinder"),
+                  Box(f"Aération {index + 1} — chapeau", (*vent, ground + 2.2), (1.7, 1.7, 0.25),
+                      STEEL)]
+    return boxes
+
+
+def _stasis_plugs(relief):
+    """Bouchons au-dessus du couloir, derrière la façade (comme les grottes, voir _plugs)."""
+    tunnel = (CORRIDOR_L, CORRIDOR_W, FLOOR + CORRIDOR_H)
+    plugs = _plugs("Sortie", tunnel, CORRIDOR_W / 2 + 1.0, lambda a, b: relief(a + MOUTH, b))
+    kept = [box for box in plugs if box.center[0] <= 0.5]  # devant : l'entaille, à ciel ouvert
+    for box in kept:
+        box.center = (box.center[0] + MOUTH, *box.center[1:])
+    return kept
 
 
 # --- Grottes ----------------------------------------------------------------------------------
