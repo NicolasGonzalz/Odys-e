@@ -143,7 +143,9 @@ def _tunnel_boxes(label, tunnel, wall):
     length, width, height = tunnel
     side = width / 2 + wall / 2
     return [
-        Box(f"{label} — sol du tunnel", ((1 - length) / 2, 0, -0.2), (length + 1, width + 2 * wall,
+        # Le sol déborde de 3 m devant l'entrée : le trou du Landscape va jusqu'à +2 m (cave_hole),
+        # il ne doit jamais rester de vide sous les pieds.
+        Box(f"{label} — sol du tunnel", ((3 - length) / 2, 0, -0.2), (length + 3, width + 2 * wall,
                                                                        0.5), DIRT),
         Box(f"{label} — paroi gauche", (-length / 2 + 0.25, -side, height / 2),
             (length + 0.5, wall, height), ROCK),
