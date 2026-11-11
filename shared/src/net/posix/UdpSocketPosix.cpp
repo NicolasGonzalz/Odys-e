@@ -79,7 +79,7 @@ std::optional<RawDatagram> readOneDatagram(int fd, std::span<std::byte> buffer) 
     // Lecture dans un tampon d'un octet de plus que le plus gros datagramme accepté : s'il est
     // rempli, le datagramme était trop gros. Portable, contrairement à MSG_TRUNC, qui ne renvoie
     // la taille réelle que sous Linux (ailleurs, un datagramme tronqué passerait pour entier).
-    std::array<std::byte, kMaxPacketSize + 1> scratch;
+    std::array<std::byte, kMaxPacketSize + 1> scratch{};
     const auto got = ::recvfrom(fd, scratch.data(), scratch.size(), 0,
                                 reinterpret_cast<sockaddr*>(&from), &length);
 

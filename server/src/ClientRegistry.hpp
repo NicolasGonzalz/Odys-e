@@ -19,6 +19,14 @@
 
 namespace odyssee::server {
 
+/// Réglages de ClientRegistry. Hors de la classe : GCC et Clang refusent qu'une structure
+/// imbriquée avec des valeurs par défaut serve d'argument par défaut (`= {}`) dans sa classe.
+struct RegistryLimits {
+    /// Joueurs connectés depuis une même adresse IP. Par défaut, pas plus strict que le
+    /// nombre de places : quatre amis derrière la même box partagent une IP.
+    std::size_t maxPlayersPerIp = kMaxPlayers;
+};
+
 /// Qui est connecté au serveur, et quelles places sont libres. Aucune notion de réseau : on lui
 /// donne les messages reçus, il dit quoi répondre.
 ///
@@ -28,11 +36,7 @@ class ClientRegistry {
   public:
     using Clock = std::chrono::steady_clock;
 
-    struct Limits {
-        /// Joueurs connectés depuis une même adresse IP. Par défaut, pas plus strict que le
-        /// nombre de places : quatre amis derrière la même box partagent une IP.
-        std::size_t maxPlayersPerIp = kMaxPlayers;
-    };
+    using Limits = RegistryLimits;
 
     /// `seed` : secret des défis dérivé d'une graine, pour des tests reproductibles.
     explicit ClientRegistry(std::uint64_t seed, Limits limits = {});

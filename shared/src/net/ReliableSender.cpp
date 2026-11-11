@@ -25,8 +25,8 @@ static_assert(ReliableSender::kSendWindow <= ReliableReceiver::kMaxAhead,
 ReliableSender::ReliableSender(std::chrono::milliseconds resendDelay) : _resendDelay(resendDelay) {}
 
 std::size_t ReliableSender::maxPayloadSize() {
-    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, jeton, liste des fiables
-    // (ce message), liste des non fiables (vide).
+    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, jeton de session,
+    // liste des fiables (ce message), liste des non fiables (vide).
     constexpr std::size_t kKindSize = 1;
     return kMaxPacketSize - PacketHeader::kSize - kKindSize - game_packet::kSessionTokenSize -
            reliable_codec::kListOverhead -

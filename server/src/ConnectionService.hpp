@@ -21,6 +21,19 @@
 
 namespace odyssee::server {
 
+/// Ce que le serveur accepte de traiter : un expéditeur trop bavard est écarté sans coûter
+/// plus que la lecture de son datagramme. (Hors de la classe : voir RegistryLimits.)
+struct ConnectionLimits {
+    /// Datagrammes traités par appel à poll() : un flot ne peut pas retenir le tick. Le
+    /// reste attend dans le tampon du système (qui jette quand il est plein).
+    std::size_t maxDatagramsPerPoll = 1024;
+    /// Paquets de poignée de main (ou sans jeton de session valide), par adresse IP.
+    TokenBucket::Rate handshakePerIp{32, 16};
+    /// Paquets d'un joueur connecté (jeton vérifié) : large pour un client à 60 paquets/s.
+    TokenBucket::Rate perPlayer{120, 120};
+    RegistryLimits registry{};
+};
+
 /// Relie le socket du serveur aux joueurs : lit les paquets, répond aux poignées de main,
 /// retire les joueurs silencieux, et fait circuler les paquets de jeu (une net::Session par
 /// joueur connecté). Le serveur appelle poll() au début de chaque tick et flushGame() à la fin.
@@ -28,25 +41,14 @@ class ConnectionService {
   public:
     using Clock = std::chrono::steady_clock;
 
-    /// Ce que le serveur accepte de traiter : un expéditeur trop bavard est écarté sans coûter
-    /// plus que la lecture de son datagramme.
-    struct Limits {
-        /// Datagrammes traités par appel à poll() : un flot ne peut pas retenir le tick. Le
-        /// reste attend dans le tampon du système (qui jette quand il est plein).
-        std::size_t maxDatagramsPerPoll = 1024;
-        /// Paquets de poignée de main (ou sans jeton de session valide), par adresse IP.
-        TokenBucket::Rate handshakePerIp{32, 16};
-        /// Paquets d'un joueur connecté (jeton vérifié) : large pour un client à 60 paquets/s.
-        TokenBucket::Rate perPlayer{120, 120};
-        ClientRegistry::Limits registry{};
-    };
+    using Limits = ConnectionLimits;
 
     /// Ce qui a été reçu et écarté depuis le démarrage (tests, journal).
     struct Stats {
         std::uint64_t datagramsHandled = 0;
         std::uint64_t rateLimited = 0; ///< écartés : seau à jetons vide
         std::uint64_t invalid = 0;     ///< écartés : illisibles, hors de propos, mauvais jeton
-        std::uint64_t oversized = 0;   ///< écartés par le socket : plus gros qu'un paquet (au dernier résumé)
+        std::uint64_t oversized = 0;   ///< écartés par le socket : trop gros (au dernier résumé)
     };
 
     /// `key` : secret des défis de connexion (SipKey::random() en vrai).

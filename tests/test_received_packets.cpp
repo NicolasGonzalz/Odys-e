@@ -4,6 +4,7 @@
 
 using odyssee::net::Arrival;
 using odyssee::net::ReceivedPackets;
+using odyssee::net::Sequence;
 
 TEST_CASE("ReceivedPackets : paquets consécutifs") {
     ReceivedPackets received;
@@ -83,13 +84,14 @@ TEST_CASE("ReceivedPackets : un saut de numéro invraisemblable est refusé sans
     const auto bits = received.ackBits();
 
     // Un seul paquet forgé un demi-tour plus loin rendrait « trop vieux » tous les vrais.
-    CHECK(received.record(static_cast<odyssee::net::Sequence>(11 + 0x7FFF)) == Arrival::TooFarAhead);
-    CHECK(received.record(static_cast<odyssee::net::Sequence>(11 + ReceivedPackets::kMaxJump + 1)) ==
+    CHECK(received.record(static_cast<Sequence>(11 + 0x7FFF)) == Arrival::TooFarAhead);
+    CHECK(received.record(static_cast<Sequence>(11 + ReceivedPackets::kMaxJump + 1)) ==
           Arrival::TooFarAhead);
     CHECK(received.ack() == ack);
     CHECK(received.ackBits() == bits);
     CHECK(received.record(12) == Arrival::New); // la connexion continue normalement
 
     // À la limite, le saut est accepté (longue série de pertes).
-    CHECK(received.record(static_cast<odyssee::net::Sequence>(12 + ReceivedPackets::kMaxJump)) == Arrival::New);
+    const auto atLimit = static_cast<Sequence>(12 + ReceivedPackets::kMaxJump);
+    CHECK(received.record(atLimit) == Arrival::New);
 }

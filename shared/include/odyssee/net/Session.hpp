@@ -56,7 +56,8 @@ class Session {
     [[nodiscard]] std::vector<std::byte> buildPacket(Clock::time_point now);
 
     /// Prend en compte un paquet de jeu (déjà découpé par parsePacket). Faux s'il est ignoré :
-    /// mauvais jeton de session, doublon, trop vieux ou contenu invalide. Un message non fiable invalide est ignoré seul.
+    /// mauvais jeton de session, doublon, trop vieux ou contenu invalide. Un message non fiable
+    /// invalide est ignoré seul.
     bool receive(const IncomingPacket& packet, Clock::time_point now);
 
     /// Messages non fiables reçus depuis le dernier appel, dans l'ordre d'arrivée (au plus

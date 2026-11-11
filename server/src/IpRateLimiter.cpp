@@ -1,5 +1,7 @@
 #include "IpRateLimiter.hpp"
 
+#include <iterator>
+
 namespace odyssee::server {
 
 namespace {
@@ -31,7 +33,9 @@ void IpRateLimiter::forgetIdle(Clock::time_point now) {
     }
     _hasCleaned = true;
     _lastCleanup = now;
-    std::erase_if(_buckets, [now](auto& entry) { return entry.second.isFull(now); });
+    for (auto bucket = _buckets.begin(); bucket != _buckets.end();) {
+        bucket = bucket->second.isFull(now) ? _buckets.erase(bucket) : std::next(bucket);
+    }
 }
 
 } // namespace odyssee::server
