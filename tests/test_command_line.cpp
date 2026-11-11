@@ -40,3 +40,29 @@ TEST_CASE("Ligne de commande : arguments invalides refusés") {
         CHECK_FALSE(parse(args).has_value());
     }
 }
+
+TEST_CASE("Ligne de commande : simulation réseau") {
+    using namespace std::chrono_literals;
+    const auto options = parse({"--lag", "120", "27016", "--jitter", "30", "--loss", "5", "--dup",
+                                "1"});
+    REQUIRE(options.has_value());
+    CHECK(options->port == 27016);
+    CHECK(options->network.latency == 120ms);
+    CHECK(options->network.jitter == 30ms);
+    CHECK(options->network.lossPercent == 5.0);
+    CHECK(options->network.duplicatePercent == 1.0);
+
+    CHECK(parse({}).value().network.isPerfect());
+}
+
+TEST_CASE("Ligne de commande : valeurs de simulation réseau invalides refusées") {
+    for (const auto& args : {std::vector<std::string_view>{"--lag"},
+                             std::vector<std::string_view>{"--lag", "abc"},
+                             std::vector<std::string_view>{"--lag", "-10"},
+                             std::vector<std::string_view>{"--lag", "20000"},
+                             std::vector<std::string_view>{"--loss", "101"},
+                             std::vector<std::string_view>{"--dup", "2.5"},
+                             std::vector<std::string_view>{"--jitter", "--verbose"}}) {
+        CHECK_FALSE(parse(args).has_value());
+    }
+}

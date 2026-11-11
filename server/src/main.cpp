@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
         log::setLevel(log::Level::Debug);
     }
 
-    server::Server gameServer(options->port);
+    server::Server gameServer(options->port, options->network);
     server::stopOnShutdownSignals(gameServer);
     return gameServer.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

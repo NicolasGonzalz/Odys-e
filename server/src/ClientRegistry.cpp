@@ -146,6 +146,33 @@ std::vector<net::Address> ClientRegistry::disconnectAll() {
     return addresses;
 }
 
+// --- Trafic de jeu ----------------------------------------------------------------------------
+
+std::optional<net::PlayerId> ClientRegistry::touch(const net::Address& from,
+                                                   Clock::time_point now) {
+    const auto player = _players.find(from);
+    if (player == _players.end()) {
+        return std::nullopt;
+    }
+    player->second.lastHeard = now;
+    return player->second.id;
+}
+
+void ClientRegistry::noteSent(const net::Address& to, Clock::time_point now) {
+    if (auto player = _players.find(to); player != _players.end()) {
+        player->second.lastSent = now;
+    }
+}
+
+std::vector<ClientRegistry::PlayerInfo> ClientRegistry::players() const {
+    std::vector<PlayerInfo> list;
+    list.reserve(_players.size());
+    for (const auto& [address, player] : _players) {
+        list.push_back(PlayerInfo{player.id, player.name, address});
+    }
+    return list;
+}
+
 // --- Places -----------------------------------------------------------------------------------
 
 std::optional<net::PlayerId> ClientRegistry::playerAt(const net::Address& address) const {

@@ -8,6 +8,7 @@ add_library(odyssee_shared STATIC
     src/net/ControlMessages.cpp
     src/net/GameMessages.cpp
     src/net/GamePacket.cpp
+    src/net/NetworkSimulator.cpp
     src/net/PacketFraming.cpp
     src/net/PlayerName.cpp
     src/net/Quantize.cpp
@@ -16,6 +17,7 @@ add_library(odyssee_shared STATIC
     src/net/ReliableCodec.cpp
     src/net/ReliableReceiver.cpp
     src/net/ReliableSender.cpp
+    src/net/Session.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

@@ -1,6 +1,7 @@
 #include "odyssee/net/ReliableSender.hpp"
 
 #include "odyssee/core/Config.hpp"
+#include "odyssee/net/GamePacket.hpp"
 #include "odyssee/net/PacketHeader.hpp"
 #include "odyssee/net/ReliableCodec.hpp"
 
@@ -20,8 +21,11 @@ constexpr std::uint16_t kAckWindow = 32;
 ReliableSender::ReliableSender(std::chrono::milliseconds resendDelay) : _resendDelay(resendDelay) {}
 
 std::size_t ReliableSender::maxPayloadSize() {
-    return kMaxPacketSize - PacketHeader::kSize - reliable_codec::kListOverhead -
-           reliable_codec::kMessageOverhead;
+    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, liste des fiables
+    // (ce message), liste des non fiables (vide).
+    constexpr std::size_t kKindSize = 1;
+    return kMaxPacketSize - PacketHeader::kSize - kKindSize - reliable_codec::kListOverhead -
+           reliable_codec::kMessageOverhead - game_packet::kUnreliableListOverhead;
 }
 
 std::optional<MessageId> ReliableSender::enqueue(std::vector<std::byte> payload) {
