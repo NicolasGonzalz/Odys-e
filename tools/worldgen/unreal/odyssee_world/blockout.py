@@ -187,18 +187,49 @@ def _beacon(label, tunnel):
                emissive=2.0, collision=False)
 
 
-def cave(label, shapes, kind):
+PLUG_FROM_M, PLUG_TO_M = -6.0, 3.0  # le trou (cave_hole) et la rangée de points du Landscape autour
+
+
+def _plugs(label, tunnel, half, relief):
+    """Bouchons de roche au-dessus de l'entrée, par tranches de 1 m le long du tunnel.
+
+    Le Landscape est percé au-dessus de la voûte (cave_hole), et le pinceau retire tous les
+    triangles qui touchent le trou : la fosse va donc 1 m plus loin que le rectangle. Là où le relief
+    monte plus haut que la voûte (une butte, une falaise), il resterait une fente ouverte dans la
+    masse, jusqu'au vide sous le terrain. Chaque tranche monte donc jusqu'au point le plus haut du
+    relief au-dessus d'elle. `relief(a, b)` : hauteur du terrain au-dessus du sol de la grotte."""
+    width = 2 * half + 3  # le trou ± 1 m de triangles retirés, ± la diagonale d'une case en biais
+    boxes = []
+    a = PLUG_FROM_M
+    while a < PLUG_TO_M:
+        top = _highest(relief, a - 1, a + 2, width / 2 + 1) + 0.3
+        if a + 1 <= 1.6:  # ancien couvercle : au moins voûte + 2,7 m (haut de la falaise)
+            top = max(top, tunnel[2] + 2.7)
+        bottom = tunnel[2] + 1.5 if a + 1 <= 0.5 else tunnel[2] - 0.25  # sur la voûte, sinon l'auvent
+        if top > bottom:
+            boxes.append(Box(f"{label} — bouchon {a:+.0f} m", (a + 0.5, 0, (top + bottom) / 2),
+                             (1.0, width, top - bottom), ROCK))
+        a += 1
+    return boxes
+
+
+def _highest(relief, a_from, a_to, half_width, step=0.5):
+    samples = [relief(a_from + i * step, -half_width + j * step)
+               for i in range(int((a_to - a_from) / step) + 1)
+               for j in range(int(2 * half_width / step) + 1)]
+    return max(samples)
+
+
+def cave(label, shapes, kind, relief):
     """Grotte cachée dans le relief (`kind` : montagne ou butte, voir cave_shapes) : l'intérieur,
-    un auvent de roche sur l'entrée et une balise. Le relief autour (falaise, butte, rochers) vient
-    de generate_terrain.py."""
+    un auvent de roche sur l'entrée, des bouchons dans le trou du Landscape et une balise. Le relief
+    autour (falaise, butte, rochers) vient de generate_terrain.py ; `relief(a, b)` le lit."""
     tunnel, chamber, wall = shapes[kind]["tunnel"], shapes[kind]["chamber"], shapes["wall_m"]
     boxes, lights = cave_interior(label, tunnel, chamber, wall)
     half = tunnel[1] / 2 + wall
+    boxes += _plugs(label, tunnel, half, relief)
     boxes += [
         Box(f"{label} — auvent", (0.8, 0, tunnel[2] + 1.0), (1.6, 2 * half + 3, 2.5), ROCK),
-        # Couvercle : le Landscape est percé au-dessus de la voûte (cave_hole, de -5 à +2 m) ; ce bloc
-        # remonte au niveau du haut de la falaise (generate_terrain : voûte + 2,5 m) et comble la fosse.
-        Box(f"{label} — couvercle", (-1.95, 0, tunnel[2] + 2.1), (7.1, 2 * half + 1, 1.2), ROCK),
         Box(f"{label} — rocher gauche", (0.8, -half - 0.6, tunnel[2] / 2 + 0.5),
             (1.6, 1.8, tunnel[2] + 1), ROCK),
         Box(f"{label} — rocher droit", (0.8, half + 0.6, tunnel[2] / 2 + 0.5),

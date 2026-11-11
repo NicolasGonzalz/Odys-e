@@ -123,6 +123,14 @@ def _hole_length(terrain, cave, floor, shapes):
     return float(tunnel[0])
 
 
+def _relief_around(terrain, cave, floor):
+    """Hauteur du terrain au-dessus du sol de la grotte, en coordonnées locales (a vers dehors)."""
+    def relief(a, b):
+        px, py, _ = m["blockout"].place((a, b, 0), (*cave["pos"], 0), cave["yaw_deg"])
+        return terrain.height(px, py) - floor
+    return relief
+
+
 def _hole(cave, along, half_width):
     """Trou du Landscape (unreal.OdysseeHole) : rectangle local `along` × ±half_width, en cm."""
     middle = m["blockout"].place(((along[0] + along[1]) / 2, 0, 0), (*cave["pos"], 0),
@@ -151,7 +159,8 @@ def _caves(util, assets, layout, terrain, cave_floors):
         label = f"Grotte {index:02d}"
         folder = f"Odyssee/Blockout/Grottes/{cave['id']}"
         floor = cave_floors[cave["id"]]
-        boxes, lights = blockout.cave(label, shapes, cave["type"])
+        boxes, lights = blockout.cave(label, shapes, cave["type"],
+                                      _relief_around(terrain, cave, floor))
         along, half_width = blockout.cave_hole(shapes, cave["type"],
                                                _hole_length(terrain, cave, floor, shapes))
         holes.append(_hole(cave, along, half_width))
