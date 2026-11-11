@@ -46,6 +46,7 @@ class ConnectionService {
         std::uint64_t datagramsHandled = 0;
         std::uint64_t rateLimited = 0; ///< écartés : seau à jetons vide
         std::uint64_t invalid = 0;     ///< écartés : illisibles, hors de propos, mauvais jeton
+        std::uint64_t oversized = 0;   ///< écartés par le socket : plus gros qu'un paquet (au dernier résumé)
     };
 
     /// `key` : secret des défis de connexion (SipKey::random() en vrai).

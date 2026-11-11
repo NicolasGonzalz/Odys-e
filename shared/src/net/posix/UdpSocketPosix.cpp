@@ -5,6 +5,8 @@
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
@@ -62,11 +64,11 @@ std::optional<std::uint16_t> queryLocalPort(int fd) {
 
 // --- Lecture ----------------------------------------------------------------------------------
 
-/// Un datagramme lu par le système.
-/// `realSize` peut dépasser la taille du tampon : le datagramme a alors été tronqué.
+/// Résultat d'une lecture : un datagramme, ou un datagramme trop gros (à ignorer).
 struct RawDatagram {
     Address from;
-    std::size_t realSize = 0;
+    std::size_t size = 0;
+    bool tooBig = false;
 };
 
 /// Lit un seul datagramme. std::nullopt : plus rien à lire (ou erreur, journalisée).
@@ -74,8 +76,11 @@ std::optional<RawDatagram> readOneDatagram(int fd, std::span<std::byte> buffer) 
     sockaddr_in from{};
     socklen_t length = sizeof(from);
 
-    // MSG_TRUNC (Linux) : renvoie la taille réelle du datagramme, même s'il dépasse le tampon.
-    const auto got = ::recvfrom(fd, buffer.data(), buffer.size(), MSG_TRUNC,
+    // Lecture dans un tampon d'un octet de plus que le plus gros datagramme accepté : s'il est
+    // rempli, le datagramme était trop gros. Portable, contrairement à MSG_TRUNC, qui ne renvoie
+    // la taille réelle que sous Linux (ailleurs, un datagramme tronqué passerait pour entier).
+    std::array<std::byte, kMaxPacketSize + 1> scratch;
+    const auto got = ::recvfrom(fd, scratch.data(), scratch.size(), 0,
                                 reinterpret_cast<sockaddr*>(&from), &length);
 
     if (got < 0) {
@@ -84,7 +89,13 @@ std::optional<RawDatagram> readOneDatagram(int fd, std::span<std::byte> buffer) 
         }
         return std::nullopt;
     }
-    return RawDatagram{posix::fromSockaddr(from), static_cast<std::size_t>(got)};
+
+    const auto size = static_cast<std::size_t>(got);
+    if (size > kMaxPacketSize || size > buffer.size()) {
+        return RawDatagram{posix::fromSockaddr(from), size, true};
+    }
+    std::copy_n(scratch.begin(), size, buffer.begin());
+    return RawDatagram{posix::fromSockaddr(from), size, false};
 }
 
 } // namespace
@@ -117,13 +128,16 @@ std::optional<UdpSocket> UdpSocket::open(std::uint16_t port) {
 UdpSocket::~UdpSocket() { close(); }
 
 UdpSocket::UdpSocket(UdpSocket&& other) noexcept
-    : _handle(std::exchange(other._handle, kInvalidHandle)), _port(std::exchange(other._port, 0)) {}
+    : _handle(std::exchange(other._handle, kInvalidHandle)),
+      _port(std::exchange(other._port, std::uint16_t{0})),
+      _oversized(std::exchange(other._oversized, std::uint64_t{0})) {}
 
 UdpSocket& UdpSocket::operator=(UdpSocket&& other) noexcept {
     if (this != &other) {
         close();
         _handle = std::exchange(other._handle, kInvalidHandle);
-        _port = std::exchange(other._port, 0);
+        _port = std::exchange(other._port, std::uint16_t{0});
+        _oversized = std::exchange(other._oversized, std::uint64_t{0});
     }
     return *this;
 }
@@ -159,11 +173,10 @@ std::optional<Received> UdpSocket::receive(std::span<std::byte> buffer) {
     // On saute les datagrammes trop gros (tronqués, donc corrompus) sans s'arrêter :
     // renvoyer std::nullopt ferait croire à l'appelant qu'il n'y a plus rien à lire.
     while (const auto datagram = readOneDatagram(static_cast<int>(_handle), buffer)) {
-        if (datagram->realSize <= buffer.size()) {
-            return Received{datagram->from, datagram->realSize};
+        if (!datagram->tooBig) {
+            return Received{datagram->from, datagram->size};
         }
-        kLog.warn("datagramme de {} octets ignoré (tampon de {})", datagram->realSize,
-                  buffer.size());
+        ++_oversized; // compté, pas journalisé : voir oversizedDatagrams()
     }
     return std::nullopt;
 }

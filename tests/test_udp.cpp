@@ -120,6 +120,7 @@ TEST_CASE("UdpSocket : un datagramme plus grand que le tampon de lecture est ign
     const auto received = receiveWithin(*b, small);
     REQUIRE(received.has_value());
     CHECK(received->size == 2); // le premier a été sauté, le second est lu
+    CHECK(b->oversizedDatagrams() == 1); // compté, pas journalisé
 }
 
 TEST_CASE("UdpSocket : le déplacement transfère la propriété") {

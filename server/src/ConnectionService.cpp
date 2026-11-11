@@ -289,10 +289,13 @@ void ConnectionService::reportDropped(Clock::time_point now) {
         return;
     }
     _lastReport = now;
+    _stats.oversized = _socket.oversizedDatagrams();
     const std::uint64_t limited = _stats.rateLimited - _reported.rateLimited;
     const std::uint64_t invalid = _stats.invalid - _reported.invalid;
-    if (limited + invalid > 0) {
-        kLog.warn("paquets écartés : {} hors débit, {} invalides ou sans jeton", limited, invalid);
+    const std::uint64_t oversized = _stats.oversized - _reported.oversized;
+    if (limited + invalid + oversized > 0) {
+        kLog.warn("paquets écartés : {} hors débit, {} invalides ou sans jeton, {} trop gros",
+                  limited, invalid, oversized);
     }
     _reported = _stats;
 }

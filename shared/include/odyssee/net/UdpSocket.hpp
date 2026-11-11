@@ -40,8 +40,13 @@ class UdpSocket {
 
     /// Lit le prochain datagramme dans `buffer`, sans jamais attendre.
     /// Renvoie std::nullopt quand il n'y a plus rien à lire. Les datagrammes trop gros pour
-    /// `buffer` sont ignorés (et journalisés) ; la lecture passe alors au suivant.
+    /// `buffer` (ou plus gros que kMaxPacketSize) sont ignorés et comptés ; la lecture passe
+    /// alors au suivant.
     [[nodiscard]] std::optional<Received> receive(std::span<std::byte> buffer);
+
+    /// Datagrammes trop gros ignorés depuis l'ouverture. Ils ne sont pas journalisés un par un
+    /// (n'importe qui pourrait remplir le journal) : à l'appelant d'en faire un résumé.
+    [[nodiscard]] std::uint64_t oversizedDatagrams() const { return _oversized; }
 
     /// Port local effectivement utilisé (utile après open(0)).
     [[nodiscard]] std::uint16_t localPort() const { return _port; }
@@ -56,6 +61,7 @@ class UdpSocket {
 
     Handle _handle = kInvalidHandle;
     std::uint16_t _port = 0;
+    std::uint64_t _oversized = 0;
 };
 
 } // namespace odyssee::net
