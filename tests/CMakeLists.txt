@@ -22,6 +22,7 @@ add_executable(odyssee_tests
     test_movement.cpp
     test_determinism.cpp
     test_network_simulator.cpp
+    test_fuzz_decoders.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 
