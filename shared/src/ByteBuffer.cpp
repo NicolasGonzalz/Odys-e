@@ -18,6 +18,9 @@ void ByteWriter::writeU8(std::uint8_t v) { _data.push_back(static_cast<std::byte
 void ByteWriter::writeU16(std::uint16_t v) { writeLittleEndian(_data, v); }
 void ByteWriter::writeU32(std::uint32_t v) { writeLittleEndian(_data, v); }
 void ByteWriter::writeU64(std::uint64_t v) { writeLittleEndian(_data, v); }
+void ByteWriter::writeI8(std::int8_t v) { writeU8(std::bit_cast<std::uint8_t>(v)); }
+void ByteWriter::writeI16(std::int16_t v) { writeU16(std::bit_cast<std::uint16_t>(v)); }
+void ByteWriter::writeI32(std::int32_t v) { writeU32(std::bit_cast<std::uint32_t>(v)); }
 void ByteWriter::writeF32(float v) { writeU32(std::bit_cast<std::uint32_t>(v)); }
 
 void ByteWriter::writeString(std::string_view s) {
@@ -49,6 +52,22 @@ std::optional<std::uint8_t> ByteReader::readU8() { return readUnsigned<std::uint
 std::optional<std::uint16_t> ByteReader::readU16() { return readUnsigned<std::uint16_t>(); }
 std::optional<std::uint32_t> ByteReader::readU32() { return readUnsigned<std::uint32_t>(); }
 std::optional<std::uint64_t> ByteReader::readU64() { return readUnsigned<std::uint64_t>(); }
+
+template <typename Signed, typename Unsigned> std::optional<Signed> ByteReader::readSigned() {
+    const auto raw = readUnsigned<Unsigned>();
+    if (!raw) {
+        return std::nullopt;
+    }
+    return std::bit_cast<Signed>(*raw);
+}
+
+std::optional<std::int8_t> ByteReader::readI8() { return readSigned<std::int8_t, std::uint8_t>(); }
+std::optional<std::int16_t> ByteReader::readI16() {
+    return readSigned<std::int16_t, std::uint16_t>();
+}
+std::optional<std::int32_t> ByteReader::readI32() {
+    return readSigned<std::int32_t, std::uint32_t>();
+}
 
 std::optional<float> ByteReader::readF32() {
     const auto raw = readU32();

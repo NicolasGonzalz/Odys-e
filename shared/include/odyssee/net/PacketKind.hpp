@@ -16,12 +16,18 @@ enum class PacketKind : std::uint8_t {
     Refused = 5,           ///< serveur → client : connexion refusée (avec la raison)
     Disconnect = 6,        ///< dans les deux sens : départ volontaire
     KeepAlive = 7,         ///< dans les deux sens : « je suis toujours là »
+    Game = 8,              ///< dans les deux sens, une fois connecté : messages de jeu (GamePacket)
 };
 
 /// Vrai si `value` correspond à un PacketKind connu.
 [[nodiscard]] constexpr bool isKnownPacketKind(std::uint8_t value) {
     return value >= static_cast<std::uint8_t>(PacketKind::ConnectRequest) &&
-           value <= static_cast<std::uint8_t>(PacketKind::KeepAlive);
+           value <= static_cast<std::uint8_t>(PacketKind::Game);
+}
+
+/// Vrai pour les paquets de connexion (ControlMessage), faux pour les paquets de jeu.
+[[nodiscard]] constexpr bool isControlPacketKind(PacketKind kind) {
+    return kind != PacketKind::Game;
 }
 
 } // namespace odyssee::net

@@ -73,6 +73,8 @@ std::optional<ControlMessage> readMessage(PacketKind kind, ByteReader& r) {
         return Disconnect{};
     case PacketKind::KeepAlive:
         return KeepAlive{};
+    case PacketKind::Game:
+        return std::nullopt; // paquet de jeu : voir GamePacket
     }
     return std::nullopt;
 }

@@ -75,7 +75,9 @@ def write(wanted):
         if old.name not in wanted:
             old.unlink()
     for name, text in wanted.items():
-        (WRAPPERS / name).write_text(text, encoding="utf-8")
+        # newline : fins de ligne LF même sous Windows (comme le reste du dépôt).
+        with (WRAPPERS / name).open("w", encoding="utf-8", newline="\n") as file:
+            file.write(text)
     print(f"OdysseeNet : {len(wanted)} enveloppes écrites dans {WRAPPERS.relative_to(ROOT)}.")
     return 0
 
