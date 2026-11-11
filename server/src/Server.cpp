@@ -15,6 +15,9 @@ namespace {
 
 constexpr log::Logger kLog{"server"};
 
+/// Ticks joués d'affilée, au plus, pour rattraper un retard (250 ms) : le reste est sauté.
+constexpr int kMaxCatchUpTicks = 5;
+
 } // namespace
 
 Server::Server(std::uint16_t port, net::NetworkConditions network)
@@ -49,12 +52,21 @@ void Server::loop(ConnectionService& connections) {
     auto nextTick = Clock::now();
 
     // Boucle à pas fixe : la simulation avance toujours de kTickDuration, quel que soit
-    // le temps réel écoulé. Si le serveur prend du retard, il rattrape les ticks manqués.
+    // le temps réel écoulé. Si le serveur prend du retard, il rattrape les ticks manqués —
+    // mais pas sans limite : après une longue pause (machine suspendue, surcharge), enchaîner
+    // des centaines de ticks d'un coup ne ferait que prolonger le retard.
     while (_running) {
         const auto now = Clock::now();
-        while (nextTick <= now && _running) {
+        int caughtUp = 0;
+        while (nextTick <= now && _running && caughtUp < kMaxCatchUpTicks) {
             tick(connections, tickIndex++, now);
             nextTick += kTickDuration;
+            ++caughtUp;
+        }
+        if (nextTick <= now) {
+            const auto skipped = (now - nextTick) / kTickDuration + 1;
+            kLog.warn("serveur en retard : {} tick(s) sautés", skipped);
+            nextTick += skipped * kTickDuration;
         }
         waitUntil(connections, nextTick);
     }
