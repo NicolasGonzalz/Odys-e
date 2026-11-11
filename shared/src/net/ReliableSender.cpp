@@ -4,6 +4,7 @@
 #include "odyssee/net/GamePacket.hpp"
 #include "odyssee/net/PacketHeader.hpp"
 #include "odyssee/net/ReliableCodec.hpp"
+#include "odyssee/net/ReliableReceiver.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -15,6 +16,9 @@ namespace {
 /// Au-delà de 32 paquets d'écart, un paquet ne peut plus être acquitté (fenêtre de ackBits) :
 /// ses messages, s'ils ne sont pas confirmés, seront simplement renvoyés.
 constexpr std::uint16_t kAckWindow = 32;
+
+static_assert(ReliableSender::kSendWindow <= ReliableReceiver::kMaxAhead,
+              "le récepteur doit accepter tout ce que l'émetteur peut envoyer");
 
 } // namespace
 
@@ -30,7 +34,7 @@ std::size_t ReliableSender::maxPayloadSize() {
 }
 
 std::optional<MessageId> ReliableSender::enqueue(std::vector<std::byte> payload) {
-    if (payload.size() > maxPayloadSize()) {
+    if (payload.size() > maxPayloadSize() || _pending.size() >= kMaxPending) {
         return std::nullopt;
     }
     const MessageId id = _nextId++;
@@ -47,6 +51,9 @@ std::vector<ReliableMessage> ReliableSender::collectForPacket(Sequence sequence,
     std::size_t used = reliable_codec::kListOverhead;
 
     for (Pending& pending : _pending) {
+        if (!isInSendWindow(pending)) {
+            break; // trop loin devant le plus ancien non acquitté : le récepteur le refuserait
+        }
         if (!isDue(pending, now)) {
             continue; // envoyé récemment : on attend encore son acquittement
         }
@@ -87,6 +94,10 @@ void ReliableSender::onAcknowledged(std::span<const Sequence> sequences) {
 
 bool ReliableSender::isDue(const Pending& pending, Clock::time_point now) const {
     return !pending.lastSent || now - *pending.lastSent >= _resendDelay;
+}
+
+bool ReliableSender::isInSendWindow(const Pending& pending) const {
+    return sequenceDistance(pending.message.id, _pending.front().message.id) < kSendWindow;
 }
 
 void ReliableSender::confirm(MessageId id) {

@@ -43,7 +43,8 @@ class Session {
     /// être décodés**. Le serveur n'attend que des inputs : un Snapshot reçu d'un client est faux.
     void acceptOnly(GameMessageType type) { _acceptedType = type; }
 
-    /// Message fiable : livré une fois, dans l'ordre. Faux s'il ne tiendrait dans aucun paquet.
+    /// Message fiable : livré une fois, dans l'ordre. Faux s'il ne tiendrait dans aucun paquet,
+    /// ou si trop de messages attendent déjà leur acquittement (ReliableSender::kMaxPending).
     [[nodiscard]] bool queueReliable(std::vector<std::byte> payload);
 
     /// Message non fiable pour le prochain paquet.

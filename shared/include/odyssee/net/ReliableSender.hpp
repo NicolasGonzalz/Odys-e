@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <deque>
 #include <optional>
 #include <span>
@@ -23,8 +24,18 @@ class ReliableSender {
 
     explicit ReliableSender(std::chrono::milliseconds resendDelay = std::chrono::milliseconds{100});
 
+    /// Messages en attente d'acquittement, au plus : au-delà, enqueue() refuse (l'autre côté ne
+    /// répond plus, ou le jeu envoie plus vite que le réseau ne débite). Borne aussi la mémoire,
+    /// et garde les numéros de message (16 bits) sans ambiguïté.
+    static constexpr std::size_t kMaxPending = 4096;
+
+    /// Fenêtre d'envoi : seuls les messages à moins de kSendWindow numéros du plus ancien non
+    /// acquitté partent. Plus petite que ReliableReceiver::kMaxAhead : le récepteur ne refuse
+    /// jamais un message que l'émetteur a le droit d'envoyer.
+    static constexpr std::uint16_t kSendWindow = 512;
+
     /// Met un message en file d'envoi. Renvoie std::nullopt si `payload` ne tiendrait jamais
-    /// dans un paquet.
+    /// dans un paquet, ou si kMaxPending messages attendent déjà.
     [[nodiscard]] std::optional<MessageId> enqueue(std::vector<std::byte> payload);
 
     /// Choisit les messages à mettre dans le paquet `sequence` (jamais envoyés, ou à renvoyer),
@@ -49,6 +60,7 @@ class ReliableSender {
     };
 
     [[nodiscard]] bool isDue(const Pending& pending, Clock::time_point now) const;
+    [[nodiscard]] bool isInSendWindow(const Pending& pending) const;
     void confirm(MessageId id);
     void forgetUnacknowledgeablePackets(Sequence current);
 
