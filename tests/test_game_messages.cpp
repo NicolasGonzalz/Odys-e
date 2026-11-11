@@ -67,7 +67,7 @@ TEST_CASE("GameMessages : un lot trop long ne garde que les inputs les plus réc
 }
 
 TEST_CASE("GameMessages : aller-retour d'un snapshot") {
-    const Snapshot snapshot{4242, 1004, {player(0), player(1), player(7)}};
+    const Snapshot snapshot{4242, 1004, {player(0), player(1), player(7)}, {{-45, 12, -6}, 731}};
     const auto decoded = roundTrip(snapshot);
     REQUIRE(decoded.has_value());
     CHECK(std::get<Snapshot>(*decoded) == snapshot);
@@ -138,13 +138,16 @@ TEST_CASE("GameMessages : snapshots invalides refusés") {
     }
     SUBCASE("sorte d'entité inconnue") {
         auto bytes = encodeGameMessage(Snapshot{1, 1, {player(3)}});
-        bytes[11] = std::byte{99}; // kind : après les ticks (8), le compteur (1) et l'id (2)
+        bytes[19] = std::byte{99}; // kind : après ticks (8), self (8), compteur (1) et id (2)
         CHECK_FALSE(decodeGameMessage(type, bytes).has_value());
     }
     SUBCASE("trop d'entités annoncées") {
         ByteWriter w;
         w.writeU32(1);
         w.writeU32(1);
+        for (int i = 0; i < 4; ++i) {
+            w.writeU16(0); // self : vitesse (3) et endurance
+        }
         w.writeU8(static_cast<std::uint8_t>(odyssee::kMaxSnapshotEntities + 1));
         CHECK_FALSE(decodeGameMessage(type, w.data()).has_value());
     }

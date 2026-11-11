@@ -21,6 +21,8 @@ constexpr float kSpawnSpacing = 2.0f;
 
 } // namespace
 
+GameWorld::GameWorld() : _terrain(net::quantizePosition(kSpawnZ)) {}
+
 void GameWorld::syncPlayers(std::span<const net::PlayerId> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         const bool isConnected =
@@ -45,23 +47,35 @@ void GameWorld::step() {
         if (!slot) {
             continue;
         }
+        // Un joueur n'avance que lorsqu'un de ses inputs est appliqué : le client prédit un pas
+        // par input, le serveur doit faire exactement les mêmes pas.
         if (const auto input = slot->inputs.pop()) {
-            apply(*slot, *input);
+            slot->motion = sim::step(slot->motion, input->command, _terrain);
+            slot->lastProcessedInput = input->tick;
         }
     }
 }
 
 net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick) const {
-    net::Snapshot snapshot{serverTick, 0, {}};
+    net::Snapshot snapshot{serverTick, 0, {}, {}};
     if (player < kMaxPlayers && _players[player]) {
-        snapshot.lastProcessedInput = _players[player]->lastProcessedInput;
+        const PlayerState& own = *_players[player];
+        snapshot.lastProcessedInput = own.lastProcessedInput;
+        snapshot.self = net::OwnMotion{own.motion.velocity, own.motion.stamina};
     }
-    for (const auto& slot : _players) {
-        if (slot) {
-            snapshot.entities.push_back(slot->entity);
+    for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
+        if (_players[id]) {
+            snapshot.entities.push_back(entityOf(id, _players[id]->motion));
         }
     }
     return snapshot;
+}
+
+std::optional<sim::PlayerState> GameWorld::motionOf(net::PlayerId player) const {
+    if (player >= kMaxPlayers || !_players[player]) {
+        return std::nullopt;
+    }
+    return _players[player]->motion;
 }
 
 bool GameWorld::hasPlayer(net::PlayerId player) const {
@@ -75,20 +89,18 @@ std::size_t GameWorld::playerCount() const {
 }
 
 GameWorld::PlayerState GameWorld::spawn(net::PlayerId player) {
-    // Entités 0 à kMaxPlayers - 1 : les joueurs (numéro d'entité = numéro de joueur).
     const float offset = (static_cast<float>(player) - 1.5f) * kSpawnSpacing;
-    net::EntityState entity{player, net::EntityKind::Player,
-                            {net::quantizePosition(kSpawnX + offset),
-                             net::quantizePosition(kSpawnY), net::quantizePosition(kSpawnZ)},
-                            net::quantizeYaw(kSpawnYawDegrees), 0};
-    return PlayerState{entity, 0, {}};
+    sim::PlayerState motion;
+    motion.position = {net::quantizePosition(kSpawnX + offset), net::quantizePosition(kSpawnY),
+                       net::quantizePosition(kSpawnZ)};
+    motion.yaw = net::quantizeYaw(kSpawnYawDegrees);
+    return PlayerState{motion, 0, {}};
 }
 
-void GameWorld::apply(PlayerState& state, const InputQueue::Entry& input) {
-    // Sans simulation (T029), seule l'orientation suit l'input : la caméra n'est pas soumise
-    // aux collisions, le serveur peut la reprendre telle quelle.
-    state.entity.yaw = input.command.yaw;
-    state.lastProcessedInput = input.tick;
+net::EntityState GameWorld::entityOf(net::PlayerId player, const sim::PlayerState& motion) {
+    // Entités 0 à kMaxPlayers - 1 : les joueurs (numéro d'entité = numéro de joueur).
+    return net::EntityState{player, net::EntityKind::Player, motion.position, motion.yaw,
+                            motion.flags};
 }
 
 } // namespace odyssee::server

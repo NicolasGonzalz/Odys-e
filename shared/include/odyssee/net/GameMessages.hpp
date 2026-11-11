@@ -76,6 +76,15 @@ struct EntityState {
     friend bool operator==(const EntityState&, const EntityState&) = default;
 };
 
+/// Ce que la simulation du joueur destinataire contient en plus de son entité (position, cap,
+/// drapeaux) : de quoi reprendre sa prédiction exactement là où le serveur l'a laissée.
+struct OwnMotion {
+    std::array<std::int16_t, 3> velocity{}; ///< 1/256 m par tick (voir sim::PlayerState)
+    std::uint16_t stamina = 0;
+
+    friend bool operator==(const OwnMotion&, const OwnMotion&) = default;
+};
+
 /// L'état du monde vu par un joueur à un tick du serveur.
 struct Snapshot {
     Tick serverTick = 0;
@@ -83,6 +92,7 @@ struct Snapshot {
     /// (réconciliation). 0 tant qu'aucun input n'a été reçu.
     Tick lastProcessedInput = 0;
     std::vector<EntityState> entities; ///< au plus kMaxSnapshotEntities
+    OwnMotion self;                    ///< le joueur destinataire
 
     friend bool operator==(const Snapshot&, const Snapshot&) = default;
 };

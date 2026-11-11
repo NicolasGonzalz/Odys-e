@@ -89,11 +89,14 @@ Un paquet sans message (deux compteurs à 0) sert juste à acquitter. Au plus 64
 | Type | Sens | Contenu |
 |---|---|---|
 | `Inputs` = 1 | client → serveur | `firstTick` (u32), `count` (u8, 1 à 16), puis `count` inputs de ticks consécutifs, du plus ancien au plus récent |
-| `Snapshot` = 2 | serveur → client | `serverTick` (u32), `lastProcessedInput` (u32), `count` (u8, ≤ 60), puis `count` entités |
+| `Snapshot` = 2 | serveur → client | `serverTick` (u32), `lastProcessedInput` (u32), `self` (8 octets), `count` (u8, ≤ 60), puis `count` entités |
 
 - **Input** (8 octets) : `moveForward` (i8), `moveRight` (i8), `yaw` (u16), `pitch` (i16), `buttons` (u16).
   Boutons : `Jump` 1, `Sprint` 2, `Crouch` 4, `Use` 8, `Primary` 16, `Secondary` 32 ; tout autre bit est refusé.
-- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1), `x`, `y`, `z` (i32), `yaw` (u16), `flags` (u8).
+- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1), `x`, `y`, `z` (i32), `yaw` (u16), `flags` (u8 :
+  au sol 1, accroupi 2, court 4, épuisé 8).
+- **`self`** : vitesse `vx`, `vy`, `vz` (i16, 1/256 m par tick) et endurance (u16) du joueur destinataire. Avec sa
+  propre entité, c'est son état de simulation complet : sa prédiction repart exactement de là (T029).
 - `lastProcessedInput` : dernier tick d'input **de ce joueur** appliqué par le serveur (0 tant qu'aucun),
   base de la réconciliation. Les ticks d'input sont ceux du client.
 - Les messages fiables (événements de jeu, inventaire, chat) arrivent avec le gameplay : leur contenu
@@ -131,8 +134,9 @@ Version du protocole : **2** depuis l'ajout des paquets de jeu.
 - **Snapshot** : tous les joueurs (pas encore de zone d'intérêt), et le dernier input appliqué du joueur
   destinataire. Le client garde le plus récent (`serverTick`) : un snapshot arrivé en retard est ignoré.
 - **Monde provisoire** (`server/GameWorld`) : les joueurs apparaissent dans la salle des capsules du
-  centre de stase, à 2 m d'écart ; seule leur orientation suit l'input. Le mouvement viendra de la
-  simulation partagée (T029), le point d'apparition de la carte chargée par le serveur (T041).
+  centre de stase, à 2 m d'écart, et sont déplacés par la simulation partagée (`sim::step`, T029) sur un
+  sol plat. Un joueur n'avance que quand un de ses inputs est appliqué (le client prédit un pas par
+  input). Relief et point d'apparition viendront de la carte chargée par le serveur (T041).
 - **KeepAlive** : inutiles tant que des paquets de jeu circulent (ils comptent comme trafic des deux
   côtés : `ClientRegistry::touch/noteSent`, `ClientConnection::onGamePacketReceived/Sent`).
 
