@@ -258,3 +258,83 @@ TEST_CASE("Prédiction du client : démarrée sur le snapshot du serveur, elle a
     CHECK(*world.motionOf(2) == *prediction.state());
     CHECK(world.snapshotFor(2, 151).lastProcessedInput == 150);
 }
+
+namespace {
+
+/// Un input qui change souvent (direction, cap, course, sauts) : un input deviné en répétant le
+/// précédent est donc souvent faux.
+net::InputCommand varied(net::Tick tick) {
+    net::InputCommand command;
+    command.moveForward = net::quantizeAxis(tick % 20 < 12 ? 1.0f : -1.0f);
+    command.moveRight = net::quantizeAxis(tick % 7 < 3 ? 1.0f : -1.0f);
+    command.yaw = net::quantizeYaw(static_cast<float>(tick % 36) * 10.0f);
+    command.buttons = static_cast<std::uint16_t>(
+        (tick % 30 == 0 ? static_cast<unsigned>(net::InputButton::Jump) : 0U) |
+        (tick % 16 < 8 ? static_cast<unsigned>(net::InputButton::Sprint) : 0U));
+    return command;
+}
+
+/// Joue une partie : le client prédit, envoie ses lots (sauf pendant les ticks `lost`), et se
+/// réconcilie avec des snapshots qui arrivent `delay` ticks en retard. Puis il s'arrête et laisse
+/// le serveur tout rattraper.
+struct ReconciledGame {
+    GameWorld world;
+    sim::FlatTerrain ground{sim::provisionalGroundHeight()};
+    client::Prediction prediction{ground};
+    std::vector<net::Snapshot> inFlight; ///< snapshots pas encore arrivés au client
+
+    ReconciledGame() {
+        world.syncPlayers(std::vector<ConnectedPlayer>{{2, 1}});
+        REQUIRE(prediction.start(world.snapshotFor(2, 0), 2));
+    }
+
+    template <typename Lost> void play(net::Tick ticks, std::size_t delay, Lost lost) {
+        for (net::Tick tick = 1; tick <= ticks; ++tick) {
+            REQUIRE(prediction.advance(varied(tick)));
+            if (!lost(tick)) {
+                world.receiveInputs(2, prediction.history().recentBatch());
+            }
+            world.step();
+            deliver(world.snapshotFor(2, tick), delay);
+        }
+    }
+
+    void deliver(net::Snapshot snapshot, std::size_t delay) {
+        inFlight.push_back(std::move(snapshot));
+        if (inFlight.size() > delay) {
+            prediction.reconcile(inFlight.front(), 2);
+            inFlight.erase(inFlight.begin());
+        }
+    }
+};
+
+} // namespace
+
+TEST_CASE("Réconciliation : sans perte, le serveur confirme la prédiction (aucune correction)") {
+    ReconciledGame game;
+    game.play(200, 3, [](net::Tick) { return false; });
+
+    CHECK(game.prediction.corrections() == 0);
+    CHECK(*game.world.motionOf(2) == *game.prediction.state());
+}
+
+TEST_CASE("Réconciliation : des inputs perdus et mal devinés par le serveur sont corrigés") {
+    ReconciledGame game;
+    // Deux trous de 8 ticks : plus que le lot redondant (le serveur doit deviner), et l'input
+    // change pendant ce temps (il devine faux).
+    game.play(200, 3, [](net::Tick tick) {
+        return (tick > 40 && tick <= 48) || (tick > 120 && tick <= 128);
+    });
+
+    CHECK(game.prediction.corrections() > 0);
+
+    // Le client s'arrête. Le serveur applique un input par tick : après les trous, il a pris
+    // du retard sur le client et doit d'abord vider sa file (sans deviner au-delà de 200).
+    for (int i = 0; i < 20 && game.world.snapshotFor(2, 0).lastProcessedInput < 200; ++i) {
+        game.world.step();
+    }
+    const net::Snapshot last = game.world.snapshotFor(2, 999);
+    REQUIRE(last.lastProcessedInput == 200);
+    game.prediction.reconcile(last, 2);
+    CHECK(*game.prediction.state() == *game.world.motionOf(2));
+}

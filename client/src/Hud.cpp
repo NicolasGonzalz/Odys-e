@@ -25,6 +25,16 @@ std::string positionText(const HudInfo& info) {
     return text;
 }
 
+std::string correctionText(const HudInfo& info) {
+    if (info.corrections == 0) {
+        return "Corrections : aucune";
+    }
+    char text[80];
+    std::snprintf(text, sizeof text, "Corrections : %d (dernière : %.1f cm)", info.corrections,
+                  static_cast<double>(info.lastCorrectionCm));
+    return text;
+}
+
 void drawStamina(int row, float stamina, bool exhausted) {
     const int y = 16 + row * kLine;
     DrawRectangle(16, y, 200, 14, Color{0, 0, 0, 120});
@@ -40,8 +50,9 @@ void drawHud(const HudInfo& info) {
     line(2, info.pingMs ? "Ping : " + std::to_string(*info.pingMs) + " ms" : "Ping : -");
     line(3, positionText(info));
     line(4, "Autres joueurs visibles : " + std::to_string(info.playersInView));
-    drawStamina(5, info.stamina, info.exhausted);
-    DrawFPS(16, 16 + 6 * kLine);
+    line(5, correctionText(info));
+    drawStamina(6, info.stamina, info.exhausted);
+    DrawFPS(16, 16 + 7 * kLine);
 
     const int bottom = GetScreenHeight() - 30;
     DrawText(info.mouseCaptured ? "ZQSD/WASD bouger - Maj courir - Espace sauter - Ctrl accroupi"

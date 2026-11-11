@@ -28,6 +28,18 @@ net::InputBatch InputHistory::recentBatch(std::size_t count) const {
     return {lastTick() - static_cast<net::Tick>(taken - 1), {first, _commands.end()}};
 }
 
+bool InputHistory::covers(net::Tick tick) const {
+    return !_commands.empty() && tick + 1 >= _firstTick && tick <= lastTick();
+}
+
+std::vector<net::InputCommand> InputHistory::after(net::Tick tick) const {
+    if (!covers(tick)) {
+        return {};
+    }
+    const auto skipped = static_cast<std::ptrdiff_t>(tick + 1 - _firstTick);
+    return {_commands.begin() + skipped, _commands.end()};
+}
+
 net::Tick InputHistory::lastTick() const {
     if (_commands.empty()) {
         return 0;

@@ -72,3 +72,25 @@ TEST_CASE("InputHistory : un tick qui ne suit pas repart de zéro (pas de trou d
     CHECK(batch.firstTick == 50);
     CHECK(batch.commands.size() == 1);
 }
+
+TEST_CASE("InputHistory : les inputs après un tick, pour les rejouer") {
+    InputHistory history;
+    recordTicks(history, 1, 10);
+
+    const auto rest = history.after(7);
+    REQUIRE(rest.size() == 3);
+    CHECK(rest.front() == inputFor(8));
+    CHECK(rest.back() == inputFor(10));
+    CHECK(history.after(10).empty()); // tout est déjà traité : rien à rejouer
+    CHECK(history.after(0).size() == 10);
+}
+
+TEST_CASE("InputHistory : un tick hors de l'historique n'est pas rejouable") {
+    InputHistory history;
+    recordTicks(history, 1, InputHistory::kCapacity + 20); // les 20 premiers sont oubliés
+
+    CHECK_FALSE(history.covers(5));                         // trop vieux
+    CHECK(history.after(5).empty());
+    CHECK(history.covers(20));                              // juste avant le plus ancien gardé
+    CHECK_FALSE(history.covers(InputHistory::kCapacity + 25)); // dans le futur
+}
