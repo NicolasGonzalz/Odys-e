@@ -34,6 +34,9 @@ void AOdysseeHoleBrush::AttachToLandscape(ALandscape* Landscape)
 UTextureRenderTarget2D* AOdysseeHoleBrush::RenderLayer_Native(const FLandscapeBrushParameters& InParameters)
 {
 	UTextureRenderTarget2D* Combined = InParameters.CombinedResult;
+	UE_LOG(LogTemp, Verbose, TEXT("[OdysseeHoleBrush] couche %s (%s), zone %dx%d, %d trous"),
+		*UEnum::GetValueAsString(InParameters.LayerType), *InParameters.WeightmapLayerName.ToString(),
+		InParameters.RenderAreaSize.X, InParameters.RenderAreaSize.Y, Holes.Num());
 	if (InParameters.LayerType != ELandscapeToolTargetType::Visibility || Combined == nullptr)
 	{
 		return Combined; // seule la couche de visibilité nous concerne

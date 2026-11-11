@@ -207,7 +207,10 @@ def cave_hole(shapes, kind, hole_length_m):
     """Rectangle (local) à percer dans le Landscape : là où le tunnel sort du relief (la face de
     la falaise). Plus étroit que les parois et la voûte : le bord en escalier du trou reste caché."""
     tunnel, wall = shapes[kind]["tunnel"], shapes["wall_m"]
-    return (-hole_length_m, 1.0), tunnel[1] / 2 + wall / 2
+    # Large marge le long de l'axe : les triangles de la face de la falaise (1 m) doivent être
+    # entièrement dans le trou, sinon des pointes de terrain restent dans l'ouverture. Derrière la
+    # face, la voûte du tunnel prend le relais.
+    return (-max(hole_length_m, 5.0), 2.0), tunnel[1] / 2 + wall / 2
 
 
 # --- Pose dans le monde -----------------------------------------------------------------------
