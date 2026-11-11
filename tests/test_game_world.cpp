@@ -1,6 +1,7 @@
 #include "GameWorld.hpp"
 
 #include "odyssee/net/Quantize.hpp"
+#include "odyssee/sim/Movement.hpp"
 
 #include <doctest/doctest.h>
 
@@ -86,4 +87,38 @@ TEST_CASE("GameWorld : les inputs d'un joueur absent sont ignorés") {
     world.step();
     CHECK(world.playerCount() == 0);
     CHECK(world.snapshotFor(3, 1).lastProcessedInput == 0);
+}
+
+TEST_CASE("GameWorld : le serveur et la prédiction du client arrivent au même état") {
+    // Le serveur reçoit les inputs par lots redondants (comme sur le réseau) ; le client applique
+    // sim::step lui-même, un input par tick, à partir de l'état d'apparition reçu.
+    GameWorld world;
+    const std::vector<net::PlayerId> one{2};
+    world.syncPlayers(one);
+    sim::PlayerState predicted = *world.motionOf(2);
+    const sim::FlatTerrain ground(predicted.position[2]); // le sol provisoire du serveur
+
+    std::vector<net::InputCommand> sent;
+    for (net::Tick tick = 1; tick <= 120; ++tick) {
+        net::InputCommand command;
+        command.moveForward = net::quantizeAxis(tick % 40 < 30 ? 1.0f : 0.0f);
+        command.moveRight = net::quantizeAxis(tick % 25 < 5 ? -1.0f : 0.0f);
+        command.yaw = net::quantizeYaw(static_cast<float>(tick) * 3.0f);
+        command.buttons = static_cast<std::uint16_t>(
+            (tick % 50 == 0 ? static_cast<unsigned>(net::InputButton::Jump) : 0U) |
+            static_cast<unsigned>(net::InputButton::Sprint));
+        sent.push_back(command);
+
+        // Les 4 derniers inputs, comme le client les renvoie à chaque paquet.
+        const std::size_t first = sent.size() > 4 ? sent.size() - 4 : 0;
+        world.receiveInputs(2, net::InputBatch{static_cast<net::Tick>(first + 1),
+                                               {sent.begin() + static_cast<std::ptrdiff_t>(first),
+                                                sent.end()}});
+        world.step();
+        predicted = sim::step(predicted, command, ground);
+    }
+
+    REQUIRE(world.motionOf(2).has_value());
+    CHECK(*world.motionOf(2) == predicted);
+    CHECK(world.snapshotFor(2, 999).lastProcessedInput == 120);
 }

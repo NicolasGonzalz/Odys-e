@@ -20,6 +20,7 @@ add_library(odyssee_shared STATIC
     src/net/Session.cpp
     src/sim/FixedMath.cpp
     src/sim/Movement.cpp
+    src/sim/Replication.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

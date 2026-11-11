@@ -107,6 +107,13 @@ le client pour prédire (puis réconcilier) : **le résultat doit être identiqu
 - **Terrain abstrait** (`sim::Terrain`) : sol plat pour l'instant ; la heightmap (T041) devra répondre en
   entiers, identiquement des deux côtés.
 - Réglages provisoires dans `sim::MovementTuning` (vitesses de docs/GAMEPLAY.md), à ajuster en jouant.
+- **Preuve du déterminisme (T030, `tests/test_determinism.cpp`)** : une partie scriptée de 2000 ticks
+  (collines, falaises, course jusqu'à l'épuisement, sauts) produit une **empreinte de référence** figée.
+  La CI la vérifie sous Linux (GCC, sanitizers) et sous Windows (MSVC, le compilateur d'Unreal) : si
+  les deux passent, client et serveur calculent la même chose. Un changement voulu des règles ou des
+  réglages change l'empreinte : la mettre à jour dans le même commit. D'autres tests vérifient que
+  repartir d'un snapshot (`sim::restore`) puis rejouer retombe exactement sur l'état du serveur, et
+  que le serveur (inputs en lots redondants) et la prédiction du client arrivent au même état.
 
 ## Modèle de threads (cible)
 

@@ -1,6 +1,7 @@
 #include "GameWorld.hpp"
 
 #include "odyssee/net/Quantize.hpp"
+#include "odyssee/sim/Replication.hpp"
 
 #include <algorithm>
 
@@ -61,11 +62,12 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
     if (player < kMaxPlayers && _players[player]) {
         const PlayerState& own = *_players[player];
         snapshot.lastProcessedInput = own.lastProcessedInput;
-        snapshot.self = net::OwnMotion{own.motion.velocity, own.motion.stamina};
+        snapshot.self = sim::toOwnMotion(own.motion);
     }
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         if (_players[id]) {
-            snapshot.entities.push_back(entityOf(id, _players[id]->motion));
+            // Entités 0 à kMaxPlayers - 1 : les joueurs (numéro d'entité = numéro de joueur).
+            snapshot.entities.push_back(sim::toEntity(id, _players[id]->motion));
         }
     }
     return snapshot;
@@ -95,12 +97,6 @@ GameWorld::PlayerState GameWorld::spawn(net::PlayerId player) {
                        net::quantizePosition(kSpawnZ)};
     motion.yaw = net::quantizeYaw(kSpawnYawDegrees);
     return PlayerState{motion, 0, {}};
-}
-
-net::EntityState GameWorld::entityOf(net::PlayerId player, const sim::PlayerState& motion) {
-    // Entités 0 à kMaxPlayers - 1 : les joueurs (numéro d'entité = numéro de joueur).
-    return net::EntityState{player, net::EntityKind::Player, motion.position, motion.yaw,
-                            motion.flags};
 }
 
 } // namespace odyssee::server
