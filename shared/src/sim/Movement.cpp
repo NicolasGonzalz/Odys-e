@@ -26,6 +26,14 @@ std::int16_t toInt16(std::int32_t value) {
     return static_cast<std::int16_t>(std::clamp(value, low, high));
 }
 
+/// Position après un déplacement, ramenée dans les bornes du monde (calcul sur 64 bits : la
+/// somme elle-même ne peut pas déborder).
+std::int32_t advance(std::int32_t position, std::int32_t delta) {
+    const std::int64_t moved = std::int64_t{position} + delta;
+    return static_cast<std::int32_t>(
+        std::clamp(moved, -std::int64_t{kMaxCoordinate}, std::int64_t{kMaxCoordinate}));
+}
+
 /// Direction voulue, en Q15 (longueur 1 au plus) : avancer selon le cap, pas de côté à droite.
 /// Avant = (cos, sin) du cap ; droite = (-sin, cos) (x est, y sud : comme Unreal, X puis Y).
 /// En diagonale, la longueur est ramenée à 1 : on ne va pas plus vite en crabe.
@@ -93,11 +101,12 @@ void applyGravity(PlayerState& state, bool onGround, const MovementTuning& tunin
 /// distance parcourue, au-delà d'une petite marche) bloque le joueur.
 void moveHorizontally(PlayerState& state, const Terrain& terrain, bool grounded,
                       const MovementTuning& tuning) {
-    const std::int32_t x = state.position[0] + state.velocity[0];
-    const std::int32_t y = state.position[1] + state.velocity[1];
+    const std::int32_t x = advance(state.position[0], state.velocity[0]);
+    const std::int32_t y = advance(state.position[1], state.velocity[1]);
     if (grounded) {
-        const std::int32_t rise = terrain.groundHeight(x, y) - state.position[2];
-        const std::int32_t distance = length(state.velocity[0], state.velocity[1]);
+        // Sur 64 bits : la hauteur du sol vient de la carte, la différence ne doit pas déborder.
+        const std::int64_t rise = std::int64_t{terrain.groundHeight(x, y)} - state.position[2];
+        const std::int64_t distance = length(state.velocity[0], state.velocity[1]);
         if (rise > distance + tuning.stepHeight) {
             state.velocity[0] = 0;
             state.velocity[1] = 0;
@@ -112,11 +121,11 @@ void moveHorizontally(PlayerState& state, const Terrain& terrain, bool grounded,
 /// collé (pas de petits sauts à chaque tick sur une pente). Renvoie vrai s'il est au sol.
 bool moveVertically(PlayerState& state, const Terrain& terrain, bool stickToGround,
                     const MovementTuning& tuning) {
-    state.position[2] += state.velocity[2];
+    state.position[2] = advance(state.position[2], state.velocity[2]);
     const std::int32_t ground = terrain.groundHeight(state.position[0], state.position[1]);
     const bool landed = state.position[2] <= ground;
     const bool snapped = stickToGround && state.velocity[2] <= 0 &&
-                         state.position[2] - ground <= tuning.snapDown;
+                         std::int64_t{state.position[2]} - ground <= tuning.snapDown;
     if (landed || snapped) {
         state.position[2] = ground;
         state.velocity[2] = 0;

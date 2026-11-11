@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <limits>
 
 using namespace odyssee;
 using namespace odyssee::sim;
@@ -205,4 +206,29 @@ TEST_CASE("Mouvement : en descente, on reste collé au sol ; d'une falaise, on t
     state = run(state, input(1, 0, 0), 40, drop);
     CHECK(state.has(kGrounded));
     CHECK(state.position[2] == kGround - 5 * kMeter);
+}
+
+TEST_CASE("Mouvement : aux bornes du monde, la position ne déborde pas") {
+    const sim::FlatTerrain ground(0);
+    sim::PlayerState state;
+    state.position = {sim::kMaxCoordinate - 10, -sim::kMaxCoordinate + 10, 0};
+    state.velocity = {30000, -30000, 0}; // vitesse forgée, la plus grande représentable
+
+    net::InputCommand input;
+    for (int i = 0; i < 10; ++i) {
+        state = sim::step(state, input, ground);
+        CHECK(state.position[0] <= sim::kMaxCoordinate);
+        CHECK(state.position[1] >= -sim::kMaxCoordinate);
+    }
+
+    // Même à la limite d'un int32 (état forgé), un pas de plus reste défini et borné.
+    state.position = {std::numeric_limits<std::int32_t>::max(),
+                      std::numeric_limits<std::int32_t>::min(),
+                      std::numeric_limits<std::int32_t>::max()};
+    state.velocity = {32767, -32768, 32767};
+    state.flags = 0;
+    state = sim::step(state, input, ground);
+    CHECK(state.position[0] == sim::kMaxCoordinate);
+    CHECK(state.position[1] == -sim::kMaxCoordinate);
+    CHECK(state.position[2] <= sim::kMaxCoordinate);
 }
