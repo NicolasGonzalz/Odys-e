@@ -5,8 +5,8 @@ Prérequis : le relief importé (Landscape) ; idéalement relief_preview.py déj
 Pose :
   1. le centre de stase semi-enterré (salle des capsules, couloir, sortie) et l'apparition dedans ;
   2. les lieux, boss, artefacts et cocons en formes provisoires (comme build_map.py) ;
-  3. les grottes de world_layout.json (« caves ») : sous la montagne (Landscape percé à l'entrée)
-     ou buttes rocheuses creuses ; tunnel, salle, lumières et point de loot.
+  3. les grottes de world_layout.json (« caves »), cachées dans le relief : tunnel et salle sous le
+     terrain, lumières et point de loot ; Landscape percé à la main sur la face de la falaise.
 
 Après une modification du relief (generate_terrain.py), réimporter d'abord heightmap.png dans le
 Landscape (Mode Paysage > Gestion > Importer) : le sol des grottes suit la nouvelle heightmap.
@@ -39,7 +39,6 @@ if str(HERE) not in sys.path:
 
 BLOCKOUT_TAG = "blockout"
 SPAWN_PLACE = "centre_stase"
-GROUND_COLOR = (0.30, 0.35, 0.25)  # même gris-vert que relief_preview.py
 HOLE_GUIDE_TAG = "a_percer"  # repères des trous à peindre (à supprimer une fois percés)
 
 
@@ -80,10 +79,10 @@ def _spawn_light(util, light, origin, yaw, folder):
 
 
 def _stasis_center(util, assets, layout, terrain):
-    """Centre de stase : la sortie regarde vers le sud (vers la plaine de L'Abri)."""
+    """Centre de stase : la sortie regarde vers le nord, vers le monde (au sud, le bord de la carte)."""
     place = next(p for p in layout.places if p["id"] == SPAWN_PLACE)
     x, y = place["pos"]
-    origin, yaw = (x, y, terrain.height(x, y)), 90.0
+    origin, yaw = (x, y, terrain.height(x, y)), -90.0
     boxes, lights, player = m["blockout"].stasis_center()
     folder = "Odyssee/Blockout/Centre de stase"
     for box in boxes:
@@ -112,9 +111,9 @@ def _places_and_markers(util, assets, layout, terrain):
 
 
 def _hole_length(terrain, cave, floor, shapes):
-    """Longueur de la sortie du tunnel hors de la pente : jusqu'à ce que le relief passe
-    au-dessus du plafond du tunnel (on échantillonne l'axe et les deux bords)."""
-    tunnel = shapes["montagne"]["tunnel"]
+    """Longueur de la sortie du tunnel hors du relief : jusqu'à ce que le relief passe au-dessus
+    du plafond du tunnel (on échantillonne l'axe et les deux bords)."""
+    tunnel = shapes[cave["type"]]["tunnel"]
     ceiling = floor + tunnel[2] + 0.5
     for step in range(int(tunnel[0]) + 1):
         points = [m["blockout"].place((-step, b, 0), (*cave["pos"], 0), cave["yaw_deg"])
@@ -122,16 +121,6 @@ def _hole_length(terrain, cave, floor, shapes):
         if min(terrain.height(px, py) for px, py, _ in points) > ceiling:
             return step + 1.0
     return float(tunnel[0])
-
-
-def _butte_floor(terrain, cave, shapes):
-    """Sol de la butte : au-dessus du point le plus haut du terrain sous son emprise."""
-    tunnel, chamber = shapes["butte"]["tunnel"], shapes["butte"]["chamber"]
-    samples = [m["blockout"].place((-a, b, 0), (*cave["pos"], 0), cave["yaw_deg"])
-               for a in range(0, int(tunnel[0] + chamber[0]) + 3, 2)
-               for b in range(-int(chamber[1] / 2) - 3, int(chamber[1] / 2) + 4, 2)]
-    heights = [terrain.height(px, py) for px, py, _ in samples]
-    return max(heights) + 0.3, max(heights) + 0.3 - min(heights)
 
 
 def _spawn_hole_guide(util, assets, terrain, cave, along, half_width, label):
@@ -155,23 +144,19 @@ def _spawn_hole_guide(util, assets, terrain, cave, along, half_width, label):
 
 
 def _caves(util, assets, layout, terrain, cave_floors):
-    """Pose les grottes ; renvoie le nombre de trous à percer (grottes de montagne)."""
+    """Pose les grottes (toutes cachées dans le relief) ; renvoie le nombre de trous à percer."""
     blockout, shapes = m["blockout"], layout.data["cave_shapes"]
     holes = 0
     for index, cave in enumerate(layout.data.get("caves", []), start=1):
         x, y = cave["pos"]
+        label = f"Grotte {index:02d}"
         folder = f"Odyssee/Blockout/Grottes/{cave['id']}"
-        if cave["type"] == "montagne":
-            floor = cave_floors[cave["id"]]
-            boxes, lights = blockout.mountain_cave(f"Grotte {index:02d}", shapes)
-            along, half_width = blockout.mountain_cave_hole(
-                shapes, _hole_length(terrain, cave, floor, shapes))
-            holes += 1
-            _spawn_hole_guide(util, assets, terrain, cave, along, half_width,
-                              f"Grotte {index:02d}")
-        else:
-            floor, drop = _butte_floor(terrain, cave, shapes)
-            boxes, lights = blockout.butte_cave(f"Butte {index:02d}", shapes, drop)
+        floor = cave_floors[cave["id"]]
+        boxes, lights = blockout.cave(label, shapes, cave["type"])
+        along, half_width = blockout.cave_hole(shapes, cave["type"],
+                                               _hole_length(terrain, cave, floor, shapes))
+        _spawn_hole_guide(util, assets, terrain, cave, along, half_width, label)
+        holes += 1
         for box in boxes:
             _spawn_box(util, assets, box, (x, y, floor), cave["yaw_deg"], folder)
         for light in lights:
@@ -183,7 +168,7 @@ def main():
     global m
     m = {name: _load(name) for name in
          ("layout", "terrain", "catalog", "placement", "city", "scatter", "plan", "blockout",
-          "unreal_util", "unreal_assets", "unreal_spawn")}
+          "unreal_util", "unreal_assets", "unreal_spawn", "unreal_ground")}
     util = m["unreal_util"]
     layout = m["layout"].Layout.load(WORLDGEN / "world_layout.json")
     terrain = m["terrain"].Terrain(WORLDGEN / "output")
@@ -206,7 +191,7 @@ def main():
 
 def _use_landscape_material_with_holes(util, assets):
     """Les trous ne s'affichent qu'avec un matériau qui lit la couche de visibilité."""
-    material = assets.landscape_material(GROUND_COLOR)
+    material = m["unreal_ground"].ground_material(WORLDGEN)
     for landscape in util.actors().get_all_level_actors():
         if isinstance(landscape, unreal.LandscapeProxy):
             util.safe_set(landscape, "landscape_material", material)
