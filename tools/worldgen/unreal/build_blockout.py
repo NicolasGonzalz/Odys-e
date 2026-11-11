@@ -123,30 +123,29 @@ def _hole_length(terrain, cave, floor, shapes):
     return float(tunnel[0])
 
 
-def _spawn_hole_guide(util, assets, terrain, cave, along, half_width, label):
-    """Repère rouge, couché sur la pente, sur la zone du Landscape à percer à la main
-    (outil Visibilité) : l'import automatique est refusé quand le Landscape a des couches d'édition."""
-    inner = m["blockout"].place((along[0], 0, 0), (*cave["pos"], 0), cave["yaw_deg"])
-    outer = m["blockout"].place((along[1], 0, 0), (*cave["pos"], 0), cave["yaw_deg"])
-    h_in, h_out = terrain.height(inner[0], inner[1]), terrain.height(outer[0], outer[1])
-    length = along[1] - along[0]
-    pitch = math.degrees(math.atan2(h_out - h_in, length))
-    center = ((inner[0] + outer[0]) / 2, (inner[1] + outer[1]) / 2, (h_in + h_out) / 2 + 0.4)
-    actor = util.spawn(unreal.StaticMeshActor, util.to_cm(*center), f"{label} — zone à percer",
-                       "Odyssee/Blockout/A percer", [BLOCKOUT_TAG, HOLE_GUIDE_TAG],
-                       unreal.Rotator(0.0, pitch, cave["yaw_deg"]))
-    actor.set_actor_scale3d(unreal.Vector(length, 2 * half_width, 0.15))
-    component = actor.static_mesh_component
-    component.set_static_mesh(assets.shape_mesh("cube"))
-    component.set_material(0, assets.color_material((1.0, 0.1, 0.1), 1.0))
-    util.disable_collision(component)
-    util.safe_set(actor, "is_spatially_loaded", False)
+def _hole(cave, along, half_width):
+    """Trou du Landscape (unreal.OdysseeHole) : rectangle local `along` × ±half_width, en cm."""
+    middle = m["blockout"].place(((along[0] + along[1]) / 2, 0, 0), (*cave["pos"], 0),
+                                 cave["yaw_deg"])
+    return unreal.OdysseeHole(center=unreal.Vector2D(middle[0] * 100, middle[1] * 100),
+                              size=unreal.Vector2D((along[1] - along[0]) * 100, half_width * 200),
+                              yaw_degrees=cave["yaw_deg"])
+
+
+def _apply_hole_brush(util, holes):
+    """Un pinceau OdysseeHoleBrush (C++) perce toutes les entrées dans la couche de visibilité."""
+    landscape = next(a for a in util.actors().get_all_level_actors()
+                     if isinstance(a, unreal.Landscape))
+    brush = util.spawn(unreal.OdysseeHoleBrush, unreal.Vector(0, 0, 0), "Trous des grottes",
+                       "Odyssee/Blockout/Grottes", [BLOCKOUT_TAG])
+    brush.attach_to_landscape(landscape)
+    brush.set_holes(holes)
 
 
 def _caves(util, assets, layout, terrain, cave_floors):
-    """Pose les grottes (toutes cachées dans le relief) ; renvoie le nombre de trous à percer."""
+    """Pose les grottes (toutes cachées dans le relief) ; renvoie les trous à percer."""
     blockout, shapes = m["blockout"], layout.data["cave_shapes"]
-    holes = 0
+    holes = []
     for index, cave in enumerate(layout.data.get("caves", []), start=1):
         x, y = cave["pos"]
         label = f"Grotte {index:02d}"
@@ -155,8 +154,7 @@ def _caves(util, assets, layout, terrain, cave_floors):
         boxes, lights = blockout.cave(label, shapes, cave["type"])
         along, half_width = blockout.cave_hole(shapes, cave["type"],
                                                _hole_length(terrain, cave, floor, shapes))
-        _spawn_hole_guide(util, assets, terrain, cave, along, half_width, label)
-        holes += 1
+        holes.append(_hole(cave, along, half_width))
         for box in boxes:
             _spawn_box(util, assets, box, (x, y, floor), cave["yaw_deg"], folder)
         for light in lights:
@@ -179,14 +177,14 @@ def main():
     _stasis_center(util, assets, layout, terrain)
     places = _places_and_markers(util, assets, layout, terrain)
     holes = _caves(util, assets, layout, terrain, meta["cave_floors_m"])
+    _apply_hole_brush(util, holes)
 
     _use_landscape_material_with_holes(util, assets)
 
     assets.save()
     unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).save_current_level()
     unreal.log(f"[Odyssée] blockout posé : centre de stase, {places} lieux et marqueurs, "
-               f"{len(layout.data.get('caves', []))} grottes ; {holes} entrées à percer à la main "
-               f"(repères rouges, Mode Paysage > Sculpter > Visibilité)")
+               f"{len(holes)} grottes percées (pinceau OdysseeHoleBrush)")
 
 
 def _use_landscape_material_with_holes(util, assets):

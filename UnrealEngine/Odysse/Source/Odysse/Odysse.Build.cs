@@ -18,7 +18,8 @@ public class Odysse : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"Landscape" // pinceau qui perce les entrées de grotte (World/OdysseeHoleBrush.h)
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
