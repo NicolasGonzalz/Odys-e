@@ -425,6 +425,37 @@ def raise_cave_cliffs(layout, height, floors):
     return height
 
 
+def raise_stasis_hill(layout, height):
+    """Butte au-dessus du centre de stase (salle et couloir, voir unreal/odyssee_world/blockout.py) :
+    le bunker est enterré, seule sa sortie se voit, au fond d'une entaille qui s'évase vers le monde.
+    Renvoie aussi le sol du lieu (mesuré avant la butte : c'est celui du bunker)."""
+    place = next(p for p in layout["places"] if p.get("spawn"))
+    hill = layout["relief"]["stasis_hill"]
+    window, a, b = _cave_frame(height, place, 80)
+    sub = height[window]
+    floor = float(sub[(np.abs(a) <= 2) & (np.abs(b) <= 2)].mean())
+
+    # Distance à l'emprise du bunker, puis flancs en pente douce (smoothstep) sur slope_m.
+    a0, a1, half = hill["footprint_m"]
+    distance = np.hypot(np.maximum.reduce([a0 - a, a - a1, np.zeros_like(a)]),
+                        np.maximum(np.abs(b) - half, 0.0))
+    t = np.clip(1.0 - (distance - 1.0) / hill["slope_m"], 0.0, 1.0)
+    profile = t * t * (3.0 - 2.0 * t)
+    bumps = 0.9 * np.sin(a * 0.31 + 1.3) * np.cos(b * 0.27 + 0.4)  # dessus irrégulier, pas plat
+    mound = np.float32(floor) + (hill["top_m"] + bumps * (1.0 - profile)) * profile
+
+    # Devant la sortie, la butte redescend vite (les murs en aile la retiennent jusqu'au sol)...
+    mouth = hill["mouth_m"]
+    mound = np.float32(floor) + (mound - np.float32(floor)) * np.clip(
+        1.0 - (a - mouth) / hill["front_m"], 0.0, 1.0)
+    # ...et l'entaille y est creusée : face verticale en a = mouth_m, fond au niveau du sol.
+    width = hill["notch_m"] + (a - mouth) * hill["notch_flare"]
+    notch = np.clip((width + 0.6 - np.abs(b)) / 0.6, 0.0, 1.0) * (a > mouth)  # bord derrière le mur
+    raised = np.maximum(sub, mound)
+    height[window] = lerp(raised, np.float32(floor), notch)
+    return height, round(floor, 3)
+
+
 def _flank_with_rocks(height, cave, half, rng, rock):
     """Deux rochers de part et d'autre de l'entrée, un peu en avant : de loin, ils la cachent."""
     yaw = np.radians(cave["yaw_deg"])
@@ -582,14 +613,15 @@ def facet(layout, height, step, jitter_m):
                        h00 + fy * (h01 - h00) + fx * (h11 - h01))
 
     keep = np.zeros(height.shape, dtype=np.float32)
-    for cave in layout.get("caves", []):
+    spawn = [p for p in layout["places"] if p.get("spawn")]  # la face nette de l'entaille
+    for cave in layout.get("caves", []) + spawn:
         x, y = cave["pos"]
         keep = np.maximum(keep, np.clip(1.0 - (np.hypot(cols - x, rows - y) - 30) / 15, 0, 1))
     return lerp(faceted.astype(np.float32), height, keep)
 
 
 def build_height(layout):
-    """Relief complet (m) et hauteur du sol de chaque grotte de montagne ({id: m})."""
+    """Relief complet (m), sol de chaque grotte ({id: m}) et sol du centre de stase (m)."""
     shape = grid_shape(layout)
     rng = np.random.default_rng(SEED)
     noise = fractal_noise(shape, rng, base_cell_m=400, octaves=6)
@@ -606,12 +638,13 @@ def build_height(layout):
     height = smooth_paths(layout, shape, height)
     height = flatten_places(layout, shape, height)
     height = raise_world_border(shape, height)
+    height, stasis_floor = raise_stasis_hill(layout, height)
     height = raise_butte_caves(layout, height)
     height, cave_floors = carve_caves(layout, height)
     height = raise_cave_cliffs(layout, height, cave_floors)
     relief = layout["relief"]
     height = facet(layout, height, relief["facet_m"], relief["facet_jitter_m"])
-    return np.clip(height, -100.0, 500.0), cave_floors
+    return np.clip(height, -100.0, 500.0), cave_floors, stasis_floor
 
 
 # --- Écriture des fichiers --------------------------------------------------------------------
@@ -625,7 +658,7 @@ def write_heightmap(height):
     Image.fromarray(encode(height)).save(OUTPUT / "heightmap.png")
 
 
-def write_coarse_heights(height, cave_floors, step_m=4):
+def write_coarse_heights(height, cave_floors, stasis_floor, step_m=4):
     coarse = encode(height[::step_m, ::step_m])
     coarse.astype("<u2").tofile(OUTPUT / "heights_4m.bin")
     meta = {
@@ -637,6 +670,8 @@ def write_coarse_heights(height, cave_floors, step_m=4):
         "seed": SEED,
         # Sol des grottes creusées : trop étroites pour la grille à 4 m, on le donne exactement.
         "cave_floors_m": cave_floors,
+        # Sol du centre de stase : sous la butte qui le recouvre (le relief y est plus haut).
+        "stasis_floor_m": stasis_floor,
     }
     (OUTPUT / "terrain_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     return coarse
@@ -645,9 +680,9 @@ def write_coarse_heights(height, cave_floors, step_m=4):
 def main():
     OUTPUT.mkdir(exist_ok=True)
     layout = load_layout()
-    height, cave_floors = build_height(layout)
+    height, cave_floors, stasis_floor = build_height(layout)
     write_heightmap(height)
-    write_coarse_heights(height, cave_floors)
+    write_coarse_heights(height, cave_floors, stasis_floor)
 
     from preview import write_preview  # aperçu dans son propre fichier (une notion par fichier)
     write_preview(layout, height, OUTPUT / "preview.png")

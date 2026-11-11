@@ -76,7 +76,8 @@ def _fine_line(shape, points, width_m):
 
 def _path_layers(layout, shape, colors):
     for place in layout["places"]:
-        colors = _paint(colors, disk_mask(shape, place["pos"], place["radius_m"], 8), PLACE_GROUND)
+        ground = place.get("ground", place)  # sol nu du lieu (centre de stase : l'esplanade seule)
+        colors = _paint(colors, disk_mask(shape, ground["pos"], ground["radius_m"], 8), PLACE_GROUND)
     for path in layout["paths"]:
         mask = _fine_line(shape, path["points"], path["width_m"])
         colors = _paint(colors, mask, PATH_COLORS.get(path["kind"], PATH_COLORS["chemin"]))
