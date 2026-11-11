@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <deque>
+#include <vector>
 
 namespace odyssee::client {
 
@@ -31,6 +32,12 @@ class InputHistory {
 
     /// Tick du plus récent input (0 si aucun).
     [[nodiscard]] net::Tick lastTick() const;
+
+    /// Vrai si l'historique contient tous les inputs joués après `tick` (rejouables).
+    [[nodiscard]] bool covers(net::Tick tick) const;
+
+    /// Les inputs joués après `tick`, dans l'ordre (vide si covers(tick) est faux).
+    [[nodiscard]] std::vector<net::InputCommand> after(net::Tick tick) const;
 
   private:
     net::Tick _firstTick = 0; ///< tick du plus ancien input gardé

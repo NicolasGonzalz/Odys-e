@@ -36,7 +36,7 @@
 | M0 — Conception & fondations | 8 / 11 | 22 / 31 h | — |
 | M0.5 — Spike Unreal | 2 / 8 | 8 / 27 h | — |
 | M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
-| M2 — Mouvement fluide | 2 / 9 | 8 / 39 h | — |
+| M2 — Mouvement fluide | 4 / 9 | 17 / 39 h | — |
 | M3 — Zone de départ | 2 / 8 | 8 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 3 / 16 | 11 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
@@ -131,14 +131,14 @@
 |---|---|---|---|---|---|
 | ☑ | T029 | Nicolas | Simulation de mouvement partagée | 5 | shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur. |
 | ☑ | T030 | Nicolas | Tests de déterminisme | 3 | Même suite d'inputs = même état, client et serveur. |
-| ☐ | T031 | Nicolas | Prédiction côté client | 4 | Le joueur local bouge sans attendre le serveur. |
+| ☑ | T031 | Nicolas | Prédiction côté client | 4 | Le joueur local bouge sans attendre le serveur. |
 | ☐ | T063 | Coéquipier | Survivant 4 (Nadia) : modèle et rig | 5 | Corps + bras FPS riggés. |
 
 ### Semaine 11 — du 25 janv. 2027 · M2 · Nicolas 12 h · Coéquipier 6 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T032 | Nicolas | Réconciliation | 5 | Correction + rejeu des inputs, lissage des petites erreurs. |
+| ☑ | T032 | Nicolas | Réconciliation | 5 | Correction + rejeu des inputs, lissage des petites erreurs. |
 | ☐ | T033 | Nicolas | Interpolation des entités distantes | 5 | Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte. |
 | ☐ | T034 | Nicolas | HUD de debug réseau | 2 | RTT, perte, ko/s, corrections affichés à l'écran. |
 | ☐ | T064 | Coéquipier | Kit de végétation low-poly | 6 | Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal. |

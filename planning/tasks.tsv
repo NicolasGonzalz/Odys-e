@@ -34,9 +34,9 @@ T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Contene
 T062	9	M1	ami	design,figma	5	Maquettes d'UI (Figma)	HUD, inventaire, artisanat, journal d'indices, menu principal.	a_faire
 T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.	fait
 T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.	fait
-T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.	a_faire
+T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.	fait
 T063	10	M2	ami	art,blender	5	Survivant 4 (Nadia) : modèle et rig	Corps + bras FPS riggés.	a_faire
-T032	11	M2	nicolas	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.	a_faire
+T032	11	M2	nicolas	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.	fait
 T033	11	M2	nicolas	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.	a_faire
 T034	11	M2	nicolas	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.	a_faire
 T064	11	M2	ami	art,blender	6	Kit de végétation low-poly	Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal.	a_faire

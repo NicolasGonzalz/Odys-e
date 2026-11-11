@@ -77,9 +77,9 @@ void DebugClient::tick(Clock::time_point now) {
     keepLatestSnapshot();
     startPredictionWhenPossible();
 
-    const std::optional<sim::PlayerState> before = _prediction.state();
+    const auto before = _prediction.displayPosition();
     if (_prediction.advance(_input.sample())) {
-        _previous = before;
+        _previousDisplay = before;
         _link.sendInputs(_prediction.history().recentBatch(), now);
     }
 }
@@ -88,7 +88,14 @@ void DebugClient::keepLatestSnapshot() {
     for (auto& snapshot : _link.takeSnapshots()) {
         if (!_latest || snapshot.serverTick > _latest->serverTick) {
             _latest = std::move(snapshot); // un snapshot arrivé en retard est plus vieux : ignoré
+            reconcileWithLatest();
         }
+    }
+}
+
+void DebugClient::reconcileWithLatest() {
+    if (const auto self = _link.playerId()) {
+        _prediction.reconcile(*_latest, *self); // T032 : recalage sur la vérité du serveur
     }
 }
 
@@ -116,8 +123,8 @@ void DebugClient::draw(float betweenTicks) const {
 }
 
 void DebugClient::drawWorld(float betweenTicks) const {
-    const Vector3 now = toWorld(_prediction.state()->position);
-    const Vector3 feet = _previous ? lerp(toWorld(_previous->position), now, betweenTicks) : now;
+    const Vector3 now = toWorld(_prediction.displayPosition());
+    const Vector3 feet = _previousDisplay ? lerp(toWorld(*_previousDisplay), now, betweenTicks) : now;
 
     BeginMode3D(cameraFor(feet, _input.yawDegrees(), _input.pitchDegrees(), _thirdPerson));
     drawGround(feet, toWorld({0, 0, _ground.groundHeight(0, 0)}).y);
@@ -154,6 +161,8 @@ HudInfo DebugClient::hudInfo() const {
         info.exhausted = state->has(sim::kExhausted);
     }
     info.playersInView = _latest ? static_cast<int>(_latest->entities.size()) - 1 : 0;
+    info.corrections = static_cast<int>(_prediction.corrections());
+    info.lastCorrectionCm = net::dequantizePosition(_prediction.lastCorrection()) * 100.0f;
     info.mouseCaptured = IsCursorHidden();
     return info;
 }
@@ -161,8 +170,9 @@ HudInfo DebugClient::hudInfo() const {
 void DebugClient::leave() {
     if (const auto& state = _prediction.state()) {
         const Vector3 at = toWorld(state->position);
-        kLog.info("départ : {} inputs joués, dernière position ({:.1f}, {:.1f}, {:.1f}) m",
-                  _prediction.history().lastTick(), at.x, at.z, at.y);
+        kLog.info("départ : {} inputs joués, {} corrections, dernière position ({:.1f}, {:.1f}, "
+                  "{:.1f}) m",
+                  _prediction.history().lastTick(), _prediction.corrections(), at.x, at.z, at.y);
     }
     _link.disconnect();
     _link.poll(Clock::now()); // prévient le serveur : la place se libère tout de suite

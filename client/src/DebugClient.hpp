@@ -8,12 +8,15 @@
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Terrain.hpp"
 
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <optional>
 
 namespace odyssee::debugclient {
 
-/// Le client de debug : il se connecte au serveur, prédit le joueur local (T031) et affiche
+/// Le client de debug : il se connecte au serveur, prédit le joueur local (T031) en se recalant
+/// sur chaque snapshot (T032), et affiche
 /// les autres joueurs tels que les décrit le dernier snapshot (l'interpolation viendra en T033).
 ///
 /// La logique tourne à 20 ticks par seconde comme le serveur ; l'affichage, à chaque image,
@@ -35,6 +38,7 @@ class DebugClient {
     void handleWindowKeys();
     void tick(Clock::time_point now);
     void keepLatestSnapshot();
+    void reconcileWithLatest();
     void startPredictionWhenPossible();
     void draw(float betweenTicks) const;
     void drawWorld(float betweenTicks) const;
@@ -46,7 +50,8 @@ class DebugClient {
     client::Prediction _prediction; ///< après _ground : elle s'y réfère
     InputSampler _input;
     std::optional<net::Snapshot> _latest;
-    std::optional<sim::PlayerState> _previous; ///< état prédit au tick d'avant (rendu fluide)
+    /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
+    std::optional<std::array<std::int32_t, 3>> _previousDisplay;
     bool _thirdPerson = false;
 };
 
