@@ -150,3 +150,49 @@ TEST_CASE("Session : la file des messages reçus est bornée") {
     REQUIRE(messages.size() == Session::kMaxQueuedMessages);
     CHECK(std::get<InputBatch>(messages.back()).firstTick == Session::kMaxQueuedMessages + 9);
 }
+
+TEST_CASE("Session : un saut de numéro de paquet invraisemblable est ignoré") {
+    Session client;
+    Session server;
+    const Clock::time_point t0{};
+    REQUIRE(deliver(server, client.buildPacket(t0), t0));
+
+    // Paquet valide par ailleurs, mais numéroté un demi-tour plus loin.
+    const auto forged = game_packet::build(PacketHeader{odyssee::kProtocolVersion, 0x7000, 0, 0},
+                                           GamePacketBody{});
+    CHECK_FALSE(deliver(server, forged, t0));
+    CHECK(server.stats().packetsIgnored == 1);
+
+    CHECK(deliver(server, client.buildPacket(t0), t0)); // le vrai paquet suivant passe toujours
+}
+
+TEST_CASE("Session : un paquet sans le jeton de session est ignoré avant d'être analysé") {
+    Session client(0xC0FFEE);
+    Session server(0xC0FFEE);
+    Session intruder(0xBAD);
+    const Clock::time_point t0{};
+
+    intruder.queueUnreliable(InputBatch{1, {InputCommand{}}});
+    CHECK_FALSE(deliver(server, intruder.buildPacket(t0), t0));
+    CHECK(server.takeMessages().empty());
+
+    // Le numéro du paquet forgé n'a pas été enregistré : le vrai paquet 0 n'est pas un doublon.
+    client.queueUnreliable(InputBatch{1, {InputCommand{}}});
+    CHECK(deliver(server, client.buildPacket(t0), t0));
+    CHECK(server.takeMessages().size() == 1);
+}
+
+TEST_CASE("Session : les messages d'un type non attendu sont ignorés sans être décodés") {
+    Session client;
+    Session server;
+    server.acceptOnly(GameMessageType::Inputs);
+
+    client.queueUnreliable(Snapshot{}); // un client n'a pas à envoyer de snapshot
+    client.queueUnreliable(InputBatch{1, {InputCommand{}}});
+    const Clock::time_point t0{};
+    REQUIRE(deliver(server, client.buildPacket(t0), t0));
+
+    const auto messages = server.takeMessages();
+    REQUIRE(messages.size() == 1);
+    CHECK(std::holds_alternative<InputBatch>(messages.front()));
+}

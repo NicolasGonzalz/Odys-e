@@ -86,9 +86,9 @@ std::optional<InputCommand> readCommand(ByteReader& r) {
 std::optional<GameMessage> readInputs(ByteReader& r) {
     const auto firstTick = r.readU32();
     const auto count = r.readU8();
-    if (!firstTick || !count || *count == 0 || *count > kMaxInputsPerBatch ||
+    if (!firstTick || *firstTick == 0 || !count || *count == 0 || *count > kMaxInputsPerBatch ||
         *firstTick > std::numeric_limits<Tick>::max() - static_cast<Tick>(*count - 1)) {
-        return std::nullopt; // vide, trop long, ou ticks qui dépasseraient 2^32
+        return std::nullopt; // tick 0, vide, trop long, ou ticks qui dépasseraient 2^32
     }
     InputBatch batch{*firstTick, {}};
     for (std::uint8_t i = 0; i < *count; ++i) {

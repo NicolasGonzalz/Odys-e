@@ -48,6 +48,7 @@ struct InputCommand {
 
 /// Inputs de ticks consécutifs, du plus ancien au plus récent : celui du tick courant et ceux qui
 /// précèdent (au plus kMaxInputsPerBatch). Message non fiable : la redondance remplace le renvoi.
+/// Les ticks d'input commencent à 1 : 0 veut dire « aucun » (Snapshot::lastProcessedInput).
 struct InputBatch {
     Tick firstTick = 0;
     std::vector<InputCommand> commands;

@@ -60,3 +60,30 @@ TEST_CASE("InputQueue : le retard est borné, les plus anciens sont sautés") {
     REQUIRE(queue.size() == InputQueue::kMaxBacklog);
     CHECK(queue.pop()->tick == 116 - InputQueue::kMaxBacklog);
 }
+
+TEST_CASE("InputQueue : un saut de tick invraisemblable est refusé") {
+    InputQueue queue;
+    queue.push(batch(10, 1));
+    queue.push(batch(0xFFFFFF00u, 1)); // ferait passer tous les vrais inputs pour déjà reçus
+    queue.push(batch(11 + InputQueue::kMaxTickJump, 1));
+    queue.push(batch(11, 2)); // les vrais inputs passent toujours
+
+    CHECK(queue.pop()->tick == 10);
+    CHECK(queue.pop()->tick == 11);
+    CHECK(queue.pop()->tick == 12);
+    CHECK_FALSE(queue.pop().has_value());
+
+    queue.push(batch(12 + InputQueue::kMaxTickJump, 1)); // à la limite : accepté
+    CHECK(queue.pop()->tick == 12 + InputQueue::kMaxTickJump);
+}
+
+TEST_CASE("InputQueue : le tick 0 est refusé, le premier tick est libre") {
+    InputQueue queue;
+    queue.push(batch(0, 2)); // 0 refusé, 1 accepté
+    CHECK(queue.pop()->tick == 1);
+    CHECK_FALSE(queue.pop().has_value());
+
+    InputQueue late; // un client peut commencer n'importe où
+    late.push(batch(4'000'000'000u, 1));
+    CHECK(late.pop()->tick == 4'000'000'000u);
+}

@@ -11,6 +11,7 @@ enum class Arrival : std::uint8_t {
     New,       ///< jamais vu : à traiter
     Duplicate, ///< déjà reçu : à ignorer
     TooOld,    ///< plus de 32 paquets de retard : impossible de savoir, à ignorer
+    TooFarAhead, ///< saut de numéro invraisemblable : paquet forgé ou corrompu, à ignorer
 };
 
 /// Mémorise les numéros des paquets reçus de l'autre côté, pour :
@@ -18,7 +19,14 @@ enum class Arrival : std::uint8_t {
 /// - remplir les champs `ack` / `ackBits` de nos prochains en-têtes.
 class ReceivedPackets {
   public:
-    /// Enregistre l'arrivée du paquet `sequence` et dit s'il est nouveau.
+    /// Saut maximal accepté entre le paquet le plus récent et un nouveau. Bien plus que ce qu'une
+    /// connexion vivante peut perdre d'affilée (10 s de silence la ferment), mais assez peu pour
+    /// qu'un seul paquet ne puisse pas décaler la fenêtre d'un demi-tour et faire passer tous
+    /// les vrais paquets suivants pour « trop vieux ».
+    static constexpr std::uint16_t kMaxJump = 1024;
+
+    /// Enregistre l'arrivée du paquet `sequence` et dit s'il est nouveau. Rien n'est enregistré
+    /// pour un paquet refusé.
     Arrival record(Sequence sequence);
 
     /// Dernier paquet reçu (le plus récent).
