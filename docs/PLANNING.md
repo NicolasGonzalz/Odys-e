@@ -33,12 +33,12 @@
 
 | Jalon | Tâches faites | Heures faites | En cours |
 |---|---|---|---|
-| M0 — Conception & fondations | 7 / 11 | 20 / 31 h | T003 |
+| M0 — Conception & fondations | 8 / 11 | 22 / 31 h | — |
 | M0.5 — Spike Unreal | 2 / 8 | 8 / 27 h | — |
 | M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
 | M2 — Mouvement fluide | 2 / 9 | 8 / 39 h | — |
 | M3 — Zone de départ | 2 / 8 | 8 / 42 h | T039 |
-| M4 — Récolter, fabriquer, enquêter | 2 / 16 | 6 / 88 h | — |
+| M4 — Récolter, fabriquer, enquêter | 3 / 16 | 11 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
@@ -51,7 +51,7 @@
 |---|---|---|---|---|---|
 | ☑ | T001 | Les deux | Mystère : trame et chronologie de la catastrophe | 4 | docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue. |
 | ☑ | T002 | Les deux | Fiches des survivants prédéfinis | 3 | 2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ». |
-| ◐ | T003 | Les deux | Règles de progression en coop | 2 | docs/VISION.md précise si artefacts, zones et journal sont partagés en coop. |
+| ☑ | T003 | Les deux | Règles de progression en coop | 2 | docs/VISION.md précise si artefacts, zones et journal sont partagés en coop. |
 | ☑ | T004 | Nicolas | Logger commun | 2 | Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé. |
 | ☑ | T005 | Nicolas | Vérifier la CI et le badge | 1 | CI verte sur main, badge dans le README. |
 
@@ -179,7 +179,7 @@
 |---|---|---|---|---|---|
 | ☐ | T043 | Nicolas | ECS serveur | 6 | Entités et composants, système de mise à jour par tick. |
 | ☐ | T044 | Nicolas | Ressources récoltables avec repousse | 6 | Arbres et rochers récoltables, repousse côté serveur. |
-| ☐ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
+| ☑ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
 | ☑ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |
 | ☑ | T070 | Coéquipier | Objet carte (Blender) | 2 | Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire. |
 
