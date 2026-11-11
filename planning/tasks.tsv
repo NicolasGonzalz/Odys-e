@@ -1,78 +1,78 @@
-id	semaine	jalon	qui	labels	heures	titre	fini_quand
-T001	1	M0	both	doc,lore	4	Mystère : trame et chronologie de la catastrophe	docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue.
-T002	1	M0	both	doc,lore	3	Fiches des survivants prédéfinis	2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ».
-T003	1	M0	both	doc,gameplay	2	Règles de progression en coop	docs/VISION.md précise si artefacts, zones et journal sont partagés en coop.
-T004	1	M0	nicolas	tech,shared	2	Logger commun	Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé.
-T005	1	M0	nicolas	infra	1	Vérifier la CI et le badge	CI verte sur main, badge dans le README.
-T006	2	M0	ami	design,figma	4	Plan des zones (Figma)	Carte macro des 5 zones (docs/ZONES.md) : départ, zones dangereuses, emplacements des boss et artefacts.
-T007	2	M0	ami	design,figma	3	Guide de style visuel (Figma)	Moodboard « retour à l'état sauvage », palette par zone, références de silhouettes low-poly.
-T008	2	M0	both	doc,gameplay	2	Construction, jour/nuit et météo	Choix documentés : type de construction, durée d'une journée, impact de la nuit.
-T009	2	M0	both	doc,lore	3	Fiche détaillée de chaque zone	Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact.
-T010	3	M0.5	ami	client,unreal,infra	3	Projet Unreal, version figée et Git LFS	Projet dans UnrealEngine/Odysse/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux.
-T011	3	M0.5	nicolas	client,unreal,shared	5	Plugin OdysseeNet embarquant odyssee_shared	Le plugin compile sous Windows ; un Blueprint appelle une fonction C++ qui utilise ByteWriter/ByteReader de shared.
-T012	3	M0.5	ami	client,unreal	3	Pion 1re personne et terrain de test	Déplacement, saut, souris, sur un terrain de test.
-T013	3	M0.5	ami	art,blender	2	Blockout du premier survivant	Silhouette low-poly validée par rapport au concept Figma.
-T014	4	M0.5	ami	art,blender	5	Modèle, rig et bras FPS du survivant 1	Corps entier + bras FPS riggés, animations idle et marche.
-T015	4	M0.5	ami	client,unreal	3	Import du survivant animé dans Unreal	Le survivant animé s'affiche ; bras FPS visibles en vue subjective.
-T016	4	M0.5	nicolas	client,unreal,sim	4	Composant de mouvement maison	Le pion est déplacé par une fonction de mouvement de shared/ (et non par le CharacterMovementComponent).
-T017	5	M0.5	both	doc	2	Bilan du spike Unreal	Critères de l'ADR 0003 vérifiés ; problèmes et ajustements notés.
-T018	5	M1	nicolas	net,shared	4	Abstraction socket UDP (POSIX)	Socket UDP non bloquante, envoi/réception, testée en local.
-T019	5	M1	nicolas	net,shared	3	Implémentation Winsock	Même API sous Windows ; compile dans la CI Windows.
-T020	5	M1	nicolas	infra	3	Job CI Windows	La CI compile shared + serveur + tests sous Windows.
-T058	5	M1	ami	art,blender	5	Animations de base du survivant 1	Course, saut, frappe, récolte ; intégrées dans Unreal.
-T021	6	M1	nicolas	net,shared	6	En-tête de paquet, séquences et acks	Header (protocole, seq, ack, ack_bits) + comparaison modulaire, tests unitaires.
-T059	6	M1	ami	art,blender	5	Survivant 2 (Ilian) : modèle et rig	Corps + bras FPS riggés, animations de base réutilisées.
-T022	7	M1	nicolas	net,shared	6	Canal fiable et retransmission	Messages fiables livrés malgré 20 % de perte simulée en test.
-T060	7	M1	ami	client,unreal,art	4	Prototype d'ambiance	Scène de test avec éclairage, brouillard, végétation au vent et cycle jour/nuit simple.
-T023	8	M1	nicolas	net,server	6	Handshake avec challenge et timeouts	Connexion, refus de version, timeout 10 s, déconnexion explicite.
-T024	8	M1	nicolas	net,shared	4	Messages du protocole (inputs, état)	Types de messages sérialisés et testés.
-T025	8	M1	nicolas	net,tools	2	Simulateur de latence et de perte	Latence, gigue, perte et duplication configurables.
-T061	8	M1	ami	art,blender	5	Survivant 3 (Teo) : modèle et rig	Corps + bras FPS riggés.
-T026	9	M1	nicolas	server	5	Sessions et diffusion de l'état	Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick.
-T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.
-T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.
-T062	9	M1	ami	design,figma	5	Maquettes d'UI (Figma)	HUD, inventaire, artisanat, journal d'indices, menu principal.
-T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.
-T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.
-T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.
-T063	10	M2	ami	art,blender	5	Survivant 4 (Nadia) : modèle et rig	Corps + bras FPS riggés.
-T032	11	M2	nicolas	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.
-T033	11	M2	nicolas	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.
-T034	11	M2	nicolas	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.
-T064	11	M2	ami	art,blender	6	Kit de végétation low-poly	Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal.
-T035	12	M2	both	devlog	4	Semaine tampon + post d'avancement	Retard rattrapé, post public M1/M2 publié.
-T036	13	M3	ami	map,unreal	6	Terrain de la zone de départ	Relief, chemins et lieux de l'Abri (docs/ZONES.md) dans Unreal.
-T037	13	M3	ami	art,blender	6	Kit de ruines modulaires	Murs, sols, débris, véhicules, végétation de ruines exportés vers Unreal.
-T038	14	M3	both	map,unreal	4	Acteurs marqueurs de gameplay	Nicolas crée les acteurs ResourceSpawn, ClueSpot, BossArena, ZoneGate ; le coéquipier les place dans la zone de départ.
-T039	14	M3	nicolas	tools,unreal	6	Outil d'export de la carte	Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs).
-T040	14	M3	nicolas	doc,shared	2	Format du fichier monde	Format documenté et versionné.
-T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.
-T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.
-T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.
-T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.
-T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.
-T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.
-T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.
-T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.
-T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.
-T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.
-T049	19	M4	both	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal (commun + personnel).
-T050	19	M4	both	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.
-T051	20	M5	both	gameplay	6	Santé, faim, soif, endurance	Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier).
-T052	20	M5	nicolas	gameplay	6	Mort, sac au sol et réapparition	Inventaire laissé sur place, récupérable ; réapparition au point de repos.
-T053	21	M5	nicolas	server,data	10	Persistance SQLite	Joueurs, inventaires et modifications du monde sauvegardés et rechargés.
-T054	21	M5	nicolas	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage sans perte, automatisé.
-T055	22	M5	both	client,ui	8	Menu principal et serveur local intégré	Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant.
-T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.
-T057	23	M5	both	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.
-T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.
-T068	16	M4	both	art,blender	4	Matériaux transformés et munitions	Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils.
-T069	2	M0	both	doc,gameplay	3	Conception des systèmes de jeu	docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat.
-T070	16	M4	ami	art,blender	2	Objet carte (Blender)	Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire.
-T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.
-T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal.
-T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.
-T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.
-T075	21	M4	ami	client,ui,unreal	6	Grande carte plein écran	Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte.
-T076	20	M5	both	gameplay,client	4	GPS et piles	Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS).
-T077	22	M5	both	client,ui,server	6	Menu pause, touches et sauvegardes	Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique.
+id	semaine	jalon	qui	labels	heures	titre	fini_quand	etat
+T001	1	M0	both	doc,lore	4	Mystère : trame et chronologie de la catastrophe	docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue.	fait
+T002	1	M0	both	doc,lore	3	Fiches des survivants prédéfinis	2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ».	fait
+T003	1	M0	both	doc,gameplay	2	Règles de progression en coop	docs/VISION.md précise si artefacts, zones et journal sont partagés en coop.	en_cours
+T004	1	M0	nicolas	tech,shared	2	Logger commun	Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé.	fait
+T005	1	M0	nicolas	infra	1	Vérifier la CI et le badge	CI verte sur main, badge dans le README.	fait
+T006	2	M0	ami	design,figma	4	Plan des zones (Figma)	Carte macro des 5 zones (docs/ZONES.md) : départ, zones dangereuses, emplacements des boss et artefacts.	a_faire
+T007	2	M0	ami	design,figma	3	Guide de style visuel (Figma)	Moodboard « retour à l'état sauvage », palette par zone, références de silhouettes low-poly.	a_faire
+T008	2	M0	both	doc,gameplay	2	Construction, jour/nuit et météo	Choix documentés : type de construction, durée d'une journée, impact de la nuit.	a_faire
+T009	2	M0	both	doc,lore	3	Fiche détaillée de chaque zone	Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact.	fait
+T010	3	M0.5	ami	client,unreal,infra	3	Projet Unreal, version figée et Git LFS	Projet dans UnrealEngine/Odysse/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux.	fait
+T011	3	M0.5	nicolas	client,unreal,shared	5	Plugin OdysseeNet embarquant odyssee_shared	Le plugin compile sous Windows ; un Blueprint appelle une fonction C++ qui utilise ByteWriter/ByteReader de shared.	fait
+T012	3	M0.5	ami	client,unreal	3	Pion 1re personne et terrain de test	Déplacement, saut, souris, sur un terrain de test.	a_faire
+T013	3	M0.5	ami	art,blender	2	Blockout du premier survivant	Silhouette low-poly validée par rapport au concept Figma.	a_faire
+T014	4	M0.5	ami	art,blender	5	Modèle, rig et bras FPS du survivant 1	Corps entier + bras FPS riggés, animations idle et marche.	a_faire
+T015	4	M0.5	ami	client,unreal	3	Import du survivant animé dans Unreal	Le survivant animé s'affiche ; bras FPS visibles en vue subjective.	a_faire
+T016	4	M0.5	nicolas	client,unreal,sim	4	Composant de mouvement maison	Le pion est déplacé par une fonction de mouvement de shared/ (et non par le CharacterMovementComponent).	a_faire
+T017	5	M0.5	both	doc	2	Bilan du spike Unreal	Critères de l'ADR 0003 vérifiés ; problèmes et ajustements notés.	a_faire
+T018	5	M1	nicolas	net,shared	4	Abstraction socket UDP (POSIX)	Socket UDP non bloquante, envoi/réception, testée en local.	fait
+T019	5	M1	nicolas	net,shared	3	Implémentation Winsock	Même API sous Windows ; compile dans la CI Windows.	fait
+T020	5	M1	nicolas	infra	3	Job CI Windows	La CI compile shared + serveur + tests sous Windows.	fait
+T058	5	M1	ami	art,blender	5	Animations de base du survivant 1	Course, saut, frappe, récolte ; intégrées dans Unreal.	a_faire
+T021	6	M1	nicolas	net,shared	6	En-tête de paquet, séquences et acks	Header (protocole, seq, ack, ack_bits) + comparaison modulaire, tests unitaires.	fait
+T059	6	M1	ami	art,blender	5	Survivant 2 (Ilian) : modèle et rig	Corps + bras FPS riggés, animations de base réutilisées.	a_faire
+T022	7	M1	nicolas	net,shared	6	Canal fiable et retransmission	Messages fiables livrés malgré 20 % de perte simulée en test.	fait
+T060	7	M1	ami	client,unreal,art	4	Prototype d'ambiance	Scène de test avec éclairage, brouillard, végétation au vent et cycle jour/nuit simple.	a_faire
+T023	8	M1	nicolas	net,server	6	Handshake avec challenge et timeouts	Connexion, refus de version, timeout 10 s, déconnexion explicite.	fait
+T024	8	M1	nicolas	net,shared	4	Messages du protocole (inputs, état)	Types de messages sérialisés et testés.	fait
+T025	8	M1	nicolas	net,tools	2	Simulateur de latence et de perte	Latence, gigue, perte et duplication configurables.	fait
+T061	8	M1	ami	art,blender	5	Survivant 3 (Teo) : modèle et rig	Corps + bras FPS riggés.	a_faire
+T026	9	M1	nicolas	server	5	Sessions et diffusion de l'état	Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick.	fait
+T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.	a_faire
+T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.	a_faire
+T062	9	M1	ami	design,figma	5	Maquettes d'UI (Figma)	HUD, inventaire, artisanat, journal d'indices, menu principal.	a_faire
+T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.	fait
+T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.	fait
+T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.	a_faire
+T063	10	M2	ami	art,blender	5	Survivant 4 (Nadia) : modèle et rig	Corps + bras FPS riggés.	a_faire
+T032	11	M2	nicolas	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.	a_faire
+T033	11	M2	nicolas	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.	a_faire
+T034	11	M2	nicolas	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.	a_faire
+T064	11	M2	ami	art,blender	6	Kit de végétation low-poly	Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal.	a_faire
+T035	12	M2	both	devlog	4	Semaine tampon + post d'avancement	Retard rattrapé, post public M1/M2 publié.	a_faire
+T036	13	M3	ami	map,unreal	6	Terrain de la zone de départ	Relief, chemins et lieux de l'Abri (docs/ZONES.md) dans Unreal.	fait
+T037	13	M3	ami	art,blender	6	Kit de ruines modulaires	Murs, sols, débris, véhicules, végétation de ruines exportés vers Unreal.	a_faire
+T038	14	M3	both	map,unreal	4	Acteurs marqueurs de gameplay	Nicolas crée les acteurs ResourceSpawn, ClueSpot, BossArena, ZoneGate ; le coéquipier les place dans la zone de départ.	a_faire
+T039	14	M3	nicolas	tools,unreal	6	Outil d'export de la carte	Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs).	en_cours
+T040	14	M3	nicolas	doc,shared	2	Format du fichier monde	Format documenté et versionné.	fait
+T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.	a_faire
+T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.	a_faire
+T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.	a_faire
+T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	a_faire
+T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	a_faire
+T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	a_faire
+T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	a_faire
+T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.	a_faire
+T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.	a_faire
+T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.	a_faire
+T049	19	M4	both	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal (commun + personnel).	a_faire
+T050	19	M4	both	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.	a_faire
+T051	20	M5	both	gameplay	6	Santé, faim, soif, endurance	Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier).	a_faire
+T052	20	M5	nicolas	gameplay	6	Mort, sac au sol et réapparition	Inventaire laissé sur place, récupérable ; réapparition au point de repos.	a_faire
+T053	21	M5	nicolas	server,data	10	Persistance SQLite	Joueurs, inventaires et modifications du monde sauvegardés et rechargés.	a_faire
+T054	21	M5	nicolas	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage sans perte, automatisé.	a_faire
+T055	22	M5	both	client,ui	8	Menu principal et serveur local intégré	Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant.	a_faire
+T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.	a_faire
+T057	23	M5	both	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.	a_faire
+T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.	fait
+T068	16	M4	both	art,blender	4	Matériaux transformés et munitions	Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils.	fait
+T069	2	M0	both	doc,gameplay	3	Conception des systèmes de jeu	docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat.	fait
+T070	16	M4	ami	art,blender	2	Objet carte (Blender)	Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire.	fait
+T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.	a_faire
+T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal.	a_faire
+T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.	a_faire
+T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.	a_faire
+T075	21	M4	ami	client,ui,unreal	6	Grande carte plein écran	Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte.	a_faire
+T076	20	M5	both	gameplay,client	4	GPS et piles	Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS).	a_faire
+T077	22	M5	both	client,ui,server	6	Menu pause, touches et sauvegardes	Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique.	a_faire
