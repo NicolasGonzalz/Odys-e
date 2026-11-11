@@ -22,6 +22,7 @@ add_executable(odyssee_tests
     test_movement.cpp
     test_determinism.cpp
     test_network_simulator.cpp
+    test_fuzz_decoders.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 
@@ -30,6 +31,8 @@ if(ODYSSEE_BUILD_SERVER)
     target_sources(odyssee_tests PRIVATE
         test_command_line.cpp
         test_client_registry.cpp
+        test_siphash.cpp
+        test_rate_limit.cpp
         test_handshake.cpp
         test_input_queue.cpp
         test_game_world.cpp

@@ -34,6 +34,10 @@ struct MovementTuning {
 
 inline constexpr MovementTuning kDefaultTuning{};
 
+/// Borne des positions (± 2^30 unités, soit ± 4 194 km) : au-delà, le joueur est retenu au bord.
+/// Sans elle, position + vitesse finirait par déborder d'un int32 (comportement indéfini).
+inline constexpr std::int32_t kMaxCoordinate = 1 << 30;
+
 /// État de mouvement d'un joueur (drapeaux : PlayerFlag).
 enum PlayerFlag : std::uint8_t {
     kGrounded = 1U << 0,

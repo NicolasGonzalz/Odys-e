@@ -27,15 +27,20 @@ class ClientConnection {
   public:
     using Clock = std::chrono::steady_clock;
 
+    /// Le sel de la première tentative est tiré du générateur du système.
     explicit ClientConnection(std::string playerName);
 
-    /// Lance la poignée de main.
+    /// `salt` : sel de départ imposé, pour des tests reproductibles.
+    ClientConnection(std::string playerName, std::uint64_t salt);
+
+    /// Lance la poignée de main (avec un nouveau sel : chaque tentative a son jeton de session).
     void connect(Clock::time_point now);
 
     /// Départ volontaire : les prochains nextOutgoing() renverront quelques Disconnect.
     void disconnect();
 
-    /// Prend en compte un message reçu du serveur.
+    /// Prend en compte un message reçu du serveur. Un message qui ne porte pas le sel ou le jeton
+    /// de cette connexion est ignoré : il ne vient pas du serveur (adresse usurpée).
     void onMessage(const ControlMessage& message, Clock::time_point now);
 
     /// Un paquet de jeu est arrivé du serveur : comme un message, il prouve que le serveur est là.
@@ -54,11 +59,18 @@ class ClientConnection {
     [[nodiscard]] std::optional<PlayerId> playerId() const { return _playerId; }
     [[nodiscard]] std::optional<RefuseReason> refuseReason() const { return _refuseReason; }
 
+    /// Jeton à mettre dans chaque paquet de jeu (voir Session), une fois connecté.
+    [[nodiscard]] std::optional<SessionToken> sessionToken() const;
+
+    /// Sel de la tentative en cours (tests).
+    [[nodiscard]] std::uint64_t clientSalt() const { return _salt; }
+
   private:
     void onChallenge(const Challenge& challenge, Clock::time_point now);
     void onAccepted(const Accepted& accepted, Clock::time_point now);
     void onRefused(const Refused& refused);
-    void onServerDisconnect();
+    void onServerDisconnect(const Disconnect& disconnect);
+    void onKeepAlive(const KeepAlive& keepAlive, Clock::time_point now);
 
     [[nodiscard]] bool isHandshaking() const;
     [[nodiscard]] std::optional<ControlMessage> handshakeMessage() const;
@@ -66,7 +78,8 @@ class ClientConnection {
 
     std::string _playerName;
     ConnectionState _state = ConnectionState::Idle;
-    std::uint64_t _token = 0;
+    std::uint64_t _salt = 0;  ///< sel de la tentative en cours
+    std::uint64_t _token = 0; ///< jeton du défi, puis jeton de session
     std::optional<PlayerId> _playerId;
     std::optional<RefuseReason> _refuseReason;
 

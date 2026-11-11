@@ -6,9 +6,11 @@
 #include <doctest/doctest.h>
 
 #include <algorithm>
+#include <array>
 #include <vector>
 
 using namespace odyssee;
+using odyssee::server::ConnectedPlayer;
 using odyssee::server::GameWorld;
 
 namespace {
@@ -29,7 +31,7 @@ const net::EntityState* entityOf(const net::Snapshot& snapshot, net::EntityId id
 
 TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparaissent") {
     GameWorld world;
-    const std::vector<net::PlayerId> two{0, 2};
+    const std::vector<ConnectedPlayer> two{{0, 1}, {2, 2}};
     world.syncPlayers(two);
     CHECK(world.playerCount() == 2);
     CHECK(world.hasPlayer(2));
@@ -41,7 +43,7 @@ TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparai
     REQUIRE(entityOf(snapshot, 2) != nullptr);
     CHECK(entityOf(snapshot, 2)->kind == net::EntityKind::Player);
 
-    const std::vector<net::PlayerId> one{2};
+    const std::vector<ConnectedPlayer> one{{2, 2}};
     world.syncPlayers(one);
     CHECK(world.playerCount() == 1);
     CHECK(world.snapshotFor(2, 51).entities.size() == 1);
@@ -49,7 +51,7 @@ TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparai
 
 TEST_CASE("GameWorld : deux joueurs n'apparaissent pas au même endroit") {
     GameWorld world;
-    const std::vector<net::PlayerId> all{0, 1, 2, 3};
+    const std::vector<ConnectedPlayer> all{{0, 1}, {1, 2}, {2, 3}, {3, 4}};
     world.syncPlayers(all);
     const auto snapshot = world.snapshotFor(0, 1);
     for (std::size_t i = 0; i < snapshot.entities.size(); ++i) {
@@ -61,7 +63,7 @@ TEST_CASE("GameWorld : deux joueurs n'apparaissent pas au même endroit") {
 
 TEST_CASE("GameWorld : un input par tick ; l'orientation suit, le dernier input est signalé") {
     GameWorld world;
-    const std::vector<net::PlayerId> one{1};
+    const std::vector<ConnectedPlayer> one{{1, 1}};
     world.syncPlayers(one);
 
     world.receiveInputs(1, lookingAt(500, 30.0f));
@@ -77,8 +79,77 @@ TEST_CASE("GameWorld : un input par tick ; l'orientation suit, le dernier input 
     CHECK(snapshot.lastProcessedInput == 501);
     CHECK(entityOf(snapshot, 1)->yaw == net::quantizeYaw(60.0f));
 
-    world.step(); // plus d'input : rien ne change
-    CHECK(world.snapshotFor(1, 12).lastProcessedInput == 501);
+    // Plus d'input : les ticks manquants sont devinés (dernier input rejoué) et comptés comme
+    // traités, mais pas indéfiniment.
+    world.step();
+    snapshot = world.snapshotFor(1, 12);
+    CHECK(snapshot.lastProcessedInput == 502);
+    CHECK(entityOf(snapshot, 1)->yaw == net::quantizeYaw(60.0f));
+
+    for (int i = 0; i < 20; ++i) {
+        world.step();
+    }
+    snapshot = world.snapshotFor(1, 40);
+    CHECK(snapshot.lastProcessedInput == 501 + GameWorld::kMaxGuessedInputs);
+    CHECK(entityOf(snapshot, 1)->yaw == net::quantizeYaw(60.0f)); // l'orientation est gardée
+}
+
+TEST_CASE("GameWorld : un input deviné puis arrivé en retard n'est pas rejoué") {
+    GameWorld world;
+    const std::vector<ConnectedPlayer> one{{0, 1}};
+    world.syncPlayers(one);
+
+    world.receiveInputs(0, lookingAt(10, 30.0f));
+    world.step(); // 10 appliqué
+    world.step(); // 11 manque : deviné
+    REQUIRE(world.snapshotFor(0, 1).lastProcessedInput == 11);
+
+    // Le lot en retard répète 10 et 11, et apporte 12 : seul 12 est nouveau.
+    net::InputBatch late = lookingAt(10, 30.0f);
+    late.commands.push_back(late.commands.front());
+    late.commands.push_back(lookingAt(12, 90.0f).commands.front());
+    world.receiveInputs(0, late);
+    world.step();
+    const auto snapshot = world.snapshotFor(0, 2);
+    CHECK(snapshot.lastProcessedInput == 12);
+    CHECK(entityOf(snapshot, 0)->yaw == net::quantizeYaw(90.0f));
+}
+
+TEST_CASE("GameWorld : sans input, le joueur est quand même simulé (pas de suspension en l'air)") {
+    GameWorld world;
+    const std::vector<ConnectedPlayer> one{{0, 1}};
+    world.syncPlayers(one);
+    const sim::PlayerState spawn = *world.motionOf(0);
+
+    // Avant tout input : le joueur reste posé, tourné comme à l'apparition.
+    world.step();
+    CHECK(*world.motionOf(0) == spawn);
+    CHECK(world.snapshotFor(0, 1).lastProcessedInput == 0);
+
+    // Il saute en avançant, puis son client se tait (client modifié, ou connexion coupée).
+    net::InputCommand jump;
+    jump.yaw = spawn.yaw;
+    jump.moveForward = net::quantizeAxis(1.0f);
+    jump.buttons = static_cast<std::uint16_t>(net::InputButton::Jump);
+    world.receiveInputs(0, net::InputBatch{1, {jump}});
+    world.step();
+    REQUIRE(world.motionOf(0)->position[2] > spawn.position[2]);
+    REQUIRE_FALSE(world.motionOf(0)->has(sim::kGrounded));
+
+    for (int i = 0; i < 60; ++i) { // 3 secondes de silence
+        world.step();
+    }
+    const sim::PlayerState after = *world.motionOf(0);
+    CHECK(after.position[2] == spawn.position[2]); // retombé
+    CHECK(after.has(sim::kGrounded));
+    CHECK(after.velocity == std::array<std::int16_t, 3>{}); // et arrêté : plus d'input rejoué
+
+    // Ses ticks n'ont avancé que des quelques inputs devinés : il peut reprendre.
+    const net::Tick resume = world.snapshotFor(0, 99).lastProcessedInput + 1;
+    CHECK(resume == 2 + GameWorld::kMaxGuessedInputs);
+    world.receiveInputs(0, net::InputBatch{resume, {jump}});
+    world.step();
+    CHECK(world.snapshotFor(0, 100).lastProcessedInput == resume);
 }
 
 TEST_CASE("GameWorld : les inputs d'un joueur absent sont ignorés") {
@@ -93,7 +164,7 @@ TEST_CASE("GameWorld : le serveur et la prédiction du client arrivent au même 
     // Le serveur reçoit les inputs par lots redondants (comme sur le réseau) ; le client applique
     // sim::step lui-même, un input par tick, à partir de l'état d'apparition reçu.
     GameWorld world;
-    const std::vector<net::PlayerId> one{2};
+    const std::vector<ConnectedPlayer> one{{2, 1}};
     world.syncPlayers(one);
     sim::PlayerState predicted = *world.motionOf(2);
     const sim::FlatTerrain ground(predicted.position[2]); // le sol provisoire du serveur
@@ -121,4 +192,37 @@ TEST_CASE("GameWorld : le serveur et la prédiction du client arrivent au même 
     REQUIRE(world.motionOf(2).has_value());
     CHECK(*world.motionOf(2) == predicted);
     CHECK(world.snapshotFor(2, 999).lastProcessedInput == 120);
+}
+
+TEST_CASE("GameWorld : une place reprise par une autre connexion repart de zéro") {
+    GameWorld world;
+    const std::vector<ConnectedPlayer> before{{1, 7}};
+    world.syncPlayers(before);
+    const sim::PlayerState spawn = *world.motionOf(1);
+
+    // L'ancien joueur avance, et ses ticks d'input sont déjà loin.
+    net::InputCommand forward;
+    forward.moveForward = net::quantizeAxis(1.0f);
+    forward.yaw = spawn.yaw;
+    for (net::Tick tick = 5000; tick < 5020; ++tick) {
+        world.receiveInputs(1, net::InputBatch{tick, {forward}});
+        world.step();
+    }
+    REQUIRE(world.motionOf(1)->position != spawn.position);
+    REQUIRE(world.snapshotFor(1, 1).lastProcessedInput == 5019);
+
+    // Dans le même tick, il part et un autre client prend la place 1 : la place n'a jamais été
+    // vue libre, seule la génération a changé.
+    const std::vector<ConnectedPlayer> after{{1, 8}};
+    world.syncPlayers(after);
+    CHECK(*world.motionOf(1) == spawn);
+    CHECK(world.snapshotFor(1, 2).lastProcessedInput == 0);
+
+    // Le nouveau joueur commence ses ticks à 1 : ils ne sont pas pris pour de vieux inputs.
+    world.receiveInputs(1, net::InputBatch{1, {forward}});
+    world.step();
+    CHECK(world.snapshotFor(1, 3).lastProcessedInput == 1);
+
+    world.syncPlayers(after); // même génération : rien ne bouge
+    CHECK(world.snapshotFor(1, 4).lastProcessedInput == 1);
 }

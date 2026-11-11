@@ -39,7 +39,7 @@ using Clock = std::chrono::steady_clock;
 /// tick un paquet avec ses derniers inputs, et lecture des snapshots.
 struct GameClient {
     ClientConnection connection;
-    Session session;
+    std::optional<Session> session; ///< créée une fois connecté : il lui faut le jeton de session
     UdpSocket socket;
     Address server;
 
@@ -57,6 +57,9 @@ struct GameClient {
             (void)socket.send(server, buildControlPacket(*message));
         }
         if (connection.state() == ConnectionState::Connected) {
+            if (!session) {
+                session.emplace(*connection.sessionToken());
+            }
             sendInputs(now);
         }
         receiveAll(now);
@@ -72,10 +75,10 @@ struct GameClient {
             recentInputs.pop_front();
         }
         const Tick first = nextInputTick - static_cast<Tick>(recentInputs.size() - 1);
-        session.queueUnreliable(InputBatch{first, {recentInputs.begin(), recentInputs.end()}});
+        session->queueUnreliable(InputBatch{first, {recentInputs.begin(), recentInputs.end()}});
         ++nextInputTick;
 
-        (void)socket.send(server, session.buildPacket(now));
+        (void)socket.send(server, session->buildPacket(now));
         connection.onGamePacketSent(now);
     }
 
@@ -90,11 +93,14 @@ struct GameClient {
                 if (const auto message = decodeControl(packet->kind, packet->body)) {
                     connection.onMessage(*message, now);
                 }
-            } else if (session.receive(*packet, now)) {
+            } else if (session && session->receive(*packet, now)) {
                 connection.onGamePacketReceived(now);
             }
         }
-        for (auto& message : session.takeMessages()) {
+        if (!session) {
+            return;
+        }
+        for (auto& message : session->takeMessages()) {
             auto* snapshot = std::get_if<Snapshot>(&message);
             if (snapshot && (!latest || snapshot->serverTick > latest->serverTick)) {
                 latest = std::move(*snapshot); // un snapshot plus vieux arrivé en retard est ignoré
@@ -169,7 +175,7 @@ TEST_CASE("Partie : deux joueurs se voient et le serveur applique leurs inputs")
     CHECK(match.world.playerCount() == 2);
 
     // Le client a mesuré l'aller-retour, et personne n'a eu besoin de KeepAlive pour rester.
-    CHECK(ana.session.roundTripTime().has_value());
+    CHECK(ana.session->roundTripTime().has_value());
     CHECK(ana.connection.state() == ConnectionState::Connected);
 }
 

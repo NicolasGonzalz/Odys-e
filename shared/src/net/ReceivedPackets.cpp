@@ -29,6 +29,9 @@ Arrival ReceivedPackets::recordNewer(Sequence sequence) {
     // Le nouveau paquet devient le plus récent : l'historique glisse de `shift` cases,
     // et l'ancien « plus récent » prend la case shift - 1.
     const std::uint16_t shift = sequenceDistance(sequence, _latest);
+    if (shift > kMaxJump) {
+        return Arrival::TooFarAhead;
+    }
 
     if (shift > kWindow) {
         _bits = 0; // tout l'historique sort de la fenêtre

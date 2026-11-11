@@ -158,3 +158,9 @@ TEST_CASE("GameMessages : type de message inconnu refusé") {
     CHECK_FALSE(decodeGameMessage(0, bytes).has_value());
     CHECK_FALSE(decodeGameMessage(200, bytes).has_value());
 }
+
+TEST_CASE("Inputs : le tick 0 est refusé (les ticks d'input commencent à 1)") {
+    const auto type = static_cast<std::uint8_t>(GameMessageType::Inputs);
+    CHECK_FALSE(decodeGameMessage(type, rawBatch(0, InputCommand{})).has_value());
+    CHECK(decodeGameMessage(type, rawBatch(1, InputCommand{})).has_value());
+}

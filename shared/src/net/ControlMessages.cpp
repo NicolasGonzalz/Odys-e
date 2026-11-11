@@ -14,25 +14,83 @@ constexpr std::size_t kMaxNameOnWire = 64;
 
 // --- Écriture : une fonction par message ------------------------------------------------------
 
-void writeBody(ByteWriter& w, const ConnectRequest& m) { w.writeString(m.playerName); }
-void writeBody(ByteWriter& w, const Challenge& m) { w.writeU64(m.token); }
-void writeBody(ByteWriter& w, const ChallengeResponse& m) { w.writeU64(m.token); }
-void writeBody(ByteWriter& w, const Accepted& m) { w.writeU8(m.playerId); }
+void writeBody(ByteWriter& w, const ConnectRequest& m) {
+    w.writeU64(m.clientSalt);
+    w.writeString(m.playerName);
+    while (w.size() < kConnectRequestBodySize) {
+        w.writeU8(0); // rembourrage : voir kConnectRequestBodySize
+    }
+}
+void writeBody(ByteWriter& w, const Challenge& m) {
+    w.writeU64(m.clientSalt);
+    w.writeU64(m.token);
+}
+void writeBody(ByteWriter& w, const ChallengeResponse& m) {
+    w.writeU64(m.clientSalt);
+    w.writeU64(m.token);
+    w.writeString(m.playerName);
+}
+void writeBody(ByteWriter& w, const Accepted& m) {
+    w.writeU8(m.playerId);
+    w.writeU64(m.sessionToken);
+}
 void writeBody(ByteWriter& w, const Refused& m) { w.writeU8(static_cast<std::uint8_t>(m.reason)); }
-void writeBody(ByteWriter&, const Disconnect&) {}
-void writeBody(ByteWriter&, const KeepAlive&) {}
+void writeBody(ByteWriter& w, const Disconnect& m) { w.writeU64(m.sessionToken); }
+void writeBody(ByteWriter& w, const KeepAlive& m) { w.writeU64(m.sessionToken); }
 
 // --- Lecture : une fonction par message -------------------------------------------------------
 
 std::optional<ControlMessage> readConnectRequest(ByteReader& r) {
+    if (r.remaining() < kConnectRequestBodySize) {
+        return std::nullopt; // pas rembourrée : refusée (anti-amplification)
+    }
+    const auto salt = r.readU64();
     auto name = r.readString(kMaxNameOnWire);
-    if (!name) {
+    if (!salt || !name) {
         return std::nullopt;
     }
-    return ConnectRequest{std::move(*name)};
+    (void)r.readBytes(r.remaining()); // le rembourrage, quel qu'il soit
+    return ConnectRequest{std::move(*name), *salt};
 }
 
-template <typename Message> std::optional<ControlMessage> readToken(ByteReader& r) {
+std::optional<ControlMessage> readChallenge(ByteReader& r) {
+    const auto salt = r.readU64();
+    const auto token = r.readU64();
+    if (!salt || !token) {
+        return std::nullopt;
+    }
+    return Challenge{*token, *salt};
+}
+
+std::optional<ControlMessage> readChallengeResponse(ByteReader& r) {
+    const auto salt = r.readU64();
+    const auto token = r.readU64();
+    auto name = r.readString(kMaxNameOnWire);
+    if (!salt || !token || !name) {
+        return std::nullopt;
+    }
+    return ChallengeResponse{*token, *salt, std::move(*name)};
+}
+
+std::optional<ControlMessage> readAccepted(ByteReader& r) {
+    const auto id = r.readU8();
+    const auto token = r.readU64();
+    if (!id || *id >= kMaxPlayers || !token) {
+        return std::nullopt;
+    }
+    return Accepted{*id, *token};
+}
+
+std::optional<ControlMessage> readRefused(ByteReader& r) {
+    const auto reason = r.readU8();
+    const bool known = reason && *reason >= 1 && *reason <= 4;
+    if (!known) {
+        return std::nullopt;
+    }
+    return Refused{static_cast<RefuseReason>(*reason)};
+}
+
+template <typename Message> std::optional<ControlMessage> readSessionMessage(ByteReader& r) {
     const auto token = r.readU64();
     if (!token) {
         return std::nullopt;
@@ -40,39 +98,22 @@ template <typename Message> std::optional<ControlMessage> readToken(ByteReader& 
     return Message{*token};
 }
 
-std::optional<ControlMessage> readAccepted(ByteReader& r) {
-    const auto id = r.readU8();
-    if (!id || *id >= kMaxPlayers) {
-        return std::nullopt;
-    }
-    return Accepted{*id};
-}
-
-std::optional<ControlMessage> readRefused(ByteReader& r) {
-    const auto reason = r.readU8();
-    const bool known = reason && *reason >= 1 && *reason <= 3;
-    if (!known) {
-        return std::nullopt;
-    }
-    return Refused{static_cast<RefuseReason>(*reason)};
-}
-
 std::optional<ControlMessage> readMessage(PacketKind kind, ByteReader& r) {
     switch (kind) {
     case PacketKind::ConnectRequest:
         return readConnectRequest(r);
     case PacketKind::Challenge:
-        return readToken<Challenge>(r);
+        return readChallenge(r);
     case PacketKind::ChallengeResponse:
-        return readToken<ChallengeResponse>(r);
+        return readChallengeResponse(r);
     case PacketKind::Accepted:
         return readAccepted(r);
     case PacketKind::Refused:
         return readRefused(r);
     case PacketKind::Disconnect:
-        return Disconnect{};
+        return readSessionMessage<Disconnect>(r);
     case PacketKind::KeepAlive:
-        return KeepAlive{};
+        return readSessionMessage<KeepAlive>(r);
     case PacketKind::Game:
         return std::nullopt; // paquet de jeu : voir GamePacket
     }
@@ -115,6 +156,8 @@ std::string_view describe(RefuseReason reason) {
         return "serveur plein";
     case RefuseReason::InvalidName:
         return "pseudo invalide";
+    case RefuseReason::TooManyFromAddress:
+        return "trop de joueurs connectés depuis cette adresse";
     }
     return "raison inconnue";
 }

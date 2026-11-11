@@ -2,6 +2,8 @@
 
 #include <doctest/doctest.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <vector>
 
@@ -72,4 +74,44 @@ TEST_CASE("ReliableSender : un message trop gros pour un paquet est refusé") {
     ReliableSender sender;
     CHECK_FALSE(sender.enqueue(payload(ReliableSender::maxPayloadSize() + 1)).has_value());
     CHECK(sender.enqueue(payload(ReliableSender::maxPayloadSize())).has_value());
+}
+
+TEST_CASE("ReliableSender : la file d'attente est plafonnée") {
+    ReliableSender sender;
+    for (std::size_t i = 0; i < ReliableSender::kMaxPending; ++i) {
+        REQUIRE(sender.enqueue(payload(1)).has_value());
+    }
+    CHECK_FALSE(sender.enqueue(payload(1)).has_value()); // l'autre côté n'acquitte plus rien
+    CHECK(sender.pendingCount() == ReliableSender::kMaxPending);
+}
+
+TEST_CASE("ReliableSender : rien n'est envoyé au-delà de la fenêtre d'envoi") {
+    ReliableSender sender(10s); // pas de renvoi pendant le test
+    const std::size_t total = ReliableSender::kSendWindow + 100;
+    for (std::size_t i = 0; i < total; ++i) {
+        REQUIRE(sender.enqueue(payload(1)).has_value());
+    }
+
+    // Sans aucun acquittement, les paquets successifs ne portent jamais un message plus loin
+    // que la fenêtre : le récepteur (kMaxAhead) les accepterait tous.
+    MessageId highest = 0;
+    auto now = t0;
+    for (Sequence sequence = 0; sequence < 12; ++sequence) {
+        for (const ReliableMessage& message : sender.collectForPacket(sequence, now, kBudget)) {
+            highest = std::max(highest, message.id);
+        }
+        now += 10ms;
+    }
+    CHECK(highest == ReliableSender::kSendWindow - 1);
+
+    // Le plus ancien est acquitté (paquet 0) : la fenêtre avance.
+    const std::array<Sequence, 1> acknowledged{0};
+    sender.onAcknowledged(acknowledged);
+    for (Sequence sequence = 12; sequence < 24; ++sequence) {
+        for (const ReliableMessage& message : sender.collectForPacket(sequence, now, kBudget)) {
+            highest = std::max(highest, message.id);
+        }
+        now += 10ms;
+    }
+    CHECK(highest > ReliableSender::kSendWindow - 1);
 }

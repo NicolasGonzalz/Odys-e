@@ -4,14 +4,6 @@
 
 namespace odyssee::net {
 
-namespace {
-
-/// Un message annoncé plus loin que ça en avance est refusé : sinon, un client malveillant
-/// pourrait remplir la mémoire de messages « en attente » qui ne seraient jamais livrés.
-constexpr std::uint16_t kMaxAhead = 1024;
-
-} // namespace
-
 void ReliableReceiver::receive(ReliableMessage message) {
     if (isAlreadyDelivered(message.id)) {
         return; // renvoi d'un message déjà livré (son acquittement s'était perdu)

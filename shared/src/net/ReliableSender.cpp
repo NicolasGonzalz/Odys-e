@@ -4,6 +4,7 @@
 #include "odyssee/net/GamePacket.hpp"
 #include "odyssee/net/PacketHeader.hpp"
 #include "odyssee/net/ReliableCodec.hpp"
+#include "odyssee/net/ReliableReceiver.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -16,20 +17,24 @@ namespace {
 /// ses messages, s'ils ne sont pas confirmés, seront simplement renvoyés.
 constexpr std::uint16_t kAckWindow = 32;
 
+static_assert(ReliableSender::kSendWindow <= ReliableReceiver::kMaxAhead,
+              "le récepteur doit accepter tout ce que l'émetteur peut envoyer");
+
 } // namespace
 
 ReliableSender::ReliableSender(std::chrono::milliseconds resendDelay) : _resendDelay(resendDelay) {}
 
 std::size_t ReliableSender::maxPayloadSize() {
-    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, liste des fiables
-    // (ce message), liste des non fiables (vide).
+    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, jeton de session,
+    // liste des fiables (ce message), liste des non fiables (vide).
     constexpr std::size_t kKindSize = 1;
-    return kMaxPacketSize - PacketHeader::kSize - kKindSize - reliable_codec::kListOverhead -
+    return kMaxPacketSize - PacketHeader::kSize - kKindSize - game_packet::kSessionTokenSize -
+           reliable_codec::kListOverhead -
            reliable_codec::kMessageOverhead - game_packet::kUnreliableListOverhead;
 }
 
 std::optional<MessageId> ReliableSender::enqueue(std::vector<std::byte> payload) {
-    if (payload.size() > maxPayloadSize()) {
+    if (payload.size() > maxPayloadSize() || _pending.size() >= kMaxPending) {
         return std::nullopt;
     }
     const MessageId id = _nextId++;
@@ -46,6 +51,9 @@ std::vector<ReliableMessage> ReliableSender::collectForPacket(Sequence sequence,
     std::size_t used = reliable_codec::kListOverhead;
 
     for (Pending& pending : _pending) {
+        if (!isInSendWindow(pending)) {
+            break; // trop loin devant le plus ancien non acquitté : le récepteur le refuserait
+        }
         if (!isDue(pending, now)) {
             continue; // envoyé récemment : on attend encore son acquittement
         }
@@ -86,6 +94,10 @@ void ReliableSender::onAcknowledged(std::span<const Sequence> sequences) {
 
 bool ReliableSender::isDue(const Pending& pending, Clock::time_point now) const {
     return !pending.lastSent || now - *pending.lastSent >= _resendDelay;
+}
+
+bool ReliableSender::isInSendWindow(const Pending& pending) const {
+    return sequenceDistance(pending.message.id, _pending.front().message.id) < kSendWindow;
 }
 
 void ReliableSender::confirm(MessageId id) {

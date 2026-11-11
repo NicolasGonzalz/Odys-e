@@ -3,6 +3,7 @@
 #include "odyssee/net/ReliableMessage.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
 
@@ -12,6 +13,10 @@ namespace odyssee::net {
 /// et livre les contenus au jeu **dans l'ordre** des numéros.
 class ReliableReceiver {
   public:
+    /// Un message annoncé plus loin que ça en avance est refusé : sinon, un client malveillant
+    /// pourrait remplir la mémoire de messages « en attente » qui ne seraient jamais livrés.
+    static constexpr std::uint16_t kMaxAhead = 1024;
+
     /// Prend en compte un message reçu (nouveau, en avance, ou doublon).
     void receive(ReliableMessage message);
 

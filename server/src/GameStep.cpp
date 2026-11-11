@@ -8,16 +8,16 @@ void stepGame(ConnectionService& connections, GameWorld& world, net::Tick tick,
 
     const auto players = connections.connectedPlayers();
     world.syncPlayers(players);
-    for (const net::PlayerId player : players) {
-        for (const auto& batch : connections.takeInputs(player)) {
-            world.receiveInputs(player, batch);
+    for (const ConnectedPlayer& player : players) {
+        for (const auto& batch : connections.takeInputs(player.id)) {
+            world.receiveInputs(player.id, batch);
         }
     }
 
     world.step();
 
-    for (const net::PlayerId player : players) {
-        connections.queueSnapshot(player, world.snapshotFor(player, tick));
+    for (const ConnectedPlayer& player : players) {
+        connections.queueSnapshot(player.id, world.snapshotFor(player.id, tick));
     }
     connections.flushGame(now);
 }

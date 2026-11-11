@@ -7,7 +7,6 @@
 #include "odyssee/core/Log.hpp"
 #include "odyssee/net/UdpSocket.hpp"
 
-#include <random>
 #include <thread>
 
 namespace odyssee::server {
@@ -16,11 +15,8 @@ namespace {
 
 constexpr log::Logger kLog{"server"};
 
-/// Graine imprévisible pour les défis de connexion (un attaquant ne doit pas pouvoir les deviner).
-std::uint64_t unpredictableSeed() {
-    std::random_device device;
-    return (std::uint64_t{device()} << 32) | device();
-}
+/// Ticks joués d'affilée, au plus, pour rattraper un retard (250 ms) : le reste est sauté.
+constexpr int kMaxCatchUpTicks = 5;
 
 } // namespace
 
@@ -34,7 +30,8 @@ bool Server::run() {
         return false;
     }
 
-    ConnectionService connections(std::move(*socket), unpredictableSeed(), _network);
+    // Secret des défis de connexion : imprévisible, tiré une fois au démarrage.
+    ConnectionService connections(std::move(*socket), SipKey::random(), _network);
     kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max", ODYSSEE_VERSION_STRING, _port,
               kTickRate, kMaxPlayers);
     if (!_network.isPerfect()) {
@@ -55,12 +52,21 @@ void Server::loop(ConnectionService& connections) {
     auto nextTick = Clock::now();
 
     // Boucle à pas fixe : la simulation avance toujours de kTickDuration, quel que soit
-    // le temps réel écoulé. Si le serveur prend du retard, il rattrape les ticks manqués.
+    // le temps réel écoulé. Si le serveur prend du retard, il rattrape les ticks manqués —
+    // mais pas sans limite : après une longue pause (machine suspendue, surcharge), enchaîner
+    // des centaines de ticks d'un coup ne ferait que prolonger le retard.
     while (_running) {
         const auto now = Clock::now();
-        while (nextTick <= now && _running) {
+        int caughtUp = 0;
+        while (nextTick <= now && _running && caughtUp < kMaxCatchUpTicks) {
             tick(connections, tickIndex++, now);
             nextTick += kTickDuration;
+            ++caughtUp;
+        }
+        if (nextTick <= now) {
+            const auto skipped = (now - nextTick) / kTickDuration + 1;
+            kLog.warn("serveur en retard : {} tick(s) sautés", skipped);
+            nextTick += skipped * kTickDuration;
         }
         waitUntil(connections, nextTick);
     }

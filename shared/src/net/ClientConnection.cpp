@@ -2,6 +2,7 @@
 
 #include "odyssee/core/Config.hpp"
 
+#include <random>
 #include <utility>
 
 namespace odyssee::net {
@@ -11,13 +12,34 @@ namespace {
 /// Un Disconnect peut se perdre : on l'envoie plusieurs fois.
 constexpr int kDisconnectCopies = 3;
 
+std::uint64_t randomSalt() {
+    std::random_device device;
+    return (std::uint64_t{device()} << 32) | std::uint64_t{device()};
+}
+
+/// Sel suivant (une étape de splitmix64) : deux tentatives n'ont jamais le même.
+std::uint64_t nextSalt(std::uint64_t salt) {
+    std::uint64_t z = salt + 0x9E3779B97F4A7C15ULL;
+    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+    return z ^ (z >> 31);
+}
+
 } // namespace
 
-ClientConnection::ClientConnection(std::string playerName) : _playerName(std::move(playerName)) {}
+ClientConnection::ClientConnection(std::string playerName)
+    : ClientConnection(std::move(playerName), randomSalt()) {}
+
+ClientConnection::ClientConnection(std::string playerName, std::uint64_t salt)
+    : _playerName(std::move(playerName)), _salt(salt) {}
 
 // --- Actions du joueur ------------------------------------------------------------------------
 
 void ClientConnection::connect(Clock::time_point now) {
+    _salt = nextSalt(_salt);
+    _token = 0;
+    _playerId.reset();
+    _refuseReason.reset();
     _state = ConnectionState::Requesting;
     _stateSince = now;
     _lastSent.reset(); // la demande part au prochain nextOutgoing()
@@ -39,18 +61,16 @@ void ClientConnection::onMessage(const ControlMessage& message, Clock::time_poin
         onAccepted(*accepted, now);
     } else if (const auto* refused = std::get_if<Refused>(&message)) {
         onRefused(*refused);
-    } else if (std::get_if<Disconnect>(&message) != nullptr) {
-        onServerDisconnect();
-    }
-
-    if (_state == ConnectionState::Connected) {
-        _lastHeard = now; // tout message du serveur prouve qu'il est encore là
+    } else if (const auto* disconnect = std::get_if<Disconnect>(&message)) {
+        onServerDisconnect(*disconnect);
+    } else if (const auto* keepAlive = std::get_if<KeepAlive>(&message)) {
+        onKeepAlive(*keepAlive, now);
     }
 }
 
 void ClientConnection::onChallenge(const Challenge& challenge, Clock::time_point now) {
-    if (_state != ConnectionState::Requesting) {
-        return; // défi en double ou hors de propos
+    if (_state != ConnectionState::Requesting || challenge.clientSalt != _salt) {
+        return; // défi en double, hors de propos, ou pas celui de notre demande
     }
     _token = challenge.token;
     _state = ConnectionState::Answering;
@@ -59,8 +79,12 @@ void ClientConnection::onChallenge(const Challenge& challenge, Clock::time_point
 }
 
 void ClientConnection::onAccepted(const Accepted& accepted, Clock::time_point now) {
-    if (!isHandshaking()) {
-        return; // acceptation en double : déjà connecté
+    if (_state == ConnectionState::Connected && accepted.sessionToken == _token) {
+        _lastHeard = now; // acceptation en double : le serveur est bien là
+        return;
+    }
+    if (_state != ConnectionState::Answering || accepted.sessionToken != _token) {
+        return; // pas l'acceptation de notre réponse au défi
     }
     _playerId = accepted.playerId;
     _state = ConnectionState::Connected;
@@ -75,9 +99,15 @@ void ClientConnection::onRefused(const Refused& refused) {
     _state = ConnectionState::Refused;
 }
 
-void ClientConnection::onServerDisconnect() {
-    if (_state == ConnectionState::Connected) {
+void ClientConnection::onServerDisconnect(const Disconnect& disconnect) {
+    if (_state == ConnectionState::Connected && disconnect.sessionToken == _token) {
         _state = ConnectionState::Closed;
+    }
+}
+
+void ClientConnection::onKeepAlive(const KeepAlive& keepAlive, Clock::time_point now) {
+    if (_state == ConnectionState::Connected && keepAlive.sessionToken == _token) {
+        _lastHeard = now; // le serveur est encore là
     }
 }
 
@@ -100,7 +130,7 @@ void ClientConnection::onGamePacketSent(Clock::time_point now) {
 std::optional<ControlMessage> ClientConnection::nextOutgoing(Clock::time_point now) {
     if (_disconnectsToSend > 0) {
         --_disconnectsToSend;
-        return Disconnect{};
+        return Disconnect{_token};
     }
 
     if (isHandshaking() && isDue(kHandshakeResendInterval, now)) {
@@ -109,7 +139,7 @@ std::optional<ControlMessage> ClientConnection::nextOutgoing(Clock::time_point n
     }
     if (_state == ConnectionState::Connected && isDue(kKeepAliveInterval, now)) {
         _lastSent = now;
-        return KeepAlive{};
+        return KeepAlive{_token};
     }
     return std::nullopt;
 }
@@ -130,9 +160,16 @@ bool ClientConnection::isHandshaking() const {
 
 std::optional<ControlMessage> ClientConnection::handshakeMessage() const {
     if (_state == ConnectionState::Requesting) {
-        return ConnectRequest{_playerName};
+        return ConnectRequest{_playerName, _salt};
     }
-    return ChallengeResponse{_token};
+    return ChallengeResponse{_token, _salt, _playerName};
+}
+
+std::optional<SessionToken> ClientConnection::sessionToken() const {
+    if (_state != ConnectionState::Connected) {
+        return std::nullopt;
+    }
+    return _token;
 }
 
 bool ClientConnection::isDue(Clock::duration interval, Clock::time_point now) const {

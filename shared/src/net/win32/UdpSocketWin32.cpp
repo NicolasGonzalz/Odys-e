@@ -154,13 +154,16 @@ std::optional<UdpSocket> UdpSocket::open(std::uint16_t port) {
 UdpSocket::~UdpSocket() { close(); }
 
 UdpSocket::UdpSocket(UdpSocket&& other) noexcept
-    : _handle(std::exchange(other._handle, kInvalidHandle)), _port(std::exchange(other._port, 0)) {}
+    : _handle(std::exchange(other._handle, kInvalidHandle)),
+      _port(std::exchange(other._port, std::uint16_t{0})),
+      _oversized(std::exchange(other._oversized, std::uint64_t{0})) {}
 
 UdpSocket& UdpSocket::operator=(UdpSocket&& other) noexcept {
     if (this != &other) {
         close();
         _handle = std::exchange(other._handle, kInvalidHandle);
-        _port = std::exchange(other._port, 0);
+        _port = std::exchange(other._port, std::uint16_t{0});
+        _oversized = std::exchange(other._oversized, std::uint64_t{0});
     }
     return *this;
 }
@@ -200,7 +203,7 @@ std::optional<Received> UdpSocket::receive(std::span<std::byte> buffer) {
         if (!datagram->tooBig) {
             return Received{datagram->from, datagram->size};
         }
-        kLog.warn("datagramme trop gros ignoré (tampon de {})", buffer.size());
+        ++_oversized; // compté, pas journalisé : voir oversizedDatagrams()
     }
     return std::nullopt;
 }
