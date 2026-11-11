@@ -39,7 +39,6 @@ if str(HERE) not in sys.path:
 
 BLOCKOUT_TAG = "blockout"
 SPAWN_PLACE = "centre_stase"
-HOLE_GUIDE_TAG = "a_percer"  # repères des trous à peindre (à supprimer une fois percés)
 
 
 def _load(name):
