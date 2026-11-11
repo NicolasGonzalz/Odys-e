@@ -1,43 +1,55 @@
-// Client Odyssée — prototype M0 : fenêtre 3D, caméra orbitale, sol et repères.
-// Le client n'est pas autoritaire : à terme il envoie des inputs et affiche
-// l'état reçu du serveur (avec prédiction locale + interpolation).
-#include "odyssee/core/Config.hpp"
+// Client de debug d'Odyssée (raylib) : se connecte au serveur et prédit le joueur local (T031).
+// Le vrai client est Unreal (plugin OdysseeNet) ; celui-ci sert à tester le réseau sous Linux.
+#include "DebugClient.hpp"
+#include "Options.hpp"
+
+#include "odyssee/client/ServerLink.hpp"
+#include "odyssee/net/Address.hpp"
 
 #include <raylib.h>
 
+#include <iostream>
 #include <string>
+#include <string_view>
+#include <vector>
 
-int main() {
+using namespace odyssee;
+
+namespace {
+
+void openWindow() {
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(1280, 720, "Odyssée");
+    InitWindow(1280, 720, "Odyssée - client de debug");
+    SetExitKey(KEY_NULL); // Échap libère la souris ; on quitte en fermant la fenêtre
+    DisableCursor();
+}
 
-    Camera3D camera{};
-    camera.position = {10.0f, 10.0f, 10.0f};
-    camera.target = {0.0f, 0.0f, 0.0f};
-    camera.up = {0.0f, 1.0f, 0.0f};
-    camera.fovy = 60.0f;
-    camera.projection = CAMERA_PERSPECTIVE;
+} // namespace
 
-    const std::string title = std::string("Odyssée v") + ODYSSEE_VERSION_STRING + " — prototype";
-
-    while (!WindowShouldClose()) {
-        UpdateCamera(&camera, CAMERA_ORBITAL);
-
-        BeginDrawing();
-        ClearBackground(Color{135, 190, 230, 255});
-
-        BeginMode3D(camera);
-        DrawPlane({0.0f, 0.0f, 0.0f}, {40.0f, 40.0f}, Color{96, 160, 80, 255});
-        DrawCube({0.0f, 0.5f, 0.0f}, 1.0f, 1.0f, 1.0f, Color{230, 140, 60, 255});
-        DrawCubeWires({0.0f, 0.5f, 0.0f}, 1.0f, 1.0f, 1.0f, DARKBROWN);
-        DrawGrid(40, 1.0f);
-        EndMode3D();
-
-        DrawText(title.c_str(), 16, 16, 20, RAYWHITE);
-        DrawFPS(16, 44);
-        EndDrawing();
+int main(int argc, char** argv) {
+    const std::vector<std::string_view> args(argv + 1, argv + argc);
+    const auto options = debugclient::parseOptions(args);
+    if (!options) {
+        std::cerr << debugclient::usage(argv[0]);
+        return 1;
     }
 
+    const auto server = net::Address::parse(options->host, options->port);
+    if (!server) {
+        std::cerr << "Adresse invalide : " << options->host << " (IPv4 attendue)\n";
+        return 1;
+    }
+    auto link = client::ServerLink::open(options->name, *server);
+    if (!link) {
+        std::cerr << "Impossible d'ouvrir un socket UDP\n";
+        return 1;
+    }
+
+    openWindow();
+    {
+        debugclient::DebugClient game(std::move(*link));
+        game.run();
+    }
     CloseWindow();
     return 0;
 }

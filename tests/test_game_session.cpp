@@ -5,9 +5,9 @@
 #include "GameStep.hpp"
 #include "GameWorld.hpp"
 
+#include "odyssee/client/InputHistory.hpp"
+#include "odyssee/client/ServerLink.hpp"
 #include "odyssee/core/Config.hpp"
-#include "odyssee/net/ClientConnection.hpp"
-#include "odyssee/net/PacketFraming.hpp"
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/net/Session.hpp"
 #include "odyssee/net/UdpSocket.hpp"
@@ -19,7 +19,6 @@
 #include <array>
 #include <chrono>
 #include <cstdlib>
-#include <deque>
 #include <optional>
 #include <string>
 #include <thread>
@@ -35,77 +34,37 @@ namespace {
 
 using Clock = std::chrono::steady_clock;
 
-/// Un client de jeu minimal, comme le sera le plugin Unreal : poignée de main, puis à chaque
-/// tick un paquet avec ses derniers inputs, et lecture des snapshots.
+/// Un joueur, avec le vrai lien client du jeu (client::ServerLink, celui du client de debug et du
+/// plugin Unreal) : poignée de main, puis à chaque tick un lot de ses derniers inputs, et lecture
+/// des snapshots.
 struct GameClient {
-    ClientConnection connection;
-    std::optional<Session> session; ///< créée une fois connecté : il lui faut le jeton de session
-    UdpSocket socket;
-    Address server;
-
-    float yawDegrees = 0.0f;  ///< où regarde ce joueur
-    Tick nextInputTick = 1;   ///< ticks du client (indépendants de ceux du serveur)
-    std::deque<InputCommand> recentInputs;
+    client::ServerLink link;
+    float yawDegrees = 0.0f; ///< où regarde ce joueur
+    Tick nextInputTick = 1;  ///< ticks du client (indépendants de ceux du serveur)
+    client::InputHistory inputs;
     std::optional<Snapshot> latest; ///< snapshot le plus récent reçu
 
     GameClient(std::string name, std::uint16_t serverPort)
-        : connection(std::move(name)), socket(*UdpSocket::open()),
-          server(Address::loopback(serverPort)) {}
+        : link(*client::ServerLink::open(std::move(name), Address::loopback(serverPort))) {}
 
     void step(Clock::time_point now) {
-        while (const auto message = connection.nextOutgoing(now)) {
-            (void)socket.send(server, buildControlPacket(*message));
-        }
-        if (connection.state() == ConnectionState::Connected) {
-            if (!session) {
-                session.emplace(*connection.sessionToken());
-            }
+        link.poll(now);
+        if (link.connected()) {
             sendInputs(now);
         }
-        receiveAll(now);
-        connection.update(now);
+        for (auto& snapshot : link.takeSnapshots()) {
+            if (!latest || snapshot.serverTick > latest->serverTick) {
+                latest = std::move(snapshot); // un snapshot plus vieux arrivé en retard est ignoré
+            }
+        }
     }
 
     void sendInputs(Clock::time_point now) {
         InputCommand command;
         command.moveForward = quantizeAxis(1.0f);
         command.yaw = quantizeYaw(yawDegrees);
-        recentInputs.push_back(command);
-        if (recentInputs.size() > kMaxInputsPerBatch) {
-            recentInputs.pop_front();
-        }
-        const Tick first = nextInputTick - static_cast<Tick>(recentInputs.size() - 1);
-        session->queueUnreliable(InputBatch{first, {recentInputs.begin(), recentInputs.end()}});
-        ++nextInputTick;
-
-        (void)socket.send(server, session->buildPacket(now));
-        connection.onGamePacketSent(now);
-    }
-
-    void receiveAll(Clock::time_point now) {
-        std::array<std::byte, kMaxPacketSize> buffer{};
-        while (const auto received = socket.receive(buffer)) {
-            const auto packet = parsePacket(std::span(buffer).first(received->size));
-            if (!packet) {
-                continue;
-            }
-            if (isControlPacketKind(packet->kind)) {
-                if (const auto message = decodeControl(packet->kind, packet->body)) {
-                    connection.onMessage(*message, now);
-                }
-            } else if (session && session->receive(*packet, now)) {
-                connection.onGamePacketReceived(now);
-            }
-        }
-        if (!session) {
-            return;
-        }
-        for (auto& message : session->takeMessages()) {
-            auto* snapshot = std::get_if<Snapshot>(&message);
-            if (snapshot && (!latest || snapshot->serverTick > latest->serverTick)) {
-                latest = std::move(*snapshot); // un snapshot plus vieux arrivé en retard est ignoré
-            }
-        }
+        inputs.record(nextInputTick++, command);
+        link.sendInputs(inputs.recentBatch(), now);
     }
 
     [[nodiscard]] const EntityState* entity(EntityId id) const {
@@ -141,9 +100,9 @@ struct Match {
     }
 
     void connect(GameClient& client) {
-        client.connection.connect(now);
-        runUntil({&client}, [&] { return client.connection.state() == ConnectionState::Connected; });
-        REQUIRE(client.connection.state() == ConnectionState::Connected);
+        client.link.connect(now);
+        runUntil({&client}, [&] { return client.link.connected(); });
+        REQUIRE(client.link.connected());
     }
 };
 
@@ -158,7 +117,7 @@ TEST_CASE("Partie : deux joueurs se voient et le serveur applique leurs inputs")
 
     match.connect(ana);
     match.connect(bilal);
-    const auto bilalId = *bilal.connection.playerId();
+    const auto bilalId = *bilal.link.playerId();
 
     // Ana voit Bilal regarder vers 180°, et le serveur a appliqué ses propres inputs récents.
     match.runUntil({&ana, &bilal}, [&] {
@@ -175,8 +134,9 @@ TEST_CASE("Partie : deux joueurs se voient et le serveur applique leurs inputs")
     CHECK(match.world.playerCount() == 2);
 
     // Le client a mesuré l'aller-retour, et personne n'a eu besoin de KeepAlive pour rester.
-    CHECK(ana.session->roundTripTime().has_value());
-    CHECK(ana.connection.state() == ConnectionState::Connected);
+    REQUIRE(ana.link.session().has_value());
+    CHECK(ana.link.session()->roundTripTime().has_value());
+    CHECK(ana.link.connected());
 }
 
 TEST_CASE("Partie : le serveur déplace le joueur selon ses inputs (simulation partagée)") {
@@ -184,7 +144,7 @@ TEST_CASE("Partie : le serveur déplace le joueur selon ses inputs (simulation p
     GameClient ana("Ana", match.service.port());
     ana.yawDegrees = 90.0f; // avance vers le sud (+y)
     match.connect(ana);
-    const auto id = *ana.connection.playerId();
+    const auto id = *ana.link.playerId();
 
     match.runUntil({&ana}, [&] { return ana.entity(id) != nullptr; });
     REQUIRE(ana.entity(id) != nullptr);
@@ -208,11 +168,11 @@ TEST_CASE("Partie : un joueur qui part disparaît des snapshots des autres") {
     GameClient bilal("Bilal", match.service.port());
     match.connect(ana);
     match.connect(bilal);
-    const auto bilalId = *bilal.connection.playerId();
+    const auto bilalId = *bilal.link.playerId();
     match.runUntil({&ana, &bilal}, [&] { return ana.entity(bilalId) != nullptr; });
     REQUIRE(ana.entity(bilalId) != nullptr);
 
-    bilal.connection.disconnect();
+    bilal.link.disconnect();
     match.runUntil({&ana, &bilal}, [&] { return ana.latest->entities.size() == 1; });
 
     CHECK(ana.entity(bilalId) == nullptr);
@@ -230,9 +190,9 @@ TEST_CASE("Partie : l'état continue d'arriver sous un mauvais réseau côté se
 
     REQUIRE(ana.latest.has_value());
     CHECK(ana.latest->lastProcessedInput > 40);
-    REQUIRE(ana.entity(*ana.connection.playerId()) != nullptr);
-    CHECK(ana.entity(*ana.connection.playerId())->yaw == quantizeYaw(270.0f));
-    CHECK(match.service.session(*ana.connection.playerId())->stats().packetsReceived > 40);
+    REQUIRE(ana.entity(*ana.link.playerId()) != nullptr);
+    CHECK(ana.entity(*ana.link.playerId())->yaw == quantizeYaw(270.0f));
+    CHECK(match.service.session(*ana.link.playerId())->stats().packetsReceived > 40);
 }
 
 TEST_CASE("Partie : un paquet de jeu d'un inconnu ne crée pas de joueur") {

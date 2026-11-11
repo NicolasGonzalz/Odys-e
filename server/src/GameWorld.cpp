@@ -1,6 +1,7 @@
 #include "GameWorld.hpp"
 
 #include "odyssee/net/Quantize.hpp"
+#include "odyssee/sim/ProvisionalGround.hpp"
 #include "odyssee/sim/Replication.hpp"
 
 #include <algorithm>
@@ -11,11 +12,12 @@ namespace odyssee::server {
 namespace {
 
 /// Point d'apparition provisoire : la salle des capsules du centre de stase
-/// (tools/worldgen/world_layout.json, centre_stase ; terrain à 8,55 m, sol du bunker 30 cm
-/// au-dessus). Remplacé par celui de la carte quand le serveur la chargera (T041).
+/// (tools/worldgen/world_layout.json, centre_stase), posé sur le sol provisoire partagé avec le
+/// client (sim/ProvisionalGround.hpp). Remplacé par celui de la carte quand le serveur la
+/// chargera (T041).
 constexpr float kSpawnX = 1900.0f;
 constexpr float kSpawnY = 2602.0f;
-constexpr float kSpawnZ = 8.85f;
+constexpr float kSpawnZ = sim::kProvisionalGroundMeters;
 constexpr float kSpawnYawDegrees = 270.0f; // vers le nord : face à la sortie, vers le monde
 
 /// Les joueurs apparaissent côte à côte, à 2 m d'écart (entre les capsules).
@@ -42,7 +44,7 @@ net::InputCommand idleCommand(const sim::PlayerState& motion) {
 
 } // namespace
 
-GameWorld::GameWorld() : _terrain(net::quantizePosition(kSpawnZ)) {}
+GameWorld::GameWorld() : _terrain(sim::provisionalGroundHeight()) {}
 
 void GameWorld::syncPlayers(std::span<const ConnectedPlayer> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
