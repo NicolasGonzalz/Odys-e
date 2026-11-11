@@ -9,14 +9,18 @@ jobs:
   linux:
     name: Linux (GCC, sanitizers)
     runs-on: ubuntu-24.04
+    timeout-minutes: 30 # une CI bloquée échoue vite au lieu d'occuper un runner des heures
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
+      # Les miroirs Ubuntu de GitHub ont déjà bloqué cette étape 23 min : délai court et
+      # nouvelles tentatives, pour échouer vite (ou réussir au 2e essai) plutôt que d'attendre.
       - name: Dépendances système
+        timeout-minutes: 8
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxinerama-dev \
-            libxcursor-dev libxi-dev libgl1-mesa-dev
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
 
       - name: Configuration
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DODYSSEE_SANITIZERS=ON
@@ -35,8 +39,9 @@ jobs:
   windows:
     name: Windows (MSVC)
     runs-on: windows-2022
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Le client raylib est un outil de debug Linux : sous Windows, on vérifie shared/, le serveur
       # (utilisé en solo) et les tests, c'est-à-dire tout ce que le plugin Unreal réutilisera.
