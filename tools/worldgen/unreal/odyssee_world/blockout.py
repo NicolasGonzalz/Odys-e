@@ -145,8 +145,8 @@ def _tunnel_boxes(label, tunnel, wall):
     return [
         # Le sol déborde de 3 m devant l'entrée : le trou du Landscape va jusqu'à +2 m (cave_hole),
         # il ne doit jamais rester de vide sous les pieds.
-        Box(f"{label} — sol du tunnel", ((3 - length) / 2, 0, -0.2), (length + 3, width + 2 * wall,
-                                                                       0.5), DIRT),
+        Box(f"{label} — sol du tunnel", ((3 - length) / 2, 0, -0.2),
+            (length + 3, width + 2 * wall + 2, 0.5), DIRT),
         Box(f"{label} — paroi gauche", (-length / 2 + 0.25, -side, height / 2),
             (length + 0.5, wall, height), ROCK),
         Box(f"{label} — paroi droite", (-length / 2 + 0.25, side, height / 2),
@@ -196,6 +196,9 @@ def cave(label, shapes, kind):
     half = tunnel[1] / 2 + wall
     boxes += [
         Box(f"{label} — auvent", (0.8, 0, tunnel[2] + 1.0), (1.6, 2 * half + 3, 2.5), ROCK),
+        # Couvercle : le Landscape est percé au-dessus de la voûte (cave_hole, de -5 à +2 m) ; ce bloc
+        # remonte au niveau du haut de la falaise (generate_terrain : voûte + 2,5 m) et comble la fosse.
+        Box(f"{label} — couvercle", (-1.95, 0, tunnel[2] + 2.1), (7.1, 2 * half + 1, 1.2), ROCK),
         Box(f"{label} — rocher gauche", (0.8, -half - 0.6, tunnel[2] / 2 + 0.5),
             (1.6, 1.8, tunnel[2] + 1), ROCK),
         Box(f"{label} — rocher droit", (0.8, half + 0.6, tunnel[2] / 2 + 0.5),
