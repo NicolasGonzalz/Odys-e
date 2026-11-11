@@ -7,7 +7,6 @@
 #include "odyssee/core/Log.hpp"
 #include "odyssee/net/UdpSocket.hpp"
 
-#include <random>
 #include <thread>
 
 namespace odyssee::server {
@@ -15,12 +14,6 @@ namespace odyssee::server {
 namespace {
 
 constexpr log::Logger kLog{"server"};
-
-/// Graine imprévisible pour les défis de connexion (un attaquant ne doit pas pouvoir les deviner).
-std::uint64_t unpredictableSeed() {
-    std::random_device device;
-    return (std::uint64_t{device()} << 32) | device();
-}
 
 } // namespace
 
@@ -34,7 +27,8 @@ bool Server::run() {
         return false;
     }
 
-    ConnectionService connections(std::move(*socket), unpredictableSeed(), _network);
+    // Secret des défis de connexion : imprévisible, tiré une fois au démarrage.
+    ConnectionService connections(std::move(*socket), SipKey::random(), _network);
     kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max", ODYSSEE_VERSION_STRING, _port,
               kTickRate, kMaxPlayers);
     if (!_network.isPerfect()) {

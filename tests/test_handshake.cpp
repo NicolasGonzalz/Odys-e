@@ -6,6 +6,7 @@
 #include "odyssee/core/Config.hpp"
 #include "odyssee/net/ClientConnection.hpp"
 #include "odyssee/net/PacketFraming.hpp"
+#include "odyssee/net/Session.hpp"
 #include "odyssee/net/UdpSocket.hpp"
 
 #include <doctest/doctest.h>
@@ -13,6 +14,7 @@
 #include <array>
 #include <chrono>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <vector>
@@ -70,6 +72,31 @@ void runUntil(ConnectionService& service, std::vector<TestClient*> clients, Cloc
 
 ConnectionService startServer() { return ConnectionService(*UdpSocket::open(), 1234); }
 
+/// Laisse arriver ce qui vient d'être envoyé au serveur, puis le lui fait traiter.
+void deliver(ConnectionService& service, Clock::time_point now) {
+    std::this_thread::sleep_for(2ms);
+    service.poll(now);
+    std::this_thread::sleep_for(2ms);
+}
+
+/// Connecte `client` (échec du test sinon).
+void connect(ConnectionService& service, TestClient& client, Clock::time_point& now) {
+    client.connection.connect(now);
+    runUntil(service, {&client}, now,
+             [&] { return client.connection.state() == ConnectionState::Connected; });
+    REQUIRE(client.connection.state() == ConnectionState::Connected);
+}
+
+/// Nombre de datagrammes en attente sur `socket`.
+int countReplies(UdpSocket& socket) {
+    std::array<std::byte, kMaxPacketSize> buffer{};
+    int count = 0;
+    while (socket.receive(buffer)) {
+        ++count;
+    }
+    return count;
+}
+
 } // namespace
 
 TEST_CASE("Connexion : un client se connecte au serveur") {
@@ -117,7 +144,9 @@ TEST_CASE("Connexion : un client d'une autre version reçoit « mauvaise version
     auto socket = *UdpSocket::open();
 
     const PacketHeader foreign{static_cast<std::uint16_t>(kProtocolVersion + 1), 0, 0, 0};
-    const auto request = buildPacket(foreign, PacketKind::ConnectRequest, {});
+    // Contenu quelconque : le serveur ne sait peut-être pas le lire, mais répond quand même.
+    const std::vector<std::byte> body(16);
+    const auto request = buildPacket(foreign, PacketKind::ConnectRequest, body);
     REQUIRE(socket.send(Address::loopback(service.port()), request));
 
     std::optional<ControlMessage> reply;
@@ -194,4 +223,186 @@ TEST_CASE("Connexion : réussit malgré un mauvais réseau côté serveur") {
 
     CHECK(lina.connection.state() == ConnectionState::Connected);
     CHECK(service.playerCount() == 1);
+}
+
+// --- Poignée de main hostile ------------------------------------------------------------------
+
+TEST_CASE("Connexion hostile : le serveur ne répond jamais plus qu'il n'a reçu") {
+    auto service = startServer();
+    auto socket = *UdpSocket::open();
+    const Address server = Address::loopback(service.port());
+    const auto now = Clock::now();
+
+    // Demande bien formée mais sans rembourrage : elle vaudrait un défi plus gros qu'elle.
+    const auto padded = buildControlPacket(ConnectRequest{"Teo", 1});
+    const std::span<const std::byte> unpadded = std::span(padded).first(PacketHeader::kSize + 14);
+    REQUIRE(socket.send(server, unpadded));
+    // Demande d'une autre version réduite à son en-tête : plus courte que le refus.
+    const PacketHeader foreign{static_cast<std::uint16_t>(kProtocolVersion + 1), 0, 0, 0};
+    REQUIRE(socket.send(server, buildPacket(foreign, PacketKind::ConnectRequest, {})));
+    deliver(service, now);
+    CHECK(countReplies(socket) == 0);
+
+    // La même demande, rembourrée, reçoit bien son défi — pas plus gros qu'elle.
+    REQUIRE(socket.send(server, padded));
+    deliver(service, now);
+    std::array<std::byte, kMaxPacketSize> buffer{};
+    const auto reply = socket.receive(buffer);
+    REQUIRE(reply.has_value());
+    CHECK(reply->size <= padded.size());
+    CHECK(service.playerCount() == 0);
+}
+
+TEST_CASE("Connexion hostile : un jeton de défi inventé n'ouvre pas de place") {
+    auto service = startServer();
+    auto socket = *UdpSocket::open();
+    const Address server = Address::loopback(service.port());
+    const auto now = Clock::now();
+
+    std::mt19937_64 random(99);
+    for (int i = 0; i < 200; ++i) {
+        const ChallengeResponse guess{random(), random(), "Intrus"};
+        REQUIRE(socket.send(server, buildControlPacket(guess)));
+        if (i % 20 == 19) {
+            deliver(service, now);
+        }
+    }
+    CHECK(service.playerCount() == 0);
+    CHECK(countReplies(socket) == 0);
+}
+
+TEST_CASE("Connexion hostile : des octets aléatoires ne font ni tomber ni réagir le serveur") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+
+    // Depuis un inconnu, puis depuis l'adresse même du joueur connecté.
+    auto stranger = *UdpSocket::open();
+    const Address server = Address::loopback(service.port());
+    std::mt19937_64 random(2024);
+    for (int i = 0; i < 400; ++i) {
+        std::vector<std::byte> noise(1 + random() % 200);
+        for (std::byte& byte : noise) {
+            byte = static_cast<std::byte>(random() & 0xFF);
+        }
+        if (i % 2 == 0 && noise.size() > 11) { // la moitié avec un en-tête et un type plausibles
+            const auto header = buildPacket(PacketHeader{kProtocolVersion, 0, 0, 0},
+                                            static_cast<PacketKind>(1 + random() % 8), {});
+            std::copy(header.begin(), header.end(), noise.begin());
+        }
+        REQUIRE((i % 4 < 2 ? stranger : teo.socket).send(server, noise));
+        if (i % 20 == 19) {
+            deliver(service, now);
+        }
+    }
+    CHECK(service.playerCount() == 1);
+    CHECK(teo.connection.state() == ConnectionState::Connected);
+    CHECK(service.session(0)->stats().packetsReceived == 0);
+}
+
+// --- Jeton de session -------------------------------------------------------------------------
+
+TEST_CASE("Jeton de session : un paquet de jeu sans le bon jeton est ignoré avant tout effet") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+    const Address server = Address::loopback(service.port());
+    const SessionToken token = *teo.connection.sessionToken();
+
+    // Même adresse que le joueur (comme une adresse usurpée), mais jeton faux ou absent.
+    for (const SessionToken wrong : {SessionToken{0}, token + 1, ~token}) {
+        Session forged(wrong);
+        forged.queueUnreliable(InputBatch{1, {InputCommand{}}});
+        REQUIRE(teo.socket.send(server, forged.buildPacket(now)));
+    }
+    deliver(service, now);
+    const auto& stats = service.session(0)->stats();
+    CHECK(stats.packetsReceived == 0);
+    CHECK(stats.packetsIgnored == 0); // même pas présentés à la session
+    CHECK(service.takeInputs(0).empty());
+
+    // Ces paquets ne comptent pas comme signe de vie : le joueur muet est retiré à l'heure.
+    service.poll(now + kConnectionTimeout + 1s);
+    CHECK(service.playerCount() == 0);
+}
+
+TEST_CASE("Jeton de session : le bon jeton fait passer les paquets de jeu") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+
+    Session session(*teo.connection.sessionToken());
+    session.queueUnreliable(InputBatch{1, {InputCommand{}}});
+    REQUIRE(teo.socket.send(Address::loopback(service.port()), session.buildPacket(now)));
+    deliver(service, now);
+
+    CHECK(service.session(0)->stats().packetsReceived == 1);
+    CHECK(service.takeInputs(0).size() == 1);
+}
+
+TEST_CASE("Jeton de session : un Disconnect forgé ne déconnecte pas le joueur") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+    const Address server = Address::loopback(service.port());
+    const SessionToken token = *teo.connection.sessionToken();
+
+    REQUIRE(teo.socket.send(server, buildControlPacket(Disconnect{token + 1})));
+    REQUIRE(teo.socket.send(server, buildControlPacket(Disconnect{0})));
+    deliver(service, now);
+    CHECK(service.playerCount() == 1);
+
+    REQUIRE(teo.socket.send(server, buildControlPacket(Disconnect{token})));
+    deliver(service, now);
+    CHECK(service.playerCount() == 0);
+}
+
+TEST_CASE("Jeton de session : un serveur usurpé ne peut pas fermer la connexion du client") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+
+    teo.connection.onMessage(Disconnect{*teo.connection.sessionToken() + 1}, now);
+    CHECK(teo.connection.state() == ConnectionState::Connected);
+}
+
+// --- Reconnexion ------------------------------------------------------------------------------
+
+TEST_CASE("Reconnexion : depuis la même adresse, la session repart de zéro") {
+    auto service = startServer();
+    TestClient teo("Teo", service.port());
+    auto now = Clock::now();
+    connect(service, teo, now);
+    const Address server = Address::loopback(service.port());
+    const SessionToken oldToken = *teo.connection.sessionToken();
+    const auto oldGeneration = service.connectedPlayers().front().generation;
+
+    // Quelques paquets de jeu : la session du serveur a un historique (numéros reçus).
+    Session oldSession(oldToken);
+    for (int i = 0; i < 5; ++i) {
+        REQUIRE(teo.socket.send(server, oldSession.buildPacket(now)));
+    }
+    deliver(service, now);
+    REQUIRE(service.session(0)->stats().packetsReceived == 5);
+
+    // Le client redémarre sur le même port et refait toute la poignée de main.
+    connect(service, teo, now);
+    const SessionToken newToken = *teo.connection.sessionToken();
+    CHECK(newToken != oldToken);
+    CHECK(service.playerCount() == 1);
+    CHECK(service.connectedPlayers().front().generation != oldGeneration);
+    CHECK(service.session(0)->stats().packetsReceived == 0); // session neuve
+
+    // Ses numéros de paquet repartent de 0 : ils ne sont pas pris pour des doublons.
+    Session newSession(newToken);
+    REQUIRE(teo.socket.send(server, newSession.buildPacket(now)));
+    // Un paquet de l'ancienne session, arrivé en retard, est ignoré.
+    REQUIRE(teo.socket.send(server, oldSession.buildPacket(now)));
+    deliver(service, now);
+    CHECK(service.session(0)->stats().packetsReceived == 1);
 }

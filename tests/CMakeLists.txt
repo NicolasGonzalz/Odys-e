@@ -30,6 +30,7 @@ if(ODYSSEE_BUILD_SERVER)
     target_sources(odyssee_tests PRIVATE
         test_command_line.cpp
         test_client_registry.cpp
+        test_siphash.cpp
         test_handshake.cpp
         test_input_queue.cpp
         test_game_world.cpp

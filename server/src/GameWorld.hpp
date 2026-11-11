@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -25,8 +26,10 @@ class GameWorld {
     GameWorld();
 
     /// Fait correspondre les joueurs du monde à ceux qui sont connectés : ajoute les nouveaux
-    /// (au point d'apparition), retire ceux qui sont partis.
-    void syncPlayers(std::span<const net::PlayerId> connected);
+    /// (au point d'apparition), retire ceux qui sont partis. Une place dont la génération a
+    /// changé est occupée par une autre connexion : le joueur réapparaît, sans rien garder de
+    /// l'ancien (position, inputs en attente, dernier input appliqué).
+    void syncPlayers(std::span<const ConnectedPlayer> connected);
 
     /// Inputs reçus d'un joueur (ignorés s'il n'est pas dans le monde).
     void receiveInputs(net::PlayerId player, const net::InputBatch& batch);
@@ -45,12 +48,13 @@ class GameWorld {
 
   private:
     struct PlayerState {
+        ConnectionGeneration generation = 0;
         sim::PlayerState motion;
         net::Tick lastProcessedInput = 0;
         InputQueue inputs;
     };
 
-    static PlayerState spawn(net::PlayerId player);
+    static PlayerState spawn(const ConnectedPlayer& player);
 
     sim::FlatTerrain _terrain; ///< sol plat à la hauteur du point d'apparition, en attendant T041
     std::array<std::optional<PlayerState>, kMaxPlayers> _players;

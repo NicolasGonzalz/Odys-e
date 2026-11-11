@@ -26,15 +26,20 @@ class ConnectionService {
   public:
     using Clock = std::chrono::steady_clock;
 
+    /// `key` : secret des défis de connexion (SipKey::random() en vrai).
     /// `network` : mauvaises conditions à simuler sur les envois (aucune par défaut).
+    ConnectionService(net::UdpSocket socket, const SipKey& key,
+                      net::NetworkConditions network = {});
+
+    /// Secret et tirages dérivés de `seed` : pour des tests reproductibles.
     ConnectionService(net::UdpSocket socket, std::uint64_t seed,
                       net::NetworkConditions network = {});
 
     /// Traite tout ce qui est arrivé depuis le dernier appel, puis fait l'entretien.
     void poll(Clock::time_point now);
 
-    /// Les joueurs connectés, par numéro croissant.
-    [[nodiscard]] std::vector<net::PlayerId> connectedPlayers() const;
+    /// Les joueurs connectés, par numéro croissant, avec la génération de leur connexion.
+    [[nodiscard]] std::vector<ConnectedPlayer> connectedPlayers() const;
 
     /// Inputs reçus d'un joueur depuis le dernier appel (vide s'il n'est pas connecté).
     [[nodiscard]] std::vector<net::InputBatch> takeInputs(net::PlayerId player);
@@ -66,16 +71,22 @@ class ConnectionService {
     /// Ce qui relie le serveur à un joueur connecté, une fois la poignée de main faite.
     struct PlayerLink {
         net::Address address;
+        ConnectionGeneration generation = 0;
+        net::SessionToken sessionToken = 0;
         net::Session session;
     };
 
     void receiveAll(Clock::time_point now);
     void handlePacket(const net::Address& from, std::span<const std::byte> bytes,
                       Clock::time_point now);
-    void handleControl(const net::Address& from, const net::IncomingPacket& packet,
-                       Clock::time_point now);
-    void handleGame(const net::Address& from, const net::IncomingPacket& packet,
-                    Clock::time_point now);
+    [[nodiscard]] PlayerLink* authenticatedLink(const net::Address& from,
+                                                const net::IncomingPacket& packet);
+    void handleSessionPacket(PlayerLink& link, const net::IncomingPacket& packet,
+                             Clock::time_point now);
+    void handleHandshake(const net::Address& from, const net::IncomingPacket& packet,
+                         std::size_t requestSize, Clock::time_point now);
+    void reply(const net::Address& to, const net::ControlMessage& message,
+               std::size_t requestSize, Clock::time_point now);
     void syncLinks();
     void sendKeepAlives(Clock::time_point now);
     void send(const net::Address& to, const net::ControlMessage& message, Clock::time_point now);

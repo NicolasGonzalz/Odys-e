@@ -9,6 +9,7 @@
 #include <vector>
 
 using namespace odyssee;
+using odyssee::server::ConnectedPlayer;
 using odyssee::server::GameWorld;
 
 namespace {
@@ -29,7 +30,7 @@ const net::EntityState* entityOf(const net::Snapshot& snapshot, net::EntityId id
 
 TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparaissent") {
     GameWorld world;
-    const std::vector<net::PlayerId> two{0, 2};
+    const std::vector<ConnectedPlayer> two{{0, 1}, {2, 2}};
     world.syncPlayers(two);
     CHECK(world.playerCount() == 2);
     CHECK(world.hasPlayer(2));
@@ -41,7 +42,7 @@ TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparai
     REQUIRE(entityOf(snapshot, 2) != nullptr);
     CHECK(entityOf(snapshot, 2)->kind == net::EntityKind::Player);
 
-    const std::vector<net::PlayerId> one{2};
+    const std::vector<ConnectedPlayer> one{{2, 2}};
     world.syncPlayers(one);
     CHECK(world.playerCount() == 1);
     CHECK(world.snapshotFor(2, 51).entities.size() == 1);
@@ -49,7 +50,7 @@ TEST_CASE("GameWorld : les joueurs connectés apparaissent, ceux partis disparai
 
 TEST_CASE("GameWorld : deux joueurs n'apparaissent pas au même endroit") {
     GameWorld world;
-    const std::vector<net::PlayerId> all{0, 1, 2, 3};
+    const std::vector<ConnectedPlayer> all{{0, 1}, {1, 2}, {2, 3}, {3, 4}};
     world.syncPlayers(all);
     const auto snapshot = world.snapshotFor(0, 1);
     for (std::size_t i = 0; i < snapshot.entities.size(); ++i) {
@@ -61,7 +62,7 @@ TEST_CASE("GameWorld : deux joueurs n'apparaissent pas au même endroit") {
 
 TEST_CASE("GameWorld : un input par tick ; l'orientation suit, le dernier input est signalé") {
     GameWorld world;
-    const std::vector<net::PlayerId> one{1};
+    const std::vector<ConnectedPlayer> one{{1, 1}};
     world.syncPlayers(one);
 
     world.receiveInputs(1, lookingAt(500, 30.0f));
@@ -93,7 +94,7 @@ TEST_CASE("GameWorld : le serveur et la prédiction du client arrivent au même 
     // Le serveur reçoit les inputs par lots redondants (comme sur le réseau) ; le client applique
     // sim::step lui-même, un input par tick, à partir de l'état d'apparition reçu.
     GameWorld world;
-    const std::vector<net::PlayerId> one{2};
+    const std::vector<ConnectedPlayer> one{{2, 1}};
     world.syncPlayers(one);
     sim::PlayerState predicted = *world.motionOf(2);
     const sim::FlatTerrain ground(predicted.position[2]); // le sol provisoire du serveur
@@ -121,4 +122,37 @@ TEST_CASE("GameWorld : le serveur et la prédiction du client arrivent au même 
     REQUIRE(world.motionOf(2).has_value());
     CHECK(*world.motionOf(2) == predicted);
     CHECK(world.snapshotFor(2, 999).lastProcessedInput == 120);
+}
+
+TEST_CASE("GameWorld : une place reprise par une autre connexion repart de zéro") {
+    GameWorld world;
+    const std::vector<ConnectedPlayer> before{{1, 7}};
+    world.syncPlayers(before);
+    const sim::PlayerState spawn = *world.motionOf(1);
+
+    // L'ancien joueur avance, et ses ticks d'input sont déjà loin.
+    net::InputCommand forward;
+    forward.moveForward = net::quantizeAxis(1.0f);
+    forward.yaw = spawn.yaw;
+    for (net::Tick tick = 5000; tick < 5020; ++tick) {
+        world.receiveInputs(1, net::InputBatch{tick, {forward}});
+        world.step();
+    }
+    REQUIRE(world.motionOf(1)->position != spawn.position);
+    REQUIRE(world.snapshotFor(1, 1).lastProcessedInput == 5019);
+
+    // Dans le même tick, il part et un autre client prend la place 1 : la place n'a jamais été
+    // vue libre, seule la génération a changé.
+    const std::vector<ConnectedPlayer> after{{1, 8}};
+    world.syncPlayers(after);
+    CHECK(*world.motionOf(1) == spawn);
+    CHECK(world.snapshotFor(1, 2).lastProcessedInput == 0);
+
+    // Le nouveau joueur commence ses ticks à 1 : ils ne sont pas pris pour de vieux inputs.
+    world.receiveInputs(1, net::InputBatch{1, {forward}});
+    world.step();
+    CHECK(world.snapshotFor(1, 3).lastProcessedInput == 1);
+
+    world.syncPlayers(after); // même génération : rien ne bouge
+    CHECK(world.snapshotFor(1, 4).lastProcessedInput == 1);
 }

@@ -21,10 +21,11 @@ constexpr std::uint16_t kAckWindow = 32;
 ReliableSender::ReliableSender(std::chrono::milliseconds resendDelay) : _resendDelay(resendDelay) {}
 
 std::size_t ReliableSender::maxPayloadSize() {
-    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, liste des fiables
+    // Un message seul doit tenir dans un paquet de jeu vide : en-tête, type, jeton, liste des fiables
     // (ce message), liste des non fiables (vide).
     constexpr std::size_t kKindSize = 1;
-    return kMaxPacketSize - PacketHeader::kSize - kKindSize - reliable_codec::kListOverhead -
+    return kMaxPacketSize - PacketHeader::kSize - kKindSize - game_packet::kSessionTokenSize -
+           reliable_codec::kListOverhead -
            reliable_codec::kMessageOverhead - game_packet::kUnreliableListOverhead;
 }
 

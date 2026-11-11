@@ -56,8 +56,8 @@ std::optional<std::vector<UnreliableMessage>> readUnreliable(ByteReader& reader)
 } // namespace
 
 std::size_t packetSize(const GamePacketBody& body) {
-    std::size_t size = PacketHeader::kSize + kKindSize + reliable_codec::kListOverhead +
-                       kUnreliableListOverhead;
+    std::size_t size = PacketHeader::kSize + kKindSize + kSessionTokenSize +
+                       reliable_codec::kListOverhead + kUnreliableListOverhead;
     for (const ReliableMessage& message : body.reliable) {
         size += reliable_codec::encodedSize(message);
     }
@@ -69,6 +69,7 @@ std::size_t packetSize(const GamePacketBody& body) {
 
 std::vector<std::byte> build(const PacketHeader& header, const GamePacketBody& body) {
     ByteWriter writer;
+    writer.writeU64(body.sessionToken);
     reliable_codec::write(writer, body.reliable);
     writeUnreliable(writer, body.unreliable);
     return buildPacket(header, PacketKind::Game, writer.data());
@@ -76,6 +77,10 @@ std::vector<std::byte> build(const PacketHeader& header, const GamePacketBody& b
 
 std::optional<GamePacketBody> parse(std::span<const std::byte> body) {
     ByteReader reader(body);
+    const auto token = reader.readU64();
+    if (!token) {
+        return std::nullopt;
+    }
     auto reliable = reliable_codec::read(reader);
     if (!reliable) {
         return std::nullopt;
@@ -84,7 +89,7 @@ std::optional<GamePacketBody> parse(std::span<const std::byte> body) {
     if (!unreliable || reader.remaining() != 0) {
         return std::nullopt; // tronqué, ou octets en trop
     }
-    return GamePacketBody{std::move(*reliable), std::move(*unreliable)};
+    return GamePacketBody{std::move(*reliable), std::move(*unreliable), *token};
 }
 
 } // namespace odyssee::net::game_packet

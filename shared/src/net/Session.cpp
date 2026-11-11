@@ -11,17 +11,19 @@ namespace {
 
 constexpr std::size_t kKindSize = 1;
 
-/// Place laissée aux messages fiables : le paquet entier, moins l'en-tête, le type et le compteur
-/// des non fiables (le compteur des fiables est compté par ReliableSender).
+/// Place laissée aux messages fiables : le paquet entier, moins l'en-tête, le type, le jeton de
+/// session et le compteur des non fiables (le compteur des fiables est compté par ReliableSender).
 constexpr std::size_t kReliableBudget =
-    kMaxPacketSize - PacketHeader::kSize - kKindSize - game_packet::kUnreliableListOverhead;
+    kMaxPacketSize - PacketHeader::kSize - kKindSize - game_packet::kSessionTokenSize -
+    game_packet::kUnreliableListOverhead;
 
 /// Poids d'une nouvelle mesure dans la moyenne glissante de l'aller-retour (comme TCP : 1/8).
 constexpr int kRoundTripSmoothing = 8;
 
 } // namespace
 
-Session::Session(std::chrono::milliseconds resendDelay) : _reliableOut(resendDelay) {}
+Session::Session(SessionToken sessionToken, std::chrono::milliseconds resendDelay)
+    : _token(sessionToken), _reliableOut(resendDelay) {}
 
 bool Session::queueReliable(std::vector<std::byte> payload) {
     return _reliableOut.enqueue(std::move(payload)).has_value();
@@ -37,6 +39,7 @@ std::vector<std::byte> Session::buildPacket(Clock::time_point now) {
     const PacketHeader header{kProtocolVersion, sequence, _received.ack(), _received.ackBits()};
 
     GamePacketBody body;
+    body.sessionToken = _token;
     body.reliable = _reliableOut.collectForPacket(sequence, now, kReliableBudget);
     appendUnreliable(body);
 
@@ -61,12 +64,12 @@ void Session::appendUnreliable(GamePacketBody& body) {
 }
 
 bool Session::receive(const IncomingPacket& packet, Clock::time_point now) {
-    auto body = game_packet::parse(packet.body);
-    const bool usable = packet.kind == PacketKind::Game && packet.header.hasCurrentProtocol() &&
-                        body.has_value();
+    // Le type et le jeton d'abord : un paquet qui ne vient pas de l'autre côté de la connexion
+    // n'est même pas analysé.
+    auto body = isFromPeer(packet) ? game_packet::parse(packet.body) : std::nullopt;
     // Le numéro n'est enregistré qu'une fois le paquet jugé valide : un paquet forgé ne doit pas
     // pouvoir faire « acquitter » des numéros jamais reçus.
-    if (!usable || _received.record(packet.header.sequence) != Arrival::New) {
+    if (!body || _received.record(packet.header.sequence) != Arrival::New) {
         ++_stats.packetsIgnored;
         return false;
     }
@@ -75,6 +78,11 @@ bool Session::receive(const IncomingPacket& packet, Clock::time_point now) {
     onAcknowledged(packet.header, now);
     acceptMessages(*body);
     return true;
+}
+
+bool Session::isFromPeer(const IncomingPacket& packet) const {
+    return packet.kind == PacketKind::Game && packet.header.hasCurrentProtocol() &&
+           sessionTokenOf(packet) == _token;
 }
 
 void Session::onAcknowledged(const PacketHeader& header, Clock::time_point now) {
@@ -100,6 +108,9 @@ void Session::acceptMessages(GamePacketBody& body) {
         _reliableIn.receive(std::move(message));
     }
     for (const UnreliableMessage& message : body.unreliable) {
+        if (_acceptedType && message.type != static_cast<std::uint8_t>(*_acceptedType)) {
+            continue; // type que ce côté n'attend pas : ignoré avant décodage
+        }
         if (auto decoded = decodeGameMessage(message.type, message.data)) {
             _messagesIn.push_back(std::move(*decoded));
         }

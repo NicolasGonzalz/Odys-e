@@ -18,6 +18,9 @@ bool isForeignConnectRequest(const net::IncomingPacket& packet) {
     return !packet.header.hasCurrentProtocol() && packet.kind == net::PacketKind::ConnectRequest;
 }
 
+/// Un Disconnect peut se perdre : à l'arrêt, le serveur l'envoie plusieurs fois (comme le client).
+constexpr int kDisconnectCopies = 3;
+
 /// Le simulateur n'existe que si quelque chose est simulé : sinon, envois directs.
 std::optional<net::NetworkSimulator> makeSimulator(const net::NetworkConditions& network,
                                                    std::uint64_t seed) {
@@ -29,9 +32,13 @@ std::optional<net::NetworkSimulator> makeSimulator(const net::NetworkConditions&
 
 } // namespace
 
+ConnectionService::ConnectionService(net::UdpSocket socket, const SipKey& key,
+                                     net::NetworkConditions network)
+    : _socket(std::move(socket)), _registry(key), _simulator(makeSimulator(network, ~key.k0)) {}
+
 ConnectionService::ConnectionService(net::UdpSocket socket, std::uint64_t seed,
                                      net::NetworkConditions network)
-    : _socket(std::move(socket)), _registry(seed), _simulator(makeSimulator(network, ~seed)) {}
+    : ConnectionService(std::move(socket), SipKey::fromSeed(seed), network) {}
 
 // --- Chaque tick ------------------------------------------------------------------------------
 
@@ -43,11 +50,11 @@ void ConnectionService::poll(Clock::time_point now) {
     flushSimulated(now);
 }
 
-std::vector<net::PlayerId> ConnectionService::connectedPlayers() const {
-    std::vector<net::PlayerId> players;
+std::vector<ConnectedPlayer> ConnectionService::connectedPlayers() const {
+    std::vector<ConnectedPlayer> players;
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         if (_links[id]) {
-            players.push_back(id);
+            players.push_back(ConnectedPlayer{id, _links[id]->generation});
         }
     }
     return players;
@@ -105,57 +112,90 @@ void ConnectionService::handlePacket(const net::Address& from, std::span<const s
     }
 
     if (isForeignConnectRequest(*packet)) {
-        send(from, net::Refused{net::RefuseReason::WrongVersion}, now);
+        reply(from, net::Refused{net::RefuseReason::WrongVersion}, bytes.size(), now);
         return;
     }
     if (!packet->header.hasCurrentProtocol()) {
         return;
     }
 
-    if (net::isControlPacketKind(packet->kind)) {
-        handleControl(from, *packet, now);
+    // Le jeton de session d'abord : sans lui, un paquet n'est jamais traité comme celui d'un
+    // joueur, même s'il vient (ou prétend venir) de son adresse.
+    if (PlayerLink* link = authenticatedLink(from, *packet)) {
+        handleSessionPacket(*link, *packet, now);
     } else {
-        handleGame(from, *packet, now);
+        handleHandshake(from, *packet, bytes.size(), now);
     }
 }
 
-void ConnectionService::handleControl(const net::Address& from, const net::IncomingPacket& packet,
-                                      Clock::time_point now) {
-    const auto message = net::decodeControl(packet.kind, packet.body);
-    if (!message) {
-        kLog.debug("paquet invalide ignoré depuis {}", from.toString());
+ConnectionService::PlayerLink* ConnectionService::authenticatedLink(
+    const net::Address& from, const net::IncomingPacket& packet) {
+    const auto player = _registry.playerAt(from);
+    if (!player || !_links[*player]) {
+        return nullptr;
+    }
+    PlayerLink& link = *_links[*player];
+    const bool authentic = link.address == from && net::sessionTokenOf(packet) == link.sessionToken;
+    return authentic ? &link : nullptr;
+}
+
+/// Paquet d'un joueur connecté, jeton vérifié : paquet de jeu, KeepAlive ou Disconnect.
+void ConnectionService::handleSessionPacket(PlayerLink& link, const net::IncomingPacket& packet,
+                                            Clock::time_point now) {
+    if (packet.kind == net::PacketKind::Game) {
+        if (link.session.receive(packet, now)) {
+            (void)_registry.touch(link.address, now);
+        } else {
+            kLog.debug("paquet de jeu ignoré depuis {} (doublon ou invalide)",
+                       link.address.toString());
+        }
         return;
     }
-    if (const auto reply = _registry.handle(from, *message, now)) {
-        send(from, *reply, now);
+    const net::Address from = link.address; // `link` peut disparaître : le joueur part peut-être
+    if (const auto message = net::decodeControl(packet.kind, packet.body)) {
+        (void)_registry.handle(from, *message, now);
+        syncLinks();
     }
-    syncLinks(); // un joueur vient peut-être d'être accepté, ou de partir
 }
 
-void ConnectionService::handleGame(const net::Address& from, const net::IncomingPacket& packet,
-                                   Clock::time_point now) {
-    const auto player = _registry.touch(from, now);
-    if (!player || !_links[*player] || _links[*player]->address != from) {
-        return; // pas un joueur connecté : un paquet de jeu ne crée jamais de connexion
+/// Paquet de quelqu'un qui n'est pas (ou pas encore) reconnu comme joueur : seule une poignée
+/// de main est possible. Un paquet de jeu ne crée jamais de connexion.
+void ConnectionService::handleHandshake(const net::Address& from,
+                                        const net::IncomingPacket& packet,
+                                        std::size_t requestSize, Clock::time_point now) {
+    const bool isHandshake = packet.kind == net::PacketKind::ConnectRequest ||
+                             packet.kind == net::PacketKind::ChallengeResponse;
+    const auto message =
+        isHandshake ? net::decodeControl(packet.kind, packet.body) : std::nullopt;
+    if (!message) {
+        kLog.debug("paquet ignoré depuis {} (invalide ou sans jeton de session)",
+                   from.toString());
+        return;
     }
-    if (!_links[*player]->session.receive(packet, now)) {
-        kLog.debug("paquet de jeu ignoré depuis {} (doublon ou invalide)", from.toString());
+    if (const auto answer = _registry.handle(from, *message, now)) {
+        reply(from, *answer, requestSize, now);
     }
+    syncLinks(); // un joueur vient peut-être d'être accepté, ou de se reconnecter
 }
 
 /// Une session par joueur connecté : créée à l'acceptation, oubliée au départ. Si une place est
-/// reprise par un autre client (autre adresse), la session repart de zéro.
+/// reprise (autre client, ou le même qui se reconnecte), la génération change et la session
+/// repart de zéro.
 void ConnectionService::syncLinks() {
-    std::array<std::optional<net::Address>, kMaxPlayers> connected{};
-    for (const auto& info : _registry.players()) {
-        connected[info.id] = info.address;
+    std::array<std::optional<ClientRegistry::PlayerInfo>, kMaxPlayers> connected{};
+    for (auto& info : _registry.players()) {
+        const net::PlayerId id = info.id;
+        connected[id] = std::move(info);
     }
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         auto& link = _links[id];
-        if (!connected[id]) {
+        const auto& info = connected[id];
+        if (!info) {
             link.reset();
-        } else if (!link || link->address != *connected[id]) {
-            link.emplace(PlayerLink{*connected[id], net::Session{}});
+        } else if (!link || link->generation != info->generation) {
+            link.emplace(PlayerLink{info->address, info->generation, info->sessionToken,
+                                    net::Session{info->sessionToken}});
+            link->session.acceptOnly(net::GameMessageType::Inputs);
         }
     }
 }
@@ -163,14 +203,24 @@ void ConnectionService::syncLinks() {
 // --- Envoi ------------------------------------------------------------------------------------
 
 void ConnectionService::sendKeepAlives(Clock::time_point now) {
-    for (const net::Address& address : _registry.takeKeepAliveTargets(now)) {
-        send(address, net::KeepAlive{}, now);
+    for (const auto& player : _registry.takeKeepAliveTargets(now)) {
+        send(player.address, net::KeepAlive{player.sessionToken}, now);
     }
 }
 
 void ConnectionService::send(const net::Address& to, const net::ControlMessage& message,
                              Clock::time_point now) {
     sendBytes(to, net::buildControlPacket(message), now);
+}
+
+/// Réponse à quelqu'un qui n'a pas encore prouvé son adresse : jamais plus grosse que ce qu'il
+/// a envoyé, sinon le serveur servirait d'amplificateur vers une adresse usurpée.
+void ConnectionService::reply(const net::Address& to, const net::ControlMessage& message,
+                              std::size_t requestSize, Clock::time_point now) {
+    const auto packet = net::buildControlPacket(message);
+    if (packet.size() <= requestSize) {
+        sendBytes(to, packet, now);
+    }
 }
 
 void ConnectionService::sendBytes(const net::Address& to, std::span<const std::byte> bytes,
@@ -201,8 +251,10 @@ std::optional<ConnectionService::Clock::time_point> ConnectionService::nextSimul
 }
 
 void ConnectionService::shutdown() {
-    for (const net::Address& address : _registry.disconnectAll()) {
-        sendNow(address, net::Disconnect{});
+    for (const auto& player : _registry.disconnectAll()) {
+        for (int copy = 0; copy < kDisconnectCopies; ++copy) {
+            sendNow(player.address, net::Disconnect{player.sessionToken});
+        }
     }
     syncLinks();
 }

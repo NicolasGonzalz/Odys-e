@@ -22,19 +22,24 @@ struct UnreliableMessage {
 
 /// Contenu d'un paquet de jeu (PacketKind::Game), après l'en-tête et le type :
 ///
-///   messages fiables (ReliableCodec) | count (u8) | [type (u8) | size (u16) | data…] × count
+///   jeton de session (u64)
+///   | messages fiables (ReliableCodec) | count (u8) | [type (u8) | size (u16) | data…] × count
 ///
+/// Le jeton de session prouve que le paquet vient bien de l'autre côté de la connexion (voir
+/// ControlMessages.hpp) : il est vérifié avant tout le reste.
 /// Les numéros `sequence` / `ack` / `ackBits` de l'en-tête servent ici : acquittements des
 /// paquets, et donc renvoi des messages fiables (voir ReliableSender).
 struct GamePacketBody {
     std::vector<ReliableMessage> reliable;
     std::vector<UnreliableMessage> unreliable;
+    std::uint64_t sessionToken = 0;
 
     friend bool operator==(const GamePacketBody&, const GamePacketBody&) = default;
 };
 
 namespace game_packet {
 
+inline constexpr std::size_t kSessionTokenSize = 8;
 inline constexpr std::size_t kUnreliableListOverhead = 1; ///< le compteur
 inline constexpr std::size_t kUnreliableOverhead = 3;     ///< type + size
 inline constexpr std::size_t kMaxUnreliablePerPacket = 32;

@@ -24,15 +24,15 @@ constexpr float kSpawnSpacing = 2.0f;
 
 GameWorld::GameWorld() : _terrain(net::quantizePosition(kSpawnZ)) {}
 
-void GameWorld::syncPlayers(std::span<const net::PlayerId> connected) {
+void GameWorld::syncPlayers(std::span<const ConnectedPlayer> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
-        const bool isConnected =
-            std::find(connected.begin(), connected.end(), id) != connected.end();
+        const auto player = std::find_if(connected.begin(), connected.end(),
+                                         [id](const ConnectedPlayer& p) { return p.id == id; });
         auto& slot = _players[id];
-        if (isConnected && !slot) {
-            slot = spawn(id);
-        } else if (!isConnected && slot) {
+        if (player == connected.end()) {
             slot.reset();
+        } else if (!slot || slot->generation != player->generation) {
+            slot = spawn(*player); // nouveau joueur, ou place reprise par une autre connexion
         }
     }
 }
@@ -90,13 +90,13 @@ std::size_t GameWorld::playerCount() const {
                       [](const auto& slot) { return slot.has_value(); }));
 }
 
-GameWorld::PlayerState GameWorld::spawn(net::PlayerId player) {
-    const float offset = (static_cast<float>(player) - 1.5f) * kSpawnSpacing;
+GameWorld::PlayerState GameWorld::spawn(const ConnectedPlayer& player) {
+    const float offset = (static_cast<float>(player.id) - 1.5f) * kSpawnSpacing;
     sim::PlayerState motion;
     motion.position = {net::quantizePosition(kSpawnX + offset), net::quantizePosition(kSpawnY),
                        net::quantizePosition(kSpawnZ)};
     motion.yaw = net::quantizeYaw(kSpawnYawDegrees);
-    return PlayerState{motion, 0, {}};
+    return PlayerState{player.generation, motion, 0, {}};
 }
 
 } // namespace odyssee::server

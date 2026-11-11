@@ -23,6 +23,17 @@ std::optional<IncomingPacket> parsePacket(std::span<const std::byte> bytes) {
     return IncomingPacket{*header, static_cast<PacketKind>(*kind), body};
 }
 
+std::optional<std::uint64_t> sessionTokenOf(const IncomingPacket& packet) {
+    const bool carriesToken = packet.kind == PacketKind::Game ||
+                              packet.kind == PacketKind::Disconnect ||
+                              packet.kind == PacketKind::KeepAlive;
+    if (!carriesToken) {
+        return std::nullopt;
+    }
+    ByteReader reader(packet.body);
+    return reader.readU64();
+}
+
 std::vector<std::byte> buildPacket(const PacketHeader& header, PacketKind kind,
                                    std::span<const std::byte> body) {
     ByteWriter writer;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "odyssee/net/ControlMessages.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/net/GamePacket.hpp"
 #include "odyssee/net/PacketFraming.hpp"
@@ -33,7 +34,14 @@ class Session {
         std::uint64_t unreliableDropped = 0; ///< non fiables qui ne tenaient pas dans le paquet
     };
 
-    explicit Session(std::chrono::milliseconds resendDelay = std::chrono::milliseconds{100});
+    /// `sessionToken` : jeton convenu à la poignée de main (ClientConnection::sessionToken()
+    /// côté client). Il est écrit dans chaque paquet envoyé et exigé de chaque paquet reçu.
+    explicit Session(SessionToken sessionToken = 0,
+                     std::chrono::milliseconds resendDelay = std::chrono::milliseconds{100});
+
+    /// N'accepte plus que les messages non fiables de ce type : les autres sont ignorés **sans
+    /// être décodés**. Le serveur n'attend que des inputs : un Snapshot reçu d'un client est faux.
+    void acceptOnly(GameMessageType type) { _acceptedType = type; }
 
     /// Message fiable : livré une fois, dans l'ordre. Faux s'il ne tiendrait dans aucun paquet.
     [[nodiscard]] bool queueReliable(std::vector<std::byte> payload);
@@ -47,7 +55,7 @@ class Session {
     [[nodiscard]] std::vector<std::byte> buildPacket(Clock::time_point now);
 
     /// Prend en compte un paquet de jeu (déjà découpé par parsePacket). Faux s'il est ignoré :
-    /// doublon, trop vieux ou contenu invalide. Un message non fiable invalide est ignoré seul.
+    /// mauvais jeton de session, doublon, trop vieux ou contenu invalide. Un message non fiable invalide est ignoré seul.
     bool receive(const IncomingPacket& packet, Clock::time_point now);
 
     /// Messages non fiables reçus depuis le dernier appel, dans l'ordre d'arrivée (au plus
@@ -75,6 +83,10 @@ class Session {
     void sampleRoundTrip(Sequence acknowledged, Clock::time_point now);
     void acceptMessages(GamePacketBody& body);
 
+    [[nodiscard]] bool isFromPeer(const IncomingPacket& packet) const;
+
+    SessionToken _token = 0;
+    std::optional<GameMessageType> _acceptedType; ///< absent : tous les types connus
     Sequence _nextSequence = 0;
     ReceivedPackets _received;
     ReliableSender _reliableOut;
