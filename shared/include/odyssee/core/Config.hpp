@@ -8,7 +8,7 @@ namespace odyssee {
 
 /// Version du protocole réseau. Incrémentée à chaque changement incompatible :
 /// un client et un serveur de versions différentes refusent de se connecter.
-inline constexpr std::uint16_t kProtocolVersion = 1;
+inline constexpr std::uint16_t kProtocolVersion = 2; // 2 : paquets de jeu (T024)
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;
@@ -42,5 +42,15 @@ inline constexpr std::chrono::milliseconds kHandshakeResendInterval{250};
 
 /// Sans autre trafic, chaque côté envoie un KeepAlive à ce rythme pour ne pas être jugé parti.
 inline constexpr std::chrono::seconds kKeepAliveInterval{1};
+
+// --- Messages de jeu (T024) -------------------------------------------------------------------
+
+/// Inputs envoyés dans chaque paquet : celui du tick et les précédents (0,8 s à 20 ticks/s).
+/// Une perte isolée ne coûte rien : l'input perdu revient dans les paquets suivants.
+inline constexpr std::size_t kMaxInputsPerBatch = 16;
+
+/// Entités au plus dans un snapshot (il doit tenir dans un paquet). La zone d'intérêt (M3)
+/// choisira lesquelles envoyer ; au-delà, il faudra la compression delta.
+inline constexpr std::size_t kMaxSnapshotEntities = 60;
 
 } // namespace odyssee

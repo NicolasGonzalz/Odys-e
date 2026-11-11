@@ -70,6 +70,51 @@ lire un refus pour afficher « mauvaise version ».
 
 Code : `shared/net/ClientConnection` (client), `server/ClientRegistry` et `server/ConnectionService`.
 
+## Paquets de jeu (T024)
+
+Une fois connecté, tout passe par des paquets `Game` = 8 (`PacketKind`), dans les deux sens.
+Les champs `sequence` / `ack` / `ackBits` de l'en-tête y servent : ils acquittent les paquets, et donc
+les messages fiables qu'ils transportaient (renvoyés sinon, voir `ReliableSender`).
+
+```
+PacketHeader | Game (u8) | fiables : count (u8) | [id (u16) | size (u16) | data] × count
+                         | non fiables : count (u8) | [type (u8) | size (u16) | data] × count
+```
+
+Un paquet sans message (deux compteurs à 0) sert juste à acquitter. Au plus 64 messages fiables et
+32 non fiables par paquet ; le tout tient dans 1200 octets.
+
+### Messages non fiables (`GameMessageType`, valeurs figées)
+
+| Type | Sens | Contenu |
+|---|---|---|
+| `Inputs` = 1 | client → serveur | `firstTick` (u32), `count` (u8, 1 à 16), puis `count` inputs de ticks consécutifs, du plus ancien au plus récent |
+| `Snapshot` = 2 | serveur → client | `serverTick` (u32), `lastProcessedInput` (u32), `count` (u8, ≤ 60), puis `count` entités |
+
+- **Input** (8 octets) : `moveForward` (i8), `moveRight` (i8), `yaw` (u16), `pitch` (i16), `buttons` (u16).
+  Boutons : `Jump` 1, `Sprint` 2, `Crouch` 4, `Use` 8, `Primary` 16, `Secondary` 32 ; tout autre bit est refusé.
+- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1), `x`, `y`, `z` (i32), `yaw` (u16), `flags` (u8).
+- `lastProcessedInput` : dernier tick d'input **de ce joueur** appliqué par le serveur (0 tant qu'aucun),
+  base de la réconciliation. Les ticks d'input sont ceux du client.
+- Les messages fiables (événements de jeu, inventaire, chat) arrivent avec le gameplay : leur contenu
+  commencera lui aussi par un type.
+
+### Quantification (`shared/net/Quantize`)
+
+| Grandeur | Codage | Précision |
+|---|---|---|
+| Position (m) | i32, 1/256 m | ≈ 4 mm, ± 8 000 km |
+| Cap (yaw, °) | u16, un tour = 65536 | ≈ 0,0055°, rebouclé |
+| Inclinaison (pitch, °) | i16, ±90° = ±32767 | ≈ 0,003° |
+| Axe de déplacement | i8, ±1 = ±127 | 1/127 |
+
+Le client simule avec l'input **quantifié** (celui qu'il envoie) : le serveur rejoue exactement la même
+entrée. NaN et valeurs hors bornes sont ramenés dans l'intervalle ; un octet hors intervalle reçu
+(axe à -128, pitch à -32768) rend l'input invalide. Tout message invalide, tronqué ou suivi d'octets en
+trop est ignoré entier.
+
+Version du protocole : **2** depuis l'ajout des paquets de jeu.
+
 ## Synchronisation de l'état
 
 ### Côté client → serveur : inputs

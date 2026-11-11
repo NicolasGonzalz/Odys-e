@@ -14,6 +14,9 @@ add_executable(odyssee_tests
     test_player_name.cpp
     test_control_messages.cpp
     test_client_connection.cpp
+    test_quantize.cpp
+    test_game_messages.cpp
+    test_game_packet.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 

@@ -69,3 +69,22 @@ TEST_CASE("ByteBuffer : octets bruts") {
     CHECK(r.readBytes(3) == payload);
     CHECK_FALSE(r.readBytes(1).has_value()); // plus rien
 }
+
+TEST_CASE("ByteBuffer : entiers signés (complément à deux, little-endian)") {
+    ByteWriter w;
+    w.writeI8(-128);
+    w.writeI16(-2);
+    w.writeI32(-123456789);
+    w.writeI32(2147483647);
+
+    // -2 sur 16 bits : 0xFFFE, écrit poids faible d'abord.
+    CHECK(w.data()[1] == std::byte{0xFE});
+    CHECK(w.data()[2] == std::byte{0xFF});
+
+    ByteReader r(w.data());
+    CHECK(r.readI8() == std::int8_t{-128});
+    CHECK(r.readI16() == std::int16_t{-2});
+    CHECK(r.readI32() == -123456789);
+    CHECK(r.readI32() == 2147483647);
+    CHECK_FALSE(r.readI8().has_value());
+}

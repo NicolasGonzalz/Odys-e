@@ -18,6 +18,10 @@ class ByteWriter {
     void writeU16(std::uint16_t v);
     void writeU32(std::uint32_t v);
     void writeU64(std::uint64_t v);
+    /// Entiers signés : complément à deux, même taille que leur équivalent non signé.
+    void writeI8(std::int8_t v);
+    void writeI16(std::int16_t v);
+    void writeI32(std::int32_t v);
     void writeF32(float v);
     void writeBool(bool v) { writeU8(v ? 1 : 0); }
     /// Chaîne préfixée par sa longueur (u16).
@@ -43,6 +47,9 @@ class ByteReader {
     [[nodiscard]] std::optional<std::uint16_t> readU16();
     [[nodiscard]] std::optional<std::uint32_t> readU32();
     [[nodiscard]] std::optional<std::uint64_t> readU64();
+    [[nodiscard]] std::optional<std::int8_t> readI8();
+    [[nodiscard]] std::optional<std::int16_t> readI16();
+    [[nodiscard]] std::optional<std::int32_t> readI32();
     [[nodiscard]] std::optional<float> readF32();
     [[nodiscard]] std::optional<bool> readBool();
     [[nodiscard]] std::optional<std::string> readString(std::size_t maxLength = 256);
@@ -53,6 +60,7 @@ class ByteReader {
 
   private:
     template <typename T> std::optional<T> readUnsigned();
+    template <typename Signed, typename Unsigned> std::optional<Signed> readSigned();
 
     std::span<const std::byte> _data;
     std::size_t _offset = 0;
