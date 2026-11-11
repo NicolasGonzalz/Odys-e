@@ -185,10 +185,11 @@ def _beacon(label, tunnel):
                emissive=2.0, collision=False)
 
 
-def mountain_cave(label, shapes):
-    """Grotte sous la montagne : l'intérieur, un auvent de roche sur l'entrée et une balise."""
-    tunnel, chamber, wall = shapes["montagne"]["tunnel"], shapes["montagne"]["chamber"], \
-        shapes["wall_m"]
+def cave(label, shapes, kind):
+    """Grotte cachée dans le relief (`kind` : montagne ou butte, voir cave_shapes) : l'intérieur,
+    un auvent de roche sur l'entrée et une balise. Le relief autour (falaise, butte, rochers) vient
+    de generate_terrain.py."""
+    tunnel, chamber, wall = shapes[kind]["tunnel"], shapes[kind]["chamber"], shapes["wall_m"]
     boxes, lights = cave_interior(label, tunnel, chamber, wall)
     half = tunnel[1] / 2 + wall
     boxes += [
@@ -202,55 +203,11 @@ def mountain_cave(label, shapes):
     return boxes, lights
 
 
-def mountain_cave_hole(shapes, hole_length_m):
-    """Rectangle (local) à percer dans le Landscape : là où le tunnel sort de la pente.
-    Plus étroit que les parois et la voûte : le bord en escalier du trou reste caché."""
-    tunnel, wall = shapes["montagne"]["tunnel"], shapes["wall_m"]
+def cave_hole(shapes, kind, hole_length_m):
+    """Rectangle (local) à percer dans le Landscape : là où le tunnel sort du relief (la face de
+    la falaise). Plus étroit que les parois et la voûte : le bord en escalier du trou reste caché."""
+    tunnel, wall = shapes[kind]["tunnel"], shapes["wall_m"]
     return (-hole_length_m, 1.0), tunnel[1] / 2 + wall / 2
-
-
-def butte_cave(label, shapes, drop_m):
-    """Butte rocheuse creuse posée sur un terrain plat ; `drop_m` = écart entre son sol et le
-    point le plus bas du terrain dessous (comblé par un socle de roche)."""
-    tunnel, chamber, wall = shapes["butte"]["tunnel"], shapes["butte"]["chamber"], \
-        shapes["wall_m"]
-    boxes, lights = cave_interior(label, tunnel, chamber, wall)
-    return boxes + _butte_shell(label, tunnel, chamber, wall, drop_m) + [_beacon(label, tunnel)], \
-        lights
-
-
-def _butte_shell(label, tunnel, chamber, wall, drop_m):
-    """Masse de roche autour de l'intérieur (en gradins, pour une silhouette de butte)."""
-    cx = -tunnel[0] - chamber[0] / 2
-    tall = chamber[2] + 2
-    outer_y = chamber[1] / 2 + wall
-    full_length = tunnel[0] + chamber[0] + 2 * wall
-    shell = [
-        Box(f"{label} — flanc gauche", (cx, -outer_y - 2, tall / 2), (chamber[0] + 2 * wall + 4, 4,
-                                                                      tall), ROCK),
-        Box(f"{label} — flanc droit", (cx, outer_y + 2, tall / 2), (chamber[0] + 2 * wall + 4, 4,
-                                                                    tall), ROCK),
-        Box(f"{label} — arrière", (cx - chamber[0] / 2 - wall - 2, 0, tall / 2),
-            (4, 2 * outer_y + 8, tall), ROCK),
-        Box(f"{label} — sommet", (cx, 0, chamber[2] + 2), (chamber[0] + 2 * wall + 6,
-                                                          2 * outer_y + 8, 1.6), ROCK),
-        Box(f"{label} — sommet haut", (cx - 1, 0.5, chamber[2] + 3.4), (chamber[0] * 0.65,
-                                                                     chamber[1] * 0.6, 1.6), ROCK),
-        Box(f"{label} — épaulement gauche", (-tunnel[0] / 2, -(tunnel[1] / 2 + wall + 1.5),
-                                            (tunnel[2] + 1.5) / 2), (tunnel[0], 3, tunnel[2] + 1.5),
-            ROCK),
-        Box(f"{label} — épaulement droit", (-tunnel[0] / 2, tunnel[1] / 2 + wall + 1.5,
-                                           (tunnel[2] + 1.5) / 2), (tunnel[0], 3, tunnel[2] + 1.5),
-            ROCK),
-        Box(f"{label} — dessus du tunnel", (-tunnel[0] / 2, 0, tunnel[2] + 2),
-            (tunnel[0], tunnel[1] + 2 * wall + 5, 1.2), ROCK),
-    ]
-    if drop_m > 0.05:
-        shell.append(Box(f"{label} — socle", (-full_length / 2 + 1, 0, -drop_m / 2 - 0.2),
-                         (full_length + 4, 2 * outer_y + 8, drop_m + 0.5), ROCK))
-        shell.append(Box(f"{label} — marche d'entrée", (2.0, 0, -drop_m / 2 - 0.2),
-                         (3, tunnel[1] + 2, drop_m + 0.5), DIRT))
-    return shell
 
 
 # --- Pose dans le monde -----------------------------------------------------------------------

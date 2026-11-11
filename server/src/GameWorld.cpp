@@ -10,12 +10,12 @@ namespace odyssee::server {
 namespace {
 
 /// Point d'apparition provisoire : la salle des capsules du centre de stase
-/// (tools/worldgen/world_layout.json, centre_stase ; sol à ~10,6 m). Remplacé par celui de la
-/// carte quand le serveur la chargera (T041).
+/// (tools/worldgen/world_layout.json, centre_stase ; terrain à 8,55 m, sol du bunker 30 cm
+/// au-dessus). Remplacé par celui de la carte quand le serveur la chargera (T041).
 constexpr float kSpawnX = 1900.0f;
-constexpr float kSpawnY = 2598.0f;
-constexpr float kSpawnZ = 10.6f;
-constexpr float kSpawnYawDegrees = 90.0f; // vers le sud, face à la sortie
+constexpr float kSpawnY = 2602.0f;
+constexpr float kSpawnZ = 8.85f;
+constexpr float kSpawnYawDegrees = 270.0f; // vers le nord : face à la sortie, vers le monde
 
 /// Les joueurs apparaissent côte à côte, à 2 m d'écart (entre les capsules).
 constexpr float kSpawnSpacing = 2.0f;

@@ -14,12 +14,12 @@ from generate_terrain import disk_mask, lerp, polygon_mask, polyline_mask
 STEP_M = 4
 
 ZONE_COLORS = {  # sRGB, palette douce et peu saturée
-    "plaine": (126, 168, 82),
-    "collines": (98, 146, 70),
+    "plaine": (118, 140, 84),
+    "collines": (96, 124, 72),
     "ville": (128, 128, 112),
-    "marais": (98, 112, 80),
+    "marais": (98, 106, 82),
     "montagne": (128, 124, 112),
-    "foret_coeur": (62, 112, 74),
+    "foret_coeur": (64, 98, 72),
 }
 PATH_COLORS = {"route": (120, 112, 96), "chemin": (150, 124, 88), "rails": (104, 98, 92)}
 SAND = (196, 180, 128)       # berges

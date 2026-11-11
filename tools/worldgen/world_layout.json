@@ -163,10 +163,12 @@
   },
 
   "_caves_doc": [
-    "Grottes (blockout). pos = centre de l'entrée ; yaw_deg = direction vers laquelle l'entrée s'ouvre.",
-    "type montagne : sous le relief, sur un flanc à ~25°, l'entrée vers le bas de la pente. generate_terrain.py",
-    "  fait un replat devant ; tunnel et salle en roche posés dans Unreal, Landscape percé à la sortie du tunnel.",
-    "type butte : butte rocheuse creuse posée sur un terrain plat (rien n'est creusé dans le relief).",
+    "Grottes. pos = centre de l'entrée ; yaw_deg = direction vers laquelle l'entrée s'ouvre.",
+    "Toutes sont cachées dans le relief : l'entrée s'ouvre dans une petite falaise (generate_terrain.py),",
+    "  encadrée de rochers, avec un replat devant ; tunnel et salle en roche SOUS le relief (Unreal),",
+    "  Landscape percé seulement sur la face de la falaise.",
+    "type montagne : sur un flanc naturel (pente ~27°, le relief monte d'au moins 10 m derrière).",
+    "type butte : en terrain plat ; generate_terrain.py élève d'abord une butte qui contient la grotte.",
     "Dimensions intérieures dans cave_shapes : [longueur, largeur, hauteur] en mètres. Loot : plus tard."
   ],
   "cave_shapes": {
@@ -176,14 +178,14 @@
     "butte": { "tunnel": [7, 4, 3.5], "chamber": [10, 9, 5] }
   },
   "caves": [
-    { "id": "grotte_01", "type": "montagne", "zone": "abri", "pos": [244, 1900], "yaw_deg": 84 },
-    { "id": "grotte_02", "type": "montagne", "zone": "abri", "pos": [892, 1780], "yaw_deg": -28 },
-    { "id": "grotte_03", "type": "montagne", "zone": "ville", "pos": [1300, 1156], "yaw_deg": 7 },
-    { "id": "grotte_04", "type": "montagne", "zone": "coeur", "pos": [1396, 340], "yaw_deg": -13 },
-    { "id": "grotte_05", "type": "montagne", "zone": "coeur", "pos": [1396, 748], "yaw_deg": 10 },
-    { "id": "grotte_06", "type": "montagne", "zone": "portes", "pos": [604, 988], "yaw_deg": 40 },
-    { "id": "grotte_07", "type": "montagne", "zone": "portes", "pos": [220, 1420], "yaw_deg": 180 },
-    { "id": "grotte_08", "type": "montagne", "zone": "portes", "pos": [988, 244], "yaw_deg": -101 },
+    { "id": "grotte_01", "type": "montagne", "zone": "abri", "pos": [370, 1858], "yaw_deg": 97 },
+    { "id": "grotte_02", "type": "montagne", "zone": "abri", "pos": [1058, 1650], "yaw_deg": 108 },
+    { "id": "grotte_03", "type": "montagne", "zone": "ville", "pos": [1282, 1250], "yaw_deg": 53 },
+    { "id": "grotte_04", "type": "montagne", "zone": "coeur", "pos": [1362, 722], "yaw_deg": -12 },
+    { "id": "grotte_05", "type": "montagne", "zone": "coeur", "pos": [3570, 418], "yaw_deg": 11 },
+    { "id": "grotte_06", "type": "montagne", "zone": "portes", "pos": [482, 1218], "yaw_deg": 84 },
+    { "id": "grotte_07", "type": "montagne", "zone": "portes", "pos": [610, 210], "yaw_deg": 10 },
+    { "id": "grotte_08", "type": "montagne", "zone": "portes", "pos": [306, 642], "yaw_deg": 114 },
     { "id": "butte_01", "type": "butte", "zone": "abri", "pos": [1430, 2430], "yaw_deg": 20 },
     { "id": "butte_02", "type": "butte", "zone": "ville", "pos": [1550, 1470], "yaw_deg": 90 },
     { "id": "butte_03", "type": "butte", "zone": "centrale", "pos": [3390, 990], "yaw_deg": 90 }

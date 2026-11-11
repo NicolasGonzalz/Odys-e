@@ -153,33 +153,127 @@ def ridged(noise):
     return (1.0 - np.abs(noise)) ** 2
 
 
+# --- Montagnes --------------------------------------------------------------------------------
+
+def perlin(xs, ys, rng, cell):
+    """Bruit de gradient (Perlin), environ entre -1 et 1, de cellule `cell` (en points). Contrairement
+    à un bruit de valeurs, sa grille ne se voit pas : indispensable pour des crêtes réalistes."""
+    angles = rng.uniform(0, 2 * np.pi, (int(ys.max() / cell) + 3, int(xs.max() / cell) + 3))
+    grad_x, grad_y = np.cos(angles), np.sin(angles)
+    u, v = xs / cell, ys / cell
+    x0, y0 = np.floor(u).astype(np.int32), np.floor(v).astype(np.int32)
+    fx, fy = u - x0, v - y0
+
+    def corner(dx, dy):
+        return grad_x[y0 + dy, x0 + dx] * (fx - dx) + grad_y[y0 + dy, x0 + dx] * (fy - dy)
+
+    sx = fx ** 3 * (fx * (fx * 6 - 15) + 10)  # lissage de Perlin (dérivées nulles aux bords)
+    sy = fy ** 3 * (fy * (fy * 6 - 15) + 10)
+    top = lerp(corner(0, 0), corner(1, 0), sx)
+    bottom = lerp(corner(0, 1), corner(1, 1), sx)
+    return (lerp(top, bottom, sy) * 1.41).astype(np.float32)
+
+
+def perlin_fbm(xs, ys, rng, cell, octaves):
+    total, amplitude, norm = 0.0, 1.0, 0.0
+    for _ in range(octaves):
+        total = total + amplitude * perlin(xs, ys, rng, cell)
+        norm += amplitude
+        amplitude *= 0.5
+        cell /= 2
+    return total / norm
+
+
+def _ridged_multifractal(xs, ys, rng, cell, octaves, gain=2.0):
+    """Crêtes « multifractales » : chaque octave n'ajoute du détail que là où la précédente formait
+    déjà une crête. Les arêtes se ramifient, les vallées restent plus lisses."""
+    total = np.zeros(xs.shape, dtype=np.float32)
+    weight = np.ones(xs.shape, dtype=np.float32)
+    amplitude, norm = 1.0, 0.0
+    for _ in range(octaves):
+        crest = (1.0 - np.abs(perlin(xs, ys, rng, cell))) ** 2 * weight
+        weight = np.clip(crest * gain, 0.0, 1.0)
+        total += crest * amplitude
+        norm += amplitude
+        amplitude *= 0.5
+        cell = max(2.0, cell / 2)
+    return total / norm
+
+
+def thermal_erosion(height, cell_m, talus_deg, iterations, rate=0.25):
+    """Éboulis : là où la pente dépasse l'angle de talus, la matière glisse vers le bas. Les pieds
+    de pente s'adoucissent, les crêtes restent nettes."""
+    talus = np.tan(np.radians(talus_deg)) * cell_m
+    h = height.astype(np.float32).copy()
+    shifts = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+    for _ in range(iterations):
+        padded = np.pad(h, 1, mode="edge")
+        delta = np.zeros_like(h)
+        for dy, dx in shifts:
+            neighbour = padded[1 + dy:1 + dy + h.shape[0], 1 + dx:1 + dx + h.shape[1]]
+            moved = rate * np.clip(h - neighbour - talus, 0, None) / 4
+            delta -= moved
+            # Ce qui part vers le voisin (dy, dx) y arrive : on décale `moved` d'autant.
+            arrived = np.pad(moved, 1)[1 - dy:1 - dy + h.shape[0], 1 - dx:1 - dx + h.shape[1]]
+            delta += arrived
+        h += delta
+    return h
+
+
+def mountain_heights(shape):
+    """Hauteurs (m) du profil montagne : de grands massifs, et dessus des crêtes multifractales sur
+    un domaine légèrement tordu (pas de motif régulier), puis éboulis. Calculé à 4 m par point."""
+    rng = np.random.default_rng(SEED + 5)
+    small = (shape[0] // WORK_SCALE + 1, shape[1] // WORK_SCALE + 1)
+    rows, cols = np.indices(small, dtype=np.float32)
+    rows += 10  # coordonnées positives, même tordues
+    cols += 10
+    warp = 80.0 / WORK_SCALE  # ±80 m
+    xs = cols + perlin_fbm(cols, rows, rng, 800.0 / WORK_SCALE, 2) * warp
+    ys = rows + perlin_fbm(cols, rows, rng, 800.0 / WORK_SCALE, 2) * warp
+    massifs = np.clip(perlin_fbm(cols, rows, rng, 1040.0 / WORK_SCALE, 3) * 0.9 + 0.55, 0, 1)
+    crests = _ridged_multifractal(xs, ys, rng, 600.0 / WORK_SCALE, octaves=6)
+    heights = 50.0 + 320.0 * massifs ** 1.2 * (0.3 + 0.9 * crests)
+    heights = thermal_erosion(heights, WORK_SCALE, talus_deg=42, iterations=30)
+    return resize(heights, shape)
+
+
 # --- Construction du relief -------------------------------------------------------------------
 
-def profile_height(terrain, noise, mountain_noise):
+def profile_height(terrain, noise, mountains):
+    """`mountains` : hauteurs du profil montagne déjà calculées (mountain_heights)."""
     if terrain == "montagne":
-        # Crêtes larges plutôt qu'aiguilles : la zone doit rester explorable (pentes < ~45°).
-        return 70.0 + 230.0 * ridged(mountain_noise) ** 1.6
+        return mountains
     base, amplitude = PROFILES[terrain]
     return base + amplitude * noise
 
 
-def blend_zones(layout, shape, noise, mountain_noise):
+def _ragged(mask, noise):
+    """Bord irrégulier pour la montagne : sans ça, son pied suit la ligne droite du polygone de la
+    zone. Le bruit avance ou recule la limite, et laisse dépasser quelques contreforts."""
+    edge = np.clip(mask * 1.6 - 0.3 + 0.5 * noise, 0.0, 1.0)
+    return edge * edge * (3 - 2 * edge)
+
+
+def blend_zones(layout, shape, noise, mountains):
     """Mélange les profils des zones : pas de marche brutale aux frontières."""
     weighted = np.zeros(shape, dtype=np.float32)
     weights = np.full(shape, 1e-6, dtype=np.float32)
     for zone in layout["zones"].values():
-        softness = 220 if zone["terrain"] == "montagne" else 120
-        mask = polygon_mask(shape, zone["polygon"], softness)
-        weighted += mask * profile_height(zone["terrain"], noise, mountain_noise)
+        if zone["terrain"] == "montagne":
+            mask = _ragged(polygon_mask(shape, zone["polygon"], 350), noise)
+        else:
+            mask = polygon_mask(shape, zone["polygon"], 120)
+        weighted += mask * profile_height(zone["terrain"], noise, mountains)
         weights += mask
     return weighted / weights
 
 
-def apply_areas(layout, shape, height, noise, mountain_noise):
+def apply_areas(layout, shape, height, noise, mountains):
     """Sous-régions (ex. Bois de la lisière) : leur profil remplace celui de la zone."""
     for area in layout["areas"].values():
         mask = polygon_mask(shape, area["polygon"], 150)
-        height = lerp(height, profile_height(area["terrain"], noise, mountain_noise), mask)
+        height = lerp(height, profile_height(area["terrain"], noise, mountains), mask)
     return height
 
 
@@ -266,7 +360,7 @@ def _cave_frame(height, cave, reach_m):
 
 
 def carve_caves(layout, height):
-    """Grottes de montagne : un replat devant l'entrée, à la hauteur du sol de la grotte.
+    """Grottes : un replat devant l'entrée, à la hauteur du sol de la grotte.
 
     Le tunnel et la salle ne sont PAS creusés ici : une heightmap n'a pas de plafond (creuser
     enlèverait aussi la montagne au-dessus). Ils sont construits en roche sous le relief dans
@@ -275,11 +369,9 @@ def carve_caves(layout, height):
     """
     shapes = layout["cave_shapes"]
     wall, apron = shapes["wall_m"], shapes["apron_m"]
-    half_tunnel = shapes["montagne"]["tunnel"][1] / 2 + wall
     floors = {}
     for cave in layout.get("caves", []):
-        if cave["type"] != "montagne":
-            continue
+        half_tunnel = shapes[cave["type"]]["tunnel"][1] / 2 + wall
         window, a, b = _cave_frame(height, cave, apron + 10)
         sub = height[window]
         floor = float(sub[(np.abs(a) <= 2) & (np.abs(b) <= 2)].mean())
@@ -291,16 +383,37 @@ def carve_caves(layout, height):
     return height, floors
 
 
+def raise_butte_caves(layout, height):
+    """Grottes « butte » (terrain plat) : une butte qui contient le tunnel et la salle, puis la grotte
+    est traitée comme les autres (falaise d'entrée, intérieur sous le relief)."""
+    shapes = layout["cave_shapes"]["butte"]
+    rng = np.random.default_rng(SEED + 7)
+    tiers = lambda r: (0.6 * np.clip((1.0 - r) / 0.25, 0, 1)
+                       + 0.4 * np.clip((0.7 - r) / 0.2, 0, 1))
+    for cave in layout.get("caves", []):
+        if cave["type"] != "butte":
+            continue
+        # Le bord avant de la butte passe par l'entrée ; elle s'étend loin derrière la salle.
+        radius = (shapes["tunnel"][0] + shapes["chamber"][0]) / 2 + 12
+        yaw = np.radians(cave["yaw_deg"])
+        center = (cave["pos"][0] - radius * np.cos(yaw), cave["pos"][1] - radius * np.sin(yaw))
+        outline = _outline(rng, 6)
+        mouth = float(outline(np.float32(yaw)))  # rayon relatif vers l'entrée : ramené à 1
+        _raise_shape(height, center, radius, shapes["chamber"][2] + 8, tiers,
+                     lambda angle: outline(angle) / mouth)
+    return height
+
+
 def raise_cave_cliffs(layout, height, floors):
-    """Au-dessus de l'entrée de chaque grotte de montagne, une masse de roche à flanc vertical :
+    """Au-dessus de l'entrée de chaque grotte, une masse de roche à flanc vertical :
     l'entrée s'ouvre dans une petite falaise, et le tunnel passe aussitôt sous le relief (le trou
     à percer dans le Landscape se réduit à la face de la falaise)."""
     shapes = layout["cave_shapes"]
-    tunnel, wall = shapes["montagne"]["tunnel"], shapes["wall_m"]
-    half = tunnel[1] / 2 + wall + 3.0
+    rng = np.random.default_rng(SEED + 6)
+    rock = lambda r: np.clip((1.0 - r) / 0.35, 0, 1)
     for cave in layout.get("caves", []):
-        if cave["type"] != "montagne":
-            continue
+        tunnel, wall = shapes[cave["type"]]["tunnel"], shapes["wall_m"]
+        half = tunnel[1] / 2 + wall + 3.0
         window, a, b = _cave_frame(height, cave, 30)
         top = np.float32(floors[cave["id"]] + tunnel[2] + 2.5)
         # Face nette en a = 0, masse pleine sur 8 m, puis raccord progressif à la pente.
@@ -308,7 +421,19 @@ def raise_cave_cliffs(layout, height, floors):
         across = np.clip((half + 4.0 - np.abs(b)) / 4.0, 0.0, 1.0)
         sub = height[window]
         height[window] = np.maximum(sub, lerp(sub, top, along * across))
+        _flank_with_rocks(height, cave, half, rng, rock)
     return height
+
+
+def _flank_with_rocks(height, cave, half, rng, rock):
+    """Deux rochers de part et d'autre de l'entrée, un peu en avant : de loin, ils la cachent."""
+    yaw = np.radians(cave["yaw_deg"])
+    ux, uy = np.cos(yaw), np.sin(yaw)
+    for side in (-1.0, 1.0):
+        ahead, aside = rng.uniform(2.0, 6.0), side * (half + rng.uniform(1.5, 3.0))
+        center = (cave["pos"][0] + ahead * ux - aside * uy, cave["pos"][1] + ahead * uy + aside * ux)
+        _raise_shape(height, center, rng.uniform(4.0, 6.0), rng.uniform(3.0, 5.0), rock,
+                     _outline(rng, 5))
 
 
 # --- Relief détaillé (world_layout.json, « relief ») -------------------------------------------
@@ -434,7 +559,7 @@ def _calm_mask(layout, shape):
 
 def facet(layout, height, step, jitter_m):
     """Style low-poly : le relief devient des triangles plans de `step` mètres (chaque carré de
-    la grille grossière coupé en deux). Chaque sommet est décalé au hasard de ± jitter_m, pour
+    la grille grossière coupé en deux selon sa diagonale). Chaque sommet est décalé au hasard de ± jitter_m, pour
     que deux faces voisines n'aient jamais tout à fait la même pente et accrochent la lumière
     différemment. Chemins, lieux et eau ne sont pas décalés ; autour des entrées de grotte, le
     relief fin est gardé tel quel."""
@@ -450,15 +575,16 @@ def facet(layout, height, step, jitter_m):
     fy, fx = gy - i, gx - j
     h00, h10 = coarse[i, j], coarse[i, j + 1]
     h01, h11 = coarse[i + 1, j], coarse[i + 1, j + 1]
-    lower = fx + fy <= 1.0
-    faceted = np.where(lower, h00 + fx * (h10 - h00) + fy * (h01 - h00),
-                       h11 + (1 - fx) * (h01 - h11) + (1 - fy) * (h10 - h11))
+    # Diagonale de (0, 0) à (1, 1), comme les carrés de 1 m du Landscape d'Unreal : sinon les
+    # arêtes des grandes facettes coupent les petits carrés en travers (dents de scie).
+    below = fx >= fy
+    faceted = np.where(below, h00 + fx * (h10 - h00) + fy * (h11 - h10),
+                       h00 + fy * (h01 - h00) + fx * (h11 - h01))
 
     keep = np.zeros(height.shape, dtype=np.float32)
     for cave in layout.get("caves", []):
-        if cave["type"] == "montagne":
-            x, y = cave["pos"]
-            keep = np.maximum(keep, np.clip(1.0 - (np.hypot(cols - x, rows - y) - 30) / 15, 0, 1))
+        x, y = cave["pos"]
+        keep = np.maximum(keep, np.clip(1.0 - (np.hypot(cols - x, rows - y) - 30) / 15, 0, 1))
     return lerp(faceted.astype(np.float32), height, keep)
 
 
@@ -467,10 +593,10 @@ def build_height(layout):
     shape = grid_shape(layout)
     rng = np.random.default_rng(SEED)
     noise = fractal_noise(shape, rng, base_cell_m=400, octaves=6)
-    mountain_noise = fractal_noise(shape, rng, base_cell_m=600, octaves=4)
+    mountains = mountain_heights(shape)
 
-    height = blend_zones(layout, shape, noise, mountain_noise)
-    height = apply_areas(layout, shape, height, noise, mountain_noise)
+    height = blend_zones(layout, shape, noise, mountains)
+    height = apply_areas(layout, shape, height, noise, mountains)
     height = add_hills(layout, shape, height)
     height = raise_buttes(layout, height)
     height, _ = scatter_outcrops(layout, height)
@@ -480,6 +606,7 @@ def build_height(layout):
     height = smooth_paths(layout, shape, height)
     height = flatten_places(layout, shape, height)
     height = raise_world_border(shape, height)
+    height = raise_butte_caves(layout, height)
     height, cave_floors = carve_caves(layout, height)
     height = raise_cave_cliffs(layout, height, cave_floors)
     relief = layout["relief"]

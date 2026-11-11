@@ -95,8 +95,9 @@ def _flat_normal(graph, position):
     graph.link(position, ddx)
     graph.link(position, ddy)
     cross = graph.node(unreal.MaterialExpressionCrossProduct, -1200)
-    graph.link(ddy, cross, "A")
-    graph.link(ddx, cross, "B")
+    # Ordre ddx × ddy : avec le repère main gauche d'Unreal, la normale pointe vers le haut.
+    graph.link(ddx, cross, "A")
+    graph.link(ddy, cross, "B")
     normal = graph.node(unreal.MaterialExpressionNormalize, -1000)
     graph.link(cross, normal)
     return normal
