@@ -1,5 +1,7 @@
 #pragma once
 
+#include "odyssee/net/NetworkSimulator.hpp"
+
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -14,7 +16,8 @@ class Server {
   public:
     using Clock = std::chrono::steady_clock;
 
-    explicit Server(std::uint16_t port);
+    /// `network` : mauvaises conditions réseau à simuler sur les envois (aucune par défaut).
+    explicit Server(std::uint16_t port, net::NetworkConditions network = {});
 
     /// Ouvre le port UDP puis tourne jusqu'à stop(). Renvoie false si le port n'a pas pu être
     /// ouvert (déjà utilisé, droits insuffisants…).
@@ -24,8 +27,10 @@ class Server {
   private:
     void loop(ConnectionService& connections);
     void tick(ConnectionService& connections, std::uint64_t tickIndex, Clock::time_point now);
+    static void waitUntil(ConnectionService& connections, Clock::time_point nextTick);
 
     std::uint16_t _port;
+    net::NetworkConditions _network;
     std::atomic<bool> _running{false};
 };
 

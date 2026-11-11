@@ -6,6 +6,7 @@ add_library(odyssee_shared STATIC
     src/net/Address.cpp
     src/net/ClientConnection.cpp
     src/net/ControlMessages.cpp
+    src/net/NetworkSimulator.cpp
     src/net/PacketFraming.cpp
     src/net/PlayerName.cpp
     src/net/PacketHeader.cpp

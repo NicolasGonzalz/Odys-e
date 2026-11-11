@@ -19,20 +19,44 @@ bool isForeignConnectRequest(const net::IncomingPacket& packet) {
     return !packet.header.hasCurrentProtocol() && packet.kind == net::PacketKind::ConnectRequest;
 }
 
+/// Le simulateur n'existe que si quelque chose est simulé : sinon, envois directs.
+std::optional<net::NetworkSimulator> makeSimulator(const net::NetworkConditions& network,
+                                                   std::uint64_t seed) {
+    if (network.isPerfect()) {
+        return std::nullopt;
+    }
+    return net::NetworkSimulator(network, seed);
+}
+
 } // namespace
 
-ConnectionService::ConnectionService(net::UdpSocket socket, std::uint64_t seed)
-    : _socket(std::move(socket)), _registry(seed) {}
+ConnectionService::ConnectionService(net::UdpSocket socket, std::uint64_t seed,
+                                     net::NetworkConditions network)
+    : _socket(std::move(socket)), _registry(seed), _simulator(makeSimulator(network, ~seed)) {}
 
 void ConnectionService::poll(Clock::time_point now) {
     receiveAll(now);
     _registry.dropInactive(now);
     sendKeepAlives(now);
+    flushSimulated(now);
+}
+
+void ConnectionService::flushSimulated(Clock::time_point now) {
+    if (!_simulator) {
+        return;
+    }
+    for (const auto& datagram : _simulator->takeDue(now)) {
+        (void)_socket.send(datagram.to, datagram.bytes); // UDP : un échec équivaut à une perte
+    }
+}
+
+std::optional<ConnectionService::Clock::time_point> ConnectionService::nextSimulatedDue() const {
+    return _simulator ? _simulator->nextDue() : std::nullopt;
 }
 
 void ConnectionService::shutdown() {
     for (const net::Address& address : _registry.disconnectAll()) {
-        send(address, net::Disconnect{});
+        sendNow(address, net::Disconnect{});
     }
 }
 
@@ -51,7 +75,7 @@ void ConnectionService::handlePacket(const net::Address& from, std::span<const s
     }
 
     if (isForeignConnectRequest(*packet)) {
-        send(from, net::Refused{net::RefuseReason::WrongVersion});
+        send(from, net::Refused{net::RefuseReason::WrongVersion}, now);
         return;
     }
     if (!packet->header.hasCurrentProtocol()) {
@@ -64,17 +88,26 @@ void ConnectionService::handlePacket(const net::Address& from, std::span<const s
         return;
     }
     if (const auto reply = _registry.handle(from, *message, now)) {
-        send(from, *reply);
+        send(from, *reply, now);
     }
 }
 
 void ConnectionService::sendKeepAlives(Clock::time_point now) {
     for (const net::Address& address : _registry.takeKeepAliveTargets(now)) {
-        send(address, net::KeepAlive{});
+        send(address, net::KeepAlive{}, now);
     }
 }
 
-void ConnectionService::send(const net::Address& to, const net::ControlMessage& message) {
+void ConnectionService::send(const net::Address& to, const net::ControlMessage& message,
+                             Clock::time_point now) {
+    if (!_simulator) {
+        sendNow(to, message);
+        return;
+    }
+    _simulator->submit(to, net::buildControlPacket(message), now);
+}
+
+void ConnectionService::sendNow(const net::Address& to, const net::ControlMessage& message) {
     const auto packet = net::buildControlPacket(message);
     (void)_socket.send(to, packet); // UDP : un échec d'envoi équivaut à une perte
 }

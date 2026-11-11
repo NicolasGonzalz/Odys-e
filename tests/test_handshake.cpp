@@ -179,3 +179,19 @@ TEST_CASE("Connexion : un client qui ne donne plus de nouvelles est retiré") {
     service.poll(now + kConnectionTimeout + 1s);
     CHECK(service.playerCount() == 0);
 }
+
+TEST_CASE("Connexion : réussit malgré un mauvais réseau côté serveur") {
+    // 30 % des réponses du serveur perdues, 60 ms ± 20 de délai, quelques doublons : les renvois
+    // de la poignée de main (toutes les 250 ms) doivent suffire.
+    const NetworkConditions bad{60ms, 20ms, 30.0, 10.0};
+    ConnectionService service(*UdpSocket::open(), 1234, bad);
+    TestClient lina("Lina", service.port());
+    auto now = Clock::now();
+
+    lina.connection.connect(now);
+    runUntil(service, {&lina}, now,
+             [&] { return lina.connection.state() == ConnectionState::Connected; });
+
+    CHECK(lina.connection.state() == ConnectionState::Connected);
+    CHECK(service.playerCount() == 1);
+}

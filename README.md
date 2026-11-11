@@ -82,6 +82,7 @@ Pour compiler uniquement le serveur (sans dépendances graphiques) : `-DODYSSEE_
 
 ```sh
 ./build/server/odyssee_server [port]   # port UDP par défaut : 27015
+./build/server/odyssee_server --lag 120 --jitter 30 --loss 5   # simule un mauvais réseau (ms, %)
 ./build/client/odyssee_client
 ```
 
