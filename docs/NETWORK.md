@@ -155,6 +155,11 @@ il ne reçoit les entités et les modifications que de ces chunks. C'est la clé
 
 ## Outils de test
 
-- Simulateur de conditions réseau intégré (latence, gigue, perte, duplication) activable des deux côtés.
+- Simulateur de conditions réseau (`shared/net/NetworkSimulator`, T025) : latence, gigue (qui réordonne),
+  perte et duplication des datagrammes **envoyés** ; pour dégrader les deux sens, l'activer des deux côtés.
+  Serveur : `odyssee_server --lag 120 --jitter 30 --loss 5 --dup 1` (ms et %). Tirages reproductibles
+  (graine, générateur `mt19937_64` sans distribution de la bibliothèque standard). Le serveur se réveille
+  entre deux ticks pour envoyer les datagrammes retardés à l'heure ; l'arrêt du serveur ne passe pas
+  par la simulation.
 - Clients « bots » headless pour tester 4 joueurs dans les pires conditions (combats de boss, zones denses).
 - Statistiques à l'écran : RTT, perte, ko/s entrants/sortants, corrections de prédiction.
