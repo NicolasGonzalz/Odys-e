@@ -7,6 +7,9 @@ Usage :
     scripts/planning.py github --project N  # ... et ajoute les issues au GitHub Project n° N
     scripts/planning.py project N           # range toutes les issues dans le Project n° N et remplit ses champs
 
+État d'une tâche : colonne `etat` de tasks.tsv (a_faire, en_cours, fait). `render` l'affiche,
+`github` ferme ou rouvre l'issue, `project` règle la colonne Status du Project.
+
 Pré-requis pour `github` : gh installé et authentifié (`gh auth login`).
 Pour `--project` : `gh auth refresh -s project`.
 """
@@ -26,6 +29,12 @@ OUTPUT = ROOT / "docs" / "PLANNING.md"
 START = dt.date(2026, 11, 16)  # lundi de la semaine 1
 REPO = "NicolasGonzalz/Odys-e"
 WHO = {"nicolas": "Nicolas", "ami": "Coéquipier", "both": "Les deux"}
+# État d'une tâche : case dans PLANNING.md, noms possibles de l'option Status du Project.
+STATES = {
+    "a_faire": ("☐", ("Todo", "À faire")),
+    "en_cours": ("◐", ("In Progress", "En cours")),
+    "fait": ("☑", ("Done", "Fait", "Terminé")),
+}
 
 MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
           "juil.", "août", "sept.", "oct.", "nov.", "déc."]
@@ -62,6 +71,19 @@ def issue_body(t):
             f"**Estimation :** {t['heures']} h\n\n"
             f"### Fini quand\n{t['fini_quand']}\n\n"
             f"_Généré depuis `planning/tasks.tsv` — modifier la source, pas l'issue._")
+
+
+def progress_lines(tasks, milestones):
+    """Tableau d'avancement par jalon, puis les tâches en cours."""
+    lines = ["## Avancement", "", "| Jalon | Tâches faites | Heures faites | En cours |", "|---|---|---|---|"]
+    for m in milestones.values():
+        mine = [t for t in tasks if t["jalon"] == m["id"]]
+        done = [t for t in mine if t["etat"] == "fait"]
+        hours = sum(int(t["heures"]) for t in done), sum(int(t["heures"]) for t in mine)
+        ongoing = ", ".join(t["id"] for t in mine if t["etat"] == "en_cours") or "—"
+        lines.append(f"| {m['titre']} | {len(done)} / {len(mine)} | {hours[0]} / {hours[1]} h | {ongoing} |")
+    lines += ["", "☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.", ""]
+    return lines
 
 
 def render():
@@ -104,7 +126,8 @@ def render():
         d = dt.date.fromisoformat(m["echeance"])
         lines.append(f"| **{m['titre']}** | {fmt(d)} | {m['description']} |")
 
-    lines += ["", "## Semaine par semaine", ""]
+    lines += [""] + progress_lines(tasks, milestones)
+    lines += ["## Semaine par semaine", ""]
     for w in sorted(by_week):
         week_tasks = by_week[w]
         monday = week_monday(w)
@@ -118,7 +141,7 @@ def render():
             "|---|---|---|---|---|---|",
         ]
         for t in week_tasks:
-            lines.append(f"| ☐ | {t['id']} | {WHO[t['qui']]} | {t['titre']} | {t['heures']} | {t['fini_quand']} |")
+            lines.append(f"| {STATES[t['etat']][0]} | {t['id']} | {WHO[t['qui']]} | {t['titre']} | {t['heures']} | {t['fini_quand']} |")
         lines.append("")
 
     OUTPUT.write_text("\n".join(lines), encoding="utf-8")
@@ -132,6 +155,18 @@ def gh(*args, dry_run=False, capture=False):
         return ""
     res = subprocess.run(cmd, check=True, text=True, capture_output=capture)
     return res.stdout if capture else ""
+
+
+def sync_issue_state(issue, task, dry_run):
+    """Issue fermée si la tâche est faite, ouverte sinon."""
+    closed = issue.get("state", "").upper() == "CLOSED"
+    if task["etat"] == "fait" and not closed:
+        gh("issue", "close", str(issue["number"]), "--repo", REPO, "--reason", "completed",
+           dry_run=dry_run, capture=True)
+        print(f"{task['id']} : issue fermée (fait)")
+    elif task["etat"] != "fait" and closed:
+        gh("issue", "reopen", str(issue["number"]), "--repo", REPO, dry_run=dry_run, capture=True)
+        print(f"{task['id']} : issue rouverte ({task['etat']})")
 
 
 def github(dry_run, project):
@@ -158,11 +193,12 @@ def github(dry_run, project):
     existing_issues = {} if dry_run else {
         i["title"].split(" · ")[0]: i
         for i in json.loads(gh("issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
-                               "--json", "number,title,body,labels,milestone", capture=True))
+                               "--json", "number,title,body,labels,milestone,state", capture=True))
     }
     for t in tasks:
         current = existing_issues.get(t["id"])
         if current:
+            sync_issue_state(current, t, dry_run)
             wanted = set(t["labels"].split(","))
             have = {l["name"] for l in current["labels"]}
             ms = (current.get("milestone") or {}).get("title")
@@ -218,8 +254,9 @@ def project(number, dry_run):
     fields = {f["name"]: f for f in gh_json("project", "field-list", str(number), "--owner", owner,
                                             "--limit", "100")["fields"]}
     status = fields.get("Status")
-    todo = next((o["id"] for o in (status or {}).get("options", []) if o["name"] in ("Todo", "À faire")),
-                None)
+    status_options = {o["name"]: o["id"] for o in (status or {}).get("options", [])}
+    status_of = {state: next((status_options[n] for n in names if n in status_options), None)
+                 for state, (_, names) in STATES.items()}
 
     items = {i["content"].get("url"): i for i in gh_json("project", "item-list", str(number), "--owner",
                                                          owner, "--limit", "1000")["items"]}
@@ -250,11 +287,12 @@ def project(number, dry_run):
         gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
            "--field-id", fields["Qui"]["id"], "--single-select-option-id", who,
            dry_run=dry_run, capture=True)
-        if todo and not item.get("status"):
+        wanted = status_of[t["etat"]]
+        if wanted:  # l'état vient du TSV : la colonne Status du Project le suit
             gh("project", "item-edit", "--project-id", project_id, "--id", item["id"],
-               "--field-id", status["id"], "--single-select-option-id", todo,
+               "--field-id", status["id"], "--single-select-option-id", wanted,
                dry_run=dry_run, capture=True)
-        print(f"{tid} ajoutée au projet")
+        print(f"{tid} : dans le projet ({t['etat']})")
 
 
 def main():
@@ -277,7 +315,8 @@ def main():
         try:
             github(args.dry_run, args.project)
         except FileNotFoundError:
-            sys.exit("gh n'est pas installé : sudo apt install gh, puis gh auth login")
+            sys.exit("gh n'est pas installé : sudo apt install gh (Linux) ou "
+                     "winget install --id GitHub.cli (Windows), puis gh auth login")
 
 
 if __name__ == "__main__":

@@ -29,17 +29,31 @@
 | **M4 — Récolter, fabriquer, enquêter** | 28 mars 2027 | ECS, ressources, inventaire, artisanat, premiers indices et journal. |
 | **M5 — Survivre & persister (MVP)** | 25 avr. 2027 | Survie, mort avec sac au sol, persistance, menu solo/coop, codes d'invitation. |
 
+## Avancement
+
+| Jalon | Tâches faites | Heures faites | En cours |
+|---|---|---|---|
+| M0 — Conception & fondations | 7 / 11 | 20 / 31 h | T003 |
+| M0.5 — Spike Unreal | 2 / 8 | 8 / 27 h | — |
+| M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
+| M2 — Mouvement fluide | 2 / 9 | 8 / 39 h | — |
+| M3 — Zone de départ | 2 / 8 | 8 / 42 h | T039 |
+| M4 — Récolter, fabriquer, enquêter | 2 / 16 | 6 / 88 h | — |
+| M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
+
+☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
+
 ## Semaine par semaine
 
 ### Semaine 1 — du 16 nov. 2026 · M0 · Nicolas 12 h · Coéquipier 9 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T001 | Les deux | Mystère : trame et chronologie de la catastrophe | 4 | docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue. |
-| ☐ | T002 | Les deux | Fiches des survivants prédéfinis | 3 | 2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ». |
-| ☐ | T003 | Les deux | Règles de progression en coop | 2 | docs/VISION.md précise si artefacts, zones et journal sont partagés en coop. |
-| ☐ | T004 | Nicolas | Logger commun | 2 | Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé. |
-| ☐ | T005 | Nicolas | Vérifier la CI et le badge | 1 | CI verte sur main, badge dans le README. |
+| ☑ | T001 | Les deux | Mystère : trame et chronologie de la catastrophe | 4 | docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue. |
+| ☑ | T002 | Les deux | Fiches des survivants prédéfinis | 3 | 2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ». |
+| ◐ | T003 | Les deux | Règles de progression en coop | 2 | docs/VISION.md précise si artefacts, zones et journal sont partagés en coop. |
+| ☑ | T004 | Nicolas | Logger commun | 2 | Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé. |
+| ☑ | T005 | Nicolas | Vérifier la CI et le badge | 1 | CI verte sur main, badge dans le README. |
 
 ### Semaine 2 — du 23 nov. 2026 · M0 · Nicolas 12 h · Coéquipier 19 h
 
@@ -48,16 +62,16 @@
 | ☐ | T006 | Coéquipier | Plan des zones (Figma) | 4 | Carte macro des 5 zones (docs/ZONES.md) : départ, zones dangereuses, emplacements des boss et artefacts. |
 | ☐ | T007 | Coéquipier | Guide de style visuel (Figma) | 3 | Moodboard « retour à l'état sauvage », palette par zone, références de silhouettes low-poly. |
 | ☐ | T008 | Les deux | Construction, jour/nuit et météo | 2 | Choix documentés : type de construction, durée d'une journée, impact de la nuit. |
-| ☐ | T009 | Les deux | Fiche détaillée de chaque zone | 3 | Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact. |
-| ☐ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
-| ☐ | T069 | Les deux | Conception des systèmes de jeu | 3 | docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat. |
+| ☑ | T009 | Les deux | Fiche détaillée de chaque zone | 3 | Pour chaque zone : ambiance, ressources, faune, ruines, indices, gardien, artefact. |
+| ☑ | T067 | Les deux | Site de présentation (Vercel) | 4 | Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/. |
+| ☑ | T069 | Les deux | Conception des systèmes de jeu | 3 | docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat. |
 
 ### Semaine 3 — du 30 nov. 2026 · M0.5 · Nicolas 5 h · Coéquipier 8 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T010 | Coéquipier | Projet Unreal, version figée et Git LFS | 3 | Projet dans UnrealEngine/Odysse/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux. |
-| ☐ | T011 | Nicolas | Plugin OdysseeNet embarquant odyssee_shared | 5 | Le plugin compile sous Windows ; un Blueprint appelle une fonction C++ qui utilise ByteWriter/ByteReader de shared. |
+| ☑ | T010 | Coéquipier | Projet Unreal, version figée et Git LFS | 3 | Projet dans UnrealEngine/Odysse/, version d'Unreal notée dans le README, Git LFS et verrouillage fonctionnels pour les deux. |
+| ☑ | T011 | Nicolas | Plugin OdysseeNet embarquant odyssee_shared | 5 | Le plugin compile sous Windows ; un Blueprint appelle une fonction C++ qui utilise ByteWriter/ByteReader de shared. |
 | ☐ | T012 | Coéquipier | Pion 1re personne et terrain de test | 3 | Déplacement, saut, souris, sur un terrain de test. |
 | ☐ | T013 | Coéquipier | Blockout du premier survivant | 2 | Silhouette low-poly validée par rapport au concept Figma. |
 
@@ -74,39 +88,39 @@
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T017 | Les deux | Bilan du spike Unreal | 2 | Critères de l'ADR 0003 vérifiés ; problèmes et ajustements notés. |
-| ☐ | T018 | Nicolas | Abstraction socket UDP (POSIX) | 4 | Socket UDP non bloquante, envoi/réception, testée en local. |
-| ☐ | T019 | Nicolas | Implémentation Winsock | 3 | Même API sous Windows ; compile dans la CI Windows. |
-| ☐ | T020 | Nicolas | Job CI Windows | 3 | La CI compile shared + serveur + tests sous Windows. |
+| ☑ | T018 | Nicolas | Abstraction socket UDP (POSIX) | 4 | Socket UDP non bloquante, envoi/réception, testée en local. |
+| ☑ | T019 | Nicolas | Implémentation Winsock | 3 | Même API sous Windows ; compile dans la CI Windows. |
+| ☑ | T020 | Nicolas | Job CI Windows | 3 | La CI compile shared + serveur + tests sous Windows. |
 | ☐ | T058 | Coéquipier | Animations de base du survivant 1 | 5 | Course, saut, frappe, récolte ; intégrées dans Unreal. |
 
 ### Semaine 6 — du 21 déc. 2026 · M1 · Nicolas 6 h · Coéquipier 5 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T021 | Nicolas | En-tête de paquet, séquences et acks | 6 | Header (protocole, seq, ack, ack_bits) + comparaison modulaire, tests unitaires. |
+| ☑ | T021 | Nicolas | En-tête de paquet, séquences et acks | 6 | Header (protocole, seq, ack, ack_bits) + comparaison modulaire, tests unitaires. |
 | ☐ | T059 | Coéquipier | Survivant 2 (Ilian) : modèle et rig | 5 | Corps + bras FPS riggés, animations de base réutilisées. |
 
 ### Semaine 7 — du 28 déc. 2026 · M1 · Nicolas 6 h · Coéquipier 4 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T022 | Nicolas | Canal fiable et retransmission | 6 | Messages fiables livrés malgré 20 % de perte simulée en test. |
+| ☑ | T022 | Nicolas | Canal fiable et retransmission | 6 | Messages fiables livrés malgré 20 % de perte simulée en test. |
 | ☐ | T060 | Coéquipier | Prototype d'ambiance | 4 | Scène de test avec éclairage, brouillard, végétation au vent et cycle jour/nuit simple. |
 
 ### Semaine 8 — du 4 janv. 2027 · M1 · Nicolas 12 h · Coéquipier 5 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T023 | Nicolas | Handshake avec challenge et timeouts | 6 | Connexion, refus de version, timeout 10 s, déconnexion explicite. |
-| ☐ | T024 | Nicolas | Messages du protocole (inputs, état) | 4 | Types de messages sérialisés et testés. |
-| ☐ | T025 | Nicolas | Simulateur de latence et de perte | 2 | Latence, gigue, perte et duplication configurables. |
+| ☑ | T023 | Nicolas | Handshake avec challenge et timeouts | 6 | Connexion, refus de version, timeout 10 s, déconnexion explicite. |
+| ☑ | T024 | Nicolas | Messages du protocole (inputs, état) | 4 | Types de messages sérialisés et testés. |
+| ☑ | T025 | Nicolas | Simulateur de latence et de perte | 2 | Latence, gigue, perte et duplication configurables. |
 | ☐ | T061 | Coéquipier | Survivant 3 (Teo) : modèle et rig | 5 | Corps + bras FPS riggés. |
 
 ### Semaine 9 — du 11 janv. 2027 · M1 · Nicolas 12 h · Coéquipier 5 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T026 | Nicolas | Sessions et diffusion de l'état | 5 | Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick. |
+| ☑ | T026 | Nicolas | Sessions et diffusion de l'état | 5 | Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick. |
 | ☐ | T027 | Nicolas | Client Unreal connecté au serveur | 5 | Connexion via OdysseeNet, affichage des autres joueurs. |
 | ☐ | T028 | Nicolas | Déploiement du serveur sur le homelab | 2 | Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma. |
 | ☐ | T062 | Coéquipier | Maquettes d'UI (Figma) | 5 | HUD, inventaire, artisanat, journal d'indices, menu principal. |
@@ -115,8 +129,8 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T029 | Nicolas | Simulation de mouvement partagée | 5 | shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur. |
-| ☐ | T030 | Nicolas | Tests de déterminisme | 3 | Même suite d'inputs = même état, client et serveur. |
+| ☑ | T029 | Nicolas | Simulation de mouvement partagée | 5 | shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur. |
+| ☑ | T030 | Nicolas | Tests de déterminisme | 3 | Même suite d'inputs = même état, client et serveur. |
 | ☐ | T031 | Nicolas | Prédiction côté client | 4 | Le joueur local bouge sans attendre le serveur. |
 | ☐ | T063 | Coéquipier | Survivant 4 (Nadia) : modèle et rig | 5 | Corps + bras FPS riggés. |
 
@@ -139,7 +153,7 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T036 | Coéquipier | Terrain de la zone de départ | 6 | Relief, chemins et lieux de l'Abri (docs/ZONES.md) dans Unreal. |
+| ☑ | T036 | Coéquipier | Terrain de la zone de départ | 6 | Relief, chemins et lieux de l'Abri (docs/ZONES.md) dans Unreal. |
 | ☐ | T037 | Coéquipier | Kit de ruines modulaires | 6 | Murs, sols, débris, véhicules, végétation de ruines exportés vers Unreal. |
 
 ### Semaine 14 — du 15 févr. 2027 · M3 · Nicolas 12 h · Coéquipier 4 h
@@ -147,8 +161,8 @@
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T038 | Les deux | Acteurs marqueurs de gameplay | 4 | Nicolas crée les acteurs ResourceSpawn, ClueSpot, BossArena, ZoneGate ; le coéquipier les place dans la zone de départ. |
-| ☐ | T039 | Nicolas | Outil d'export de la carte | 6 | Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs). |
-| ☐ | T040 | Nicolas | Format du fichier monde | 2 | Format documenté et versionné. |
+| ◐ | T039 | Nicolas | Outil d'export de la carte | 6 | Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs). |
+| ☑ | T040 | Nicolas | Format du fichier monde | 2 | Format documenté et versionné. |
 
 ### Semaine 15 — du 22 févr. 2027 · M3, M4 · Nicolas 12 h · Coéquipier 12 h
 
@@ -166,8 +180,8 @@
 | ☐ | T043 | Nicolas | ECS serveur | 6 | Entités et composants, système de mise à jour par tick. |
 | ☐ | T044 | Nicolas | Ressources récoltables avec repousse | 6 | Arbres et rochers récoltables, repousse côté serveur. |
 | ☐ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
-| ☐ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |
-| ☐ | T070 | Coéquipier | Objet carte (Blender) | 2 | Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire. |
+| ☑ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |
+| ☑ | T070 | Coéquipier | Objet carte (Blender) | 2 | Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire. |
 
 ### Semaine 17 — du 8 mars 2027 · M4 · Nicolas 12 h · Coéquipier 8 h
 
