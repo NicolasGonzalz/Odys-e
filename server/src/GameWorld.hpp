@@ -5,6 +5,8 @@
 #include "odyssee/core/Config.hpp"
 #include "odyssee/net/ControlMessages.hpp"
 #include "odyssee/net/GameMessages.hpp"
+#include "odyssee/sim/Movement.hpp"
+#include "odyssee/sim/Terrain.hpp"
 
 #include <array>
 #include <cstdint>
@@ -15,11 +17,13 @@ namespace odyssee::server {
 
 /// L'état de vérité du monde, côté serveur.
 ///
-/// Pour l'instant (T026) : les joueurs connectés, leur orientation (tirée de leurs inputs) et
-/// leur position, fixe au point d'apparition. Le mouvement viendra de la simulation partagée
-/// (T029) ; le point d'apparition, de la carte chargée par le serveur (T041).
+/// Pour l'instant : les joueurs connectés, déplacés par la simulation partagée (sim::step, la
+/// même que la prédiction du client) sur un sol plat. La carte, son relief et son point
+/// d'apparition viendront avec son chargement par le serveur (T041).
 class GameWorld {
   public:
+    GameWorld();
+
     /// Fait correspondre les joueurs du monde à ceux qui sont connectés : ajoute les nouveaux
     /// (au point d'apparition), retire ceux qui sont partis.
     void syncPlayers(std::span<const net::PlayerId> connected);
@@ -33,19 +37,23 @@ class GameWorld {
     /// Ce que voit `player` : tous les joueurs, et son dernier input appliqué.
     [[nodiscard]] net::Snapshot snapshotFor(net::PlayerId player, net::Tick serverTick) const;
 
+    /// État de mouvement complet d'un joueur (tests, outils), s'il est dans le monde.
+    [[nodiscard]] std::optional<sim::PlayerState> motionOf(net::PlayerId player) const;
+
     [[nodiscard]] bool hasPlayer(net::PlayerId player) const;
     [[nodiscard]] std::size_t playerCount() const;
 
   private:
     struct PlayerState {
-        net::EntityState entity;
+        sim::PlayerState motion;
         net::Tick lastProcessedInput = 0;
         InputQueue inputs;
     };
 
     static PlayerState spawn(net::PlayerId player);
-    static void apply(PlayerState& state, const InputQueue::Entry& input);
+    static net::EntityState entityOf(net::PlayerId player, const sim::PlayerState& motion);
 
+    sim::FlatTerrain _terrain; ///< sol plat à la hauteur du point d'apparition, en attendant T041
     std::array<std::optional<PlayerState>, kMaxPlayers> _players;
 };
 

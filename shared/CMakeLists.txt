@@ -18,6 +18,8 @@ add_library(odyssee_shared STATIC
     src/net/ReliableReceiver.cpp
     src/net/ReliableSender.cpp
     src/net/Session.cpp
+    src/sim/FixedMath.cpp
+    src/sim/Movement.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

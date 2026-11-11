@@ -91,6 +91,23 @@ doit continuer d'exister (un loup qui approche par derrière).
 **Un monde vivant :** chaque zone doit avoir des éléments d'ambiance en plus des ressources et des ennemis :
 végétation animée par le vent, oiseaux, insectes, particules (pollen, lucioles, spores), sons d'ambiance, météo.
 
+## Simulation partagée (`shared/sim`, T029)
+
+`sim::step(état, input, terrain)` fait avancer un joueur d'un tick : marche, course (endurance), accroupi,
+saut, gravité, marches de 25 cm, murs et pentes de plus de 45°. Le serveur l'applique pour faire autorité,
+le client pour prédire (puis réconcilier) : **le résultat doit être identique au bit près** sur le serveur
+(Linux, GCC) et le client (Windows, MSVC dans Unreal).
+
+- **Que des entiers** : positions en 1/256 m (celles du réseau), vitesses en 1/256 m par tick, endurance
+  de 0 à 1000. Pas de `float` : leurs résultats varient d'un compilateur à l'autre (contractions FMA,
+  options d'optimisation). Sinus et cosinus viennent d'une table figée (`sim/FixedMath`), les racines d'un
+  calcul entier.
+- **Fonction pure** : aucun état caché, aucun hasard, aucune horloge. L'input est celui envoyé, déjà
+  quantifié.
+- **Terrain abstrait** (`sim::Terrain`) : sol plat pour l'instant ; la heightmap (T041) devra répondre en
+  entiers, identiquement des deux côtés.
+- Réglages provisoires dans `sim::MovementTuning` (vitesses de docs/GAMEPLAY.md), à ajuster en jouant.
+
 ## Modèle de threads (cible)
 
 - **Serveur** : un thread de simulation (pas de verrous dans la logique de jeu), un thread réseau I/O,

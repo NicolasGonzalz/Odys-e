@@ -48,6 +48,10 @@ void writeBody(ByteWriter& w, const Snapshot& snapshot) {
     const std::size_t count = std::min(snapshot.entities.size(), kMaxSnapshotEntities);
     w.writeU32(snapshot.serverTick);
     w.writeU32(snapshot.lastProcessedInput);
+    for (const std::int16_t component : snapshot.self.velocity) {
+        w.writeI16(component);
+    }
+    w.writeU16(snapshot.self.stamina);
     w.writeU8(static_cast<std::uint8_t>(count));
     for (std::size_t i = 0; i < count; ++i) {
         writeEntity(w, snapshot.entities[i]);
@@ -117,14 +121,26 @@ bool containsId(const std::vector<EntityState>& entities, EntityId id) {
                        [id](const EntityState& e) { return e.id == id; });
 }
 
+std::optional<OwnMotion> readOwnMotion(ByteReader& r) {
+    const auto vx = r.readI16();
+    const auto vy = r.readI16();
+    const auto vz = r.readI16();
+    const auto stamina = r.readU16();
+    if (!vx || !vy || !vz || !stamina) {
+        return std::nullopt;
+    }
+    return OwnMotion{{*vx, *vy, *vz}, *stamina};
+}
+
 std::optional<GameMessage> readSnapshot(ByteReader& r) {
     const auto serverTick = r.readU32();
     const auto lastInput = r.readU32();
+    const auto self = readOwnMotion(r);
     const auto count = r.readU8();
-    if (!serverTick || !lastInput || !count || *count > kMaxSnapshotEntities) {
+    if (!serverTick || !lastInput || !self || !count || *count > kMaxSnapshotEntities) {
         return std::nullopt;
     }
-    Snapshot snapshot{*serverTick, *lastInput, {}};
+    Snapshot snapshot{*serverTick, *lastInput, {}, *self};
     for (std::uint8_t i = 0; i < *count; ++i) {
         const auto entity = readEntity(r);
         if (!entity || containsId(snapshot.entities, entity->id)) {

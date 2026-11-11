@@ -11,12 +11,14 @@
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/net/Session.hpp"
 #include "odyssee/net/UdpSocket.hpp"
+#include "odyssee/sim/Movement.hpp"
 
 #include <doctest/doctest.h>
 
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <deque>
 #include <optional>
 #include <string>
@@ -169,6 +171,29 @@ TEST_CASE("Partie : deux joueurs se voient et le serveur applique leurs inputs")
     // Le client a mesuré l'aller-retour, et personne n'a eu besoin de KeepAlive pour rester.
     CHECK(ana.session.roundTripTime().has_value());
     CHECK(ana.connection.state() == ConnectionState::Connected);
+}
+
+TEST_CASE("Partie : le serveur déplace le joueur selon ses inputs (simulation partagée)") {
+    Match match;
+    GameClient ana("Ana", match.service.port());
+    ana.yawDegrees = 90.0f; // avance vers le sud (+y)
+    match.connect(ana);
+    const auto id = *ana.connection.playerId();
+
+    match.runUntil({&ana}, [&] { return ana.entity(id) != nullptr; });
+    REQUIRE(ana.entity(id) != nullptr);
+    const auto start = ana.entity(id)->position;
+
+    match.runUntil({&ana}, [&] { return ana.latest->lastProcessedInput > 60; });
+    const auto* now = ana.entity(id);
+    REQUIRE(now != nullptr);
+
+    // ~3 s de marche à 3,5 m/s : plusieurs mètres vers le sud, ni à l'est, ni en hauteur.
+    CHECK(now->position[1] - start[1] > quantizePosition(5.0f));
+    CHECK(std::abs(now->position[0] - start[0]) < quantizePosition(0.1f));
+    CHECK(now->position[2] == start[2]);
+    CHECK(ana.latest->self.velocity[1] == sim::kDefaultTuning.walkSpeed);
+    CHECK(ana.latest->self.stamina == sim::kDefaultTuning.maxStamina);
 }
 
 TEST_CASE("Partie : un joueur qui part disparaît des snapshots des autres") {
