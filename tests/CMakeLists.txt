@@ -17,6 +17,7 @@ add_executable(odyssee_tests
     test_quantize.cpp
     test_game_messages.cpp
     test_game_packet.cpp
+    test_session.cpp
     test_network_simulator.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
@@ -27,6 +28,9 @@ if(ODYSSEE_BUILD_SERVER)
         test_command_line.cpp
         test_client_registry.cpp
         test_handshake.cpp
+        test_input_queue.cpp
+        test_game_world.cpp
+        test_game_session.cpp
     )
     target_link_libraries(odyssee_tests PRIVATE odyssee_server_core)
 endif()

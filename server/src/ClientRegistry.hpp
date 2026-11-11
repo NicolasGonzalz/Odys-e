@@ -38,6 +38,22 @@ class ClientRegistry {
     /// Retire tous les joueurs (arrêt du serveur) et renvoie leurs adresses, pour les prévenir.
     [[nodiscard]] std::vector<net::Address> disconnectAll();
 
+    /// Un paquet de jeu est arrivé de `from` : si c'est un joueur, il est encore là. Renvoie son
+    /// numéro (rien si l'adresse n'est pas celle d'un joueur connecté).
+    std::optional<net::PlayerId> touch(const net::Address& from, Clock::time_point now);
+
+    /// Un paquet vient de partir vers `to` : pas besoin de KeepAlive tant qu'on en envoie.
+    void noteSent(const net::Address& to, Clock::time_point now);
+
+    struct PlayerInfo {
+        net::PlayerId id = 0;
+        std::string name;
+        net::Address address;
+    };
+
+    /// Les joueurs connectés (dans un ordre quelconque).
+    [[nodiscard]] std::vector<PlayerInfo> players() const;
+
     [[nodiscard]] std::size_t playerCount() const { return _players.size(); }
     [[nodiscard]] std::optional<net::PlayerId> playerAt(const net::Address& address) const;
 

@@ -81,6 +81,20 @@ void ClientConnection::onServerDisconnect() {
     }
 }
 
+// --- Paquets de jeu ---------------------------------------------------------------------------
+
+void ClientConnection::onGamePacketReceived(Clock::time_point now) {
+    if (_state == ConnectionState::Connected) {
+        _lastHeard = now;
+    }
+}
+
+void ClientConnection::onGamePacketSent(Clock::time_point now) {
+    if (_state == ConnectionState::Connected) {
+        _lastSent = now;
+    }
+}
+
 // --- Envoi et délais --------------------------------------------------------------------------
 
 std::optional<ControlMessage> ClientConnection::nextOutgoing(Clock::time_point now) {

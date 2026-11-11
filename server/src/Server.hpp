@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GameWorld.hpp"
+
 #include "odyssee/net/NetworkSimulator.hpp"
 
 #include <atomic>
@@ -31,6 +33,7 @@ class Server {
 
     std::uint16_t _port;
     net::NetworkConditions _network;
+    GameWorld _world;
     std::atomic<bool> _running{false};
 };
 

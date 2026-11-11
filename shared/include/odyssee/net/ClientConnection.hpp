@@ -38,6 +38,12 @@ class ClientConnection {
     /// Prend en compte un message reçu du serveur.
     void onMessage(const ControlMessage& message, Clock::time_point now);
 
+    /// Un paquet de jeu est arrivé du serveur : comme un message, il prouve que le serveur est là.
+    void onGamePacketReceived(Clock::time_point now);
+
+    /// Un paquet de jeu vient de partir : pas besoin de KeepAlive tant qu'on en envoie.
+    void onGamePacketSent(Clock::time_point now);
+
     /// Message à envoyer maintenant (demande, réponse au défi, KeepAlive, Disconnect), s'il y en a.
     [[nodiscard]] std::optional<ControlMessage> nextOutgoing(Clock::time_point now);
 

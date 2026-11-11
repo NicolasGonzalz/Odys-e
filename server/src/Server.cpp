@@ -1,6 +1,7 @@
 #include "Server.hpp"
 
 #include "ConnectionService.hpp"
+#include "GameStep.hpp"
 
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
@@ -83,9 +84,9 @@ void Server::waitUntil(ConnectionService& connections, Clock::time_point nextTic
 
 void Server::tick(ConnectionService& connections, std::uint64_t tickIndex,
                   Clock::time_point now) {
-    connections.poll(now);
+    // Les ticks réseau sont sur 32 bits : 6 ans à 20 ticks/s avant de reboucler.
+    stepGame(connections, _world, static_cast<net::Tick>(tickIndex), now);
 
-    // TODO(M1) : application des inputs, simulation, envoi des snapshots.
     if (tickIndex % (kTickRate * 10) == 0) {
         kLog.debug("tick {} — {} joueur(s)", tickIndex, connections.playerCount());
     }

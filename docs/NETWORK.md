@@ -43,7 +43,7 @@ Client                                  Serveur
   │◀─────────── Challenge(jeton u64) ───────│  jeton aléatoire envoyé à l'adresse annoncée
   │── ChallengeResponse(jeton) ────────────▶│  prouve que le client possède bien cette adresse
   │◀────────── Accepted(playerId) ──────────│  numéro de joueur 0 à 3
-  │◀═════════ état du monde (T024+) ════════│
+  │◀═══════ paquets de jeu (T024, T026) ════│
 ```
 
 Format d'un paquet de connexion : `PacketHeader | PacketKind (u8) | contenu`. Les numéros de séquence
@@ -114,6 +114,27 @@ entrée. NaN et valeurs hors bornes sont ramenés dans l'intervalle ; un octet h
 trop est ignoré entier.
 
 Version du protocole : **2** depuis l'ajout des paquets de jeu.
+
+## Sessions et diffusion de l'état (T026)
+
+- **`shared/net/Session`** : l'échange de paquets de jeu avec l'autre côté, sans réseau (comme
+  `ClientConnection`) ; le serveur en a une par joueur, le client une seule. Elle numérote les paquets,
+  acquitte ceux reçus (un paquet doublon, trop vieux ou invalide est ignoré **avant** d'être compté
+  comme reçu), renvoie les messages fiables non acquittés, abandonne les non fiables qui ne tiennent
+  plus dans le paquet, et mesure l'aller-retour (moyenne glissante à 1/8, comme TCP).
+- **Côté serveur, à chaque tick** (`server/GameStep`) : lire les paquets → donner les inputs au monde →
+  appliquer **au plus un input par joueur** → construire un snapshot par joueur → lui envoyer un paquet.
+  Un paquet de jeu ne crée jamais de connexion : il n'est accepté que de l'adresse d'un joueur connecté.
+- **Inputs** (`server/InputQueue`) : on ne garde que les inputs plus récents que le dernier reçu (la
+  redondance des lots crée des doublons) ; un trou est sauté ; au-delà de 8 inputs en attente (400 ms),
+  les plus anciens sont sautés pour que le joueur ne soit pas joué de plus en plus en retard.
+- **Snapshot** : tous les joueurs (pas encore de zone d'intérêt), et le dernier input appliqué du joueur
+  destinataire. Le client garde le plus récent (`serverTick`) : un snapshot arrivé en retard est ignoré.
+- **Monde provisoire** (`server/GameWorld`) : les joueurs apparaissent dans la salle des capsules du
+  centre de stase, à 2 m d'écart ; seule leur orientation suit l'input. Le mouvement viendra de la
+  simulation partagée (T029), le point d'apparition de la carte chargée par le serveur (T041).
+- **KeepAlive** : inutiles tant que des paquets de jeu circulent (ils comptent comme trafic des deux
+  côtés : `ClientRegistry::touch/noteSent`, `ClientConnection::onGamePacketReceived/Sent`).
 
 ## Synchronisation de l'état
 

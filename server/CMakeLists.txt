@@ -4,6 +4,9 @@ add_library(odyssee_server_core STATIC
     src/ClientRegistry.cpp
     src/CommandLine.cpp
     src/ConnectionService.cpp
+    src/GameStep.cpp
+    src/GameWorld.cpp
+    src/InputQueue.cpp
     src/ShutdownSignals.cpp
 )
 target_include_directories(odyssee_server_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

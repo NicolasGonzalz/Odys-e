@@ -17,6 +17,7 @@ add_library(odyssee_shared STATIC
     src/net/ReliableCodec.cpp
     src/net/ReliableReceiver.cpp
     src/net/ReliableSender.cpp
+    src/net/Session.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 
