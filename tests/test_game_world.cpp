@@ -1,6 +1,8 @@
 #include "GameWorld.hpp"
 
+#include "odyssee/client/Prediction.hpp"
 #include "odyssee/net/Quantize.hpp"
+#include "odyssee/sim/ProvisionalGround.hpp"
 #include "odyssee/sim/Movement.hpp"
 
 #include <doctest/doctest.h>
@@ -225,4 +227,34 @@ TEST_CASE("GameWorld : une place reprise par une autre connexion repart de zéro
 
     world.syncPlayers(after); // même génération : rien ne bouge
     CHECK(world.snapshotFor(1, 4).lastProcessedInput == 1);
+}
+
+TEST_CASE("Prédiction du client : démarrée sur le snapshot du serveur, elle arrive au même état") {
+    // Le vrai chemin du client (T031) : client::Prediction démarre sur le snapshot que le serveur
+    // lui envoie, joue chaque input tout de suite, et envoie ses lots redondants au serveur.
+    GameWorld world;
+    const std::vector<ConnectedPlayer> one{{2, 1}};
+    world.syncPlayers(one);
+
+    const sim::FlatTerrain ground(sim::provisionalGroundHeight());
+    client::Prediction prediction(ground);
+    REQUIRE(prediction.start(world.snapshotFor(2, 1), 2));
+
+    for (net::Tick tick = 1; tick <= 150; ++tick) {
+        net::InputCommand command;
+        command.moveForward = net::quantizeAxis(tick % 40 < 30 ? 1.0f : -0.5f);
+        command.moveRight = net::quantizeAxis(tick % 25 < 5 ? 1.0f : 0.0f);
+        command.yaw = net::quantizeYaw(static_cast<float>(tick) * 2.5f);
+        command.buttons = static_cast<std::uint16_t>(
+            (tick % 45 == 0 ? static_cast<unsigned>(net::InputButton::Jump) : 0U) |
+            (tick % 60 < 30 ? static_cast<unsigned>(net::InputButton::Sprint) : 0U));
+
+        REQUIRE(prediction.advance(command));
+        world.receiveInputs(2, prediction.history().recentBatch());
+        world.step();
+    }
+
+    REQUIRE(world.motionOf(2).has_value());
+    CHECK(*world.motionOf(2) == *prediction.state());
+    CHECK(world.snapshotFor(2, 151).lastProcessedInput == 150);
 }

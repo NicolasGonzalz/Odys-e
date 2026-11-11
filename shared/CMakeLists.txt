@@ -2,6 +2,8 @@
 add_library(odyssee_shared STATIC
     src/ByteBuffer.cpp
     src/Log.cpp
+    src/client/InputHistory.cpp
+    src/client/Prediction.cpp
     src/net/Acknowledgements.cpp
     src/net/Address.cpp
     src/net/ClientConnection.cpp
@@ -20,6 +22,7 @@ add_library(odyssee_shared STATIC
     src/net/Session.cpp
     src/sim/FixedMath.cpp
     src/sim/Movement.cpp
+    src/sim/ProvisionalGround.cpp
     src/sim/Replication.cpp
     src/world/HeightField.cpp
     src/world/WorldFileReader.cpp
