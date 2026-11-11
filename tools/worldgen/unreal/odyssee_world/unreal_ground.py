@@ -40,6 +40,10 @@ def _import_colormap(path):
     safe_set(texture, "address_x", unreal.TextureAddress.TA_CLAMP)
     safe_set(texture, "address_y", unreal.TextureAddress.TA_CLAMP)
     safe_set(texture, "mip_gen_settings", unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS)
+    # Groupe « UI » : celui par défaut (World) plafonne les textures à 2048 px, soit 2 m par pixel
+    # ici, et rend les chemins flous. La carte fait 4033 px : 1 m par pixel.
+    safe_set(texture, "lod_group", unreal.TextureGroup.TEXTUREGROUP_UI)
+    safe_set(texture, "filter", unreal.TextureFilter.TF_BILINEAR)
     unreal.EditorAssetLibrary.save_loaded_asset(texture)
     return texture
 

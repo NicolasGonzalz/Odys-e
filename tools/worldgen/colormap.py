@@ -4,14 +4,14 @@ Une teinte par zone (fondue aux frontières), puis par-dessus : berges, lits de 
 lieux. Le matériau y ajoute lui-même la roche sur les pentes raides et la neige en altitude, et
 ombre chaque facette : ici, seulement des aplats (style low-poly).
 
-1 pixel = 4 m (comme heights_4m.bin) : 1009 x 757 pour le monde de 4032 x 3024 m.
+1 pixel = 1 m : 4033 x 3025 pour le monde de 4032 x 3024 m (chemins de 4 à 8 m nets, même de près).
 """
 import numpy as np
 from PIL import Image
 
 from generate_terrain import disk_mask, lerp, polygon_mask, polyline_mask
 
-STEP_M = 4
+STEP_M = 1
 
 ZONE_COLORS = {  # sRGB, palette douce et peu saturée
     "plaine": (118, 140, 84),
@@ -57,17 +57,34 @@ def _water_layers(layout, shape, height, colors):
     return _paint(colors, np.clip(-height / 1.0, 0.0, 1.0), WATER_BED)
 
 
+def _fine_line(shape, points, width_m):
+    """Masque d'un chemin à 1 m près (les masques du relief, à 4 m, le rendraient flou), calculé à
+    partir de la distance exacte au tracé : bord net mais lissé sur un pixel (pas d'escalier)."""
+    mask = np.zeros(shape, dtype=np.float32)
+    half = width_m / 2
+    for (ax, ay), (bx, by) in zip(points, points[1:]):
+        x0, x1 = int(max(0, min(ax, bx) - half - 2)), int(min(shape[1], max(ax, bx) + half + 3))
+        y0, y1 = int(max(0, min(ay, by) - half - 2)), int(min(shape[0], max(ay, by) + half + 3))
+        ys, xs = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+        dx, dy = bx - ax, by - ay
+        along = np.clip(((xs - ax) * dx + (ys - ay) * dy) / max(dx * dx + dy * dy, 1e-6), 0, 1)
+        distance = np.hypot(xs - (ax + along * dx), ys - (ay + along * dy))
+        coverage = np.clip(half - distance + 0.5, 0.0, 1.0)
+        mask[y0:y1, x0:x1] = np.maximum(mask[y0:y1, x0:x1], coverage)
+    return mask
+
+
 def _path_layers(layout, shape, colors):
     for place in layout["places"]:
         colors = _paint(colors, disk_mask(shape, place["pos"], place["radius_m"], 8), PLACE_GROUND)
     for path in layout["paths"]:
-        mask = polyline_mask(shape, path["points"], path["width_m"], 3)
+        mask = _fine_line(shape, path["points"], path["width_m"])
         colors = _paint(colors, mask, PATH_COLORS.get(path["kind"], PATH_COLORS["chemin"]))
     return colors
 
 
 def write_colormap(layout, height, path):
-    """Calcule à pleine résolution (les chemins font quelques mètres), écrit à 4 m par pixel."""
+    """Calcule à pleine résolution (les chemins font quelques mètres), écrit à STEP_M m par pixel."""
     shape = height.shape
     colors = _zone_layer(layout, shape)
     colors = _water_layers(layout, shape, height, colors)
