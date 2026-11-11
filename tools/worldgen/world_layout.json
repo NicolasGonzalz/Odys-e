@@ -128,6 +128,40 @@
     [3250, 1925], [3200, 1975], [3300, 2025]
   ],
 
+  "_relief_doc": [
+    "Relief détaillé, ajouté par generate_terrain.py par-dessus les profils de zones.",
+    "hills : collines douces (bruit de cellule cell_m), amplitude par type de terrain.",
+    "ravines : ravins en gradins le long d'une ligne (largeur au fond, profondeur) ; le fond reste au sec (>= 1 m).",
+    "buttes : buttes à deux étages et flancs raides (rayon, hauteur au-dessus du sol local).",
+    "outcrops : rochers affleurants tirés au hasard (graine fixe), densité par km² et par type de terrain,",
+    "  jamais sur les chemins, les lieux, l'eau, les grottes ni près du point de départ.",
+    "facet_m : le relief final est fait de triangles plans de cette taille (style low-poly), sommets décalés de ± facet_jitter_m ;",
+    "  pas autour des grottes, dont l'entrée doit rester une falaise nette."
+  ],
+  "relief": {
+    "hills": { "cell_m": 240, "amplitude_m": { "plaine": 14, "collines": 16, "foret_coeur": 10, "marais": 1, "ville": 0, "montagne": 0 } },
+    "ravines": [
+      { "id": "ravin_ouest", "points": [[900, 2960], [1000, 2700], [950, 2460], [1060, 2260]], "width_m": 14, "depth_m": 9 },
+      { "id": "ravin_est", "points": [[2920, 3000], [2860, 2830], [3000, 2730]], "width_m": 12, "depth_m": 7 },
+      { "id": "ravin_coeur", "points": [[2700, 120], [2850, 330], [2780, 560]], "width_m": 16, "depth_m": 12 }
+    ],
+    "buttes": [
+      { "id": "butte_sud", "pos": [2400, 2860], "radius_m": 60, "height_m": 18 },
+      { "id": "butte_est", "pos": [3420, 2800], "radius_m": 85, "height_m": 26 },
+      { "id": "butte_ouest", "pos": [640, 2720], "radius_m": 70, "height_m": 20 },
+      { "id": "butte_coeur", "pos": [3500, 400], "radius_m": 75, "height_m": 30 }
+    ],
+    "outcrops": {
+      "seed": 77,
+      "per_km2": { "plaine": 45, "collines": 90, "montagne": 60, "foret_coeur": 55, "marais": 6, "ville": 0 },
+      "radius_m": [8, 18],
+      "height_m": [2, 7],
+      "spawn_clearance_m": 150
+    },
+    "facet_m": 8,
+    "facet_jitter_m": 0.5
+  },
+
   "_caves_doc": [
     "Grottes (blockout). pos = centre de l'entrée ; yaw_deg = direction vers laquelle l'entrée s'ouvre.",
     "type montagne : sous le relief, sur un flanc à ~25°, l'entrée vers le bas de la pente. generate_terrain.py",

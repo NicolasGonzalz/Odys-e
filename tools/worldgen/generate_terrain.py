@@ -13,6 +13,7 @@ Dans Unreal : Landscape à l'origine, échelle (100, 100, 200) => 1 m par point,
 Usage : python3 tools/worldgen/generate_terrain.py   (dépendances : numpy, Pillow)
 """
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +23,9 @@ HERE = Path(__file__).resolve().parent
 LAYOUT = HERE / "world_layout.json"
 OUTPUT = HERE / "output"
 SEED = 2026
+
+# Les modules « purs » de odyssee_world (géométrie du plan) servent aussi ici.
+sys.path.insert(0, str(HERE / "unreal"))
 HEIGHT_SCALE = 64  # unités de heightmap par mètre (échelle Z Unreal = 200)
 WORK_SCALE = 4     # les masques sont calculés à 1/4 de résolution, puis agrandis
 
@@ -286,6 +290,177 @@ def carve_caves(layout, height):
     return height, floors
 
 
+def raise_cave_cliffs(layout, height, floors):
+    """Au-dessus de l'entrée de chaque grotte de montagne, une masse de roche à flanc vertical :
+    l'entrée s'ouvre dans une petite falaise, et le tunnel passe aussitôt sous le relief (le trou
+    à percer dans le Landscape se réduit à la face de la falaise)."""
+    shapes = layout["cave_shapes"]
+    tunnel, wall = shapes["montagne"]["tunnel"], shapes["wall_m"]
+    half = tunnel[1] / 2 + wall + 3.0
+    for cave in layout.get("caves", []):
+        if cave["type"] != "montagne":
+            continue
+        window, a, b = _cave_frame(height, cave, 30)
+        top = np.float32(floors[cave["id"]] + tunnel[2] + 2.5)
+        # Face nette en a = 0, masse pleine sur 8 m, puis raccord progressif à la pente.
+        along = np.clip((a + 16.0) / 8.0, 0.0, 1.0) * (a <= 0.0)
+        across = np.clip((half + 4.0 - np.abs(b)) / 4.0, 0.0, 1.0)
+        sub = height[window]
+        height[window] = np.maximum(sub, lerp(sub, top, along * across))
+    return height
+
+
+# --- Relief détaillé (world_layout.json, « relief ») -------------------------------------------
+
+def _terrain_amplitude_map(layout, shape, amplitudes):
+    """Pour chaque point, l'amplitude voulue selon le type de terrain de sa zone (mélangée aux
+    frontières comme les profils)."""
+    weighted = np.zeros(shape, dtype=np.float32)
+    weights = np.full(shape, 1e-6, dtype=np.float32)
+    regions = list(layout["zones"].values()) + list(layout["areas"].values())
+    for region in regions:
+        mask = polygon_mask(shape, region["polygon"], 150)
+        weighted += mask * np.float32(amplitudes.get(region["terrain"], 0.0))
+        weights += mask
+    return weighted / weights
+
+
+def add_hills(layout, shape, height):
+    """Collines douces : surtout dans la plaine de départ, qui sinon paraît plate."""
+    hills = layout["relief"]["hills"]
+    rng = np.random.default_rng(SEED + 1)
+    noise = fractal_noise(shape, rng, base_cell_m=hills["cell_m"], octaves=3)
+    return height + _terrain_amplitude_map(layout, shape, hills["amplitude_m"]) * noise
+
+
+def carve_ravines(layout, shape, height):
+    """Ravins en deux gradins (bords évasés, fond étroit) ; le fond reste au-dessus de l'eau."""
+    for ravine in layout["relief"]["ravines"]:
+        width, depth = ravine["width_m"], ravine["depth_m"]
+        outer = polyline_mask(shape, ravine["points"], width * 3, width)
+        inner = polyline_mask(shape, ravine["points"], width, 6)
+        carved = height - depth * (0.45 * outer + 0.55 * inner)
+        height = np.where(outer > 0, np.maximum(carved, np.minimum(height, 1.0)), height)
+    return height
+
+
+def _outline(rng, sides):
+    """Rayon relatif selon l'angle, irrégulier : une forme de rocher, pas un disque."""
+    phases = rng.uniform(0, 2 * np.pi, 3)
+    weights = rng.uniform(0.06, 0.16, 3)
+    return lambda angle: 1.0 + sum(w * np.sin((k + 2) * angle + p)
+                                   for k, (w, p) in enumerate(zip(weights, phases)))
+
+
+def _raise_shape(height, center, radius, rise, profile, outline):
+    """Ajoute `rise` × profile(distance relative) dans une fenêtre autour de `center`."""
+    x0, y0 = center
+    reach = radius * 1.4
+    rows = slice(max(0, int(y0 - reach)), min(height.shape[0], int(y0 + reach) + 1))
+    cols = slice(max(0, int(x0 - reach)), min(height.shape[1], int(x0 + reach) + 1))
+    ys, xs = np.mgrid[rows, cols].astype(np.float32)
+    dx, dy = xs - x0, ys - y0
+    relative = np.hypot(dx, dy) / (radius * outline(np.arctan2(dy, dx)))
+    height[rows, cols] += np.float32(rise) * profile(relative)
+
+
+def raise_buttes(layout, height):
+    """Buttes à deux étages : un socle large et un sommet plus petit, flancs raides."""
+    rng = np.random.default_rng(SEED + 2)
+    tiers = lambda r: (0.55 * np.clip((1.0 - r) / 0.15, 0, 1)
+                       + 0.45 * np.clip((0.72 - r) / 0.12, 0, 1))
+    for butte in layout["relief"]["buttes"]:
+        _raise_shape(height, butte["pos"], butte["radius_m"], butte["height_m"], tiers,
+                     _outline(rng, 6))
+    return height
+
+
+def _outcrop_spots(layout, rules, rng):
+    """Emplacements des rochers : tirés zone par zone, loin de tout ce qui doit rester dégagé."""
+    from odyssee_world.layout import Layout, bounds, point_in_polygon  # module pur, sans Unreal
+
+    geo = Layout(layout)
+    spawn = next(p["pos"] for p in layout["places"] if p.get("spawn"))
+    caves = [c["pos"] for c in layout.get("caves", [])]
+
+    def clear(x, y):
+        return (geo.distance_to_paths(x, y) > 25 and geo.distance_to_river(x, y) > 60
+                and not geo.inside_place(x, y, 40)
+                and all(np.hypot(x - c[0], y - c[1]) > 60 for c in caves)
+                and np.hypot(x - spawn[0], y - spawn[1]) > rules["spawn_clearance_m"]
+                and all(np.hypot(x - l["center"][0], y - l["center"][1]) > l["radius_m"] * 1.8
+                        for l in layout["water"]["lakes"]))
+
+    for zone in layout["zones"].values():
+        polygon = zone["polygon"]
+        x_min, y_min, x_max, y_max = bounds(polygon)
+        area_km2 = (x_max - x_min) * (y_max - y_min) / 1e6
+        for _ in range(int(area_km2 * rules["per_km2"].get(zone["terrain"], 0))):
+            x, y = rng.uniform(x_min, x_max), rng.uniform(y_min, y_max)
+            if point_in_polygon(x, y, polygon) and clear(x, y):
+                yield x, y
+
+
+def scatter_outcrops(layout, height):
+    """Rochers affleurants : flancs raides et sommet plat, pour accrocher la lumière en facettes."""
+    rules = layout["relief"]["outcrops"]
+    rng = np.random.default_rng(rules["seed"])
+    rock = lambda r: np.clip((1.0 - r) / 0.3, 0, 1)
+    count = 0
+    for x, y in list(_outcrop_spots(layout, rules, rng)):
+        radius = rng.uniform(*rules["radius_m"])
+        rise = rng.uniform(*rules["height_m"])
+        _raise_shape(height, (x, y), radius, rise, rock, _outline(rng, 5))
+        count += 1
+    return height, count
+
+
+def _calm_mask(layout, shape):
+    """1 là où le sol doit rester net (chemins, lieux, grottes, eau), 0 ailleurs."""
+    calm = np.zeros(shape, dtype=np.float32)
+    for path in layout["paths"]:
+        calm = np.maximum(calm, polyline_mask(shape, path["points"], path["width_m"] * 2, 12))
+    for place in layout["places"]:
+        calm = np.maximum(calm, disk_mask(shape, place["pos"], place["radius_m"] + 10, 12))
+    for cave in layout.get("caves", []):
+        calm = np.maximum(calm, disk_mask(shape, cave["pos"], 45, 15))
+    river = layout["water"]["river"]
+    calm = np.maximum(calm, polyline_mask(shape, river["path"], river["width_m"] * 2, 12))
+    for lake in layout["water"]["lakes"]:
+        calm = np.maximum(calm, disk_mask(shape, lake["center"], lake["radius_m"] * 1.3, 15))
+    return calm
+
+
+def facet(layout, height, step, jitter_m):
+    """Style low-poly : le relief devient des triangles plans de `step` mètres (chaque carré de
+    la grille grossière coupé en deux). Chaque sommet est décalé au hasard de ± jitter_m, pour
+    que deux faces voisines n'aient jamais tout à fait la même pente et accrochent la lumière
+    différemment. Chemins, lieux et eau ne sont pas décalés ; autour des entrées de grotte, le
+    relief fin est gardé tel quel."""
+    calm = _calm_mask(layout, height.shape)
+    rng = np.random.default_rng(SEED + 3)
+    coarse = height[::step, ::step].copy()
+    coarse += rng.uniform(-jitter_m, jitter_m, coarse.shape).astype(np.float32) * (
+        1.0 - calm[::step, ::step])
+    rows, cols = np.indices(height.shape, dtype=np.float32)
+    gy, gx = rows / step, cols / step
+    i = np.minimum(gy.astype(np.int32), coarse.shape[0] - 2)
+    j = np.minimum(gx.astype(np.int32), coarse.shape[1] - 2)
+    fy, fx = gy - i, gx - j
+    h00, h10 = coarse[i, j], coarse[i, j + 1]
+    h01, h11 = coarse[i + 1, j], coarse[i + 1, j + 1]
+    lower = fx + fy <= 1.0
+    faceted = np.where(lower, h00 + fx * (h10 - h00) + fy * (h01 - h00),
+                       h11 + (1 - fx) * (h01 - h11) + (1 - fy) * (h10 - h11))
+
+    keep = np.zeros(height.shape, dtype=np.float32)
+    for cave in layout.get("caves", []):
+        if cave["type"] == "montagne":
+            x, y = cave["pos"]
+            keep = np.maximum(keep, np.clip(1.0 - (np.hypot(cols - x, rows - y) - 30) / 15, 0, 1))
+    return lerp(faceted.astype(np.float32), height, keep)
+
+
 def build_height(layout):
     """Relief complet (m) et hauteur du sol de chaque grotte de montagne ({id: m})."""
     shape = grid_shape(layout)
@@ -295,12 +470,19 @@ def build_height(layout):
 
     height = blend_zones(layout, shape, noise, mountain_noise)
     height = apply_areas(layout, shape, height, noise, mountain_noise)
+    height = add_hills(layout, shape, height)
+    height = raise_buttes(layout, height)
+    height, _ = scatter_outcrops(layout, height)
+    height = carve_ravines(layout, shape, height)
     height = carve_water(layout, shape, height, noise)
     height = carve_mountain_pass(layout, shape, height)
     height = smooth_paths(layout, shape, height)
     height = flatten_places(layout, shape, height)
     height = raise_world_border(shape, height)
     height, cave_floors = carve_caves(layout, height)
+    height = raise_cave_cliffs(layout, height, cave_floors)
+    relief = layout["relief"]
+    height = facet(layout, height, relief["facet_m"], relief["facet_jitter_m"])
     return np.clip(height, -100.0, 500.0), cave_floors
 
 

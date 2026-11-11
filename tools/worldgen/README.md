@@ -26,6 +26,13 @@ python3 tools/worldgen/generate_terrain.py        # ~15 s
 
 Le résultat est **déterministe** (graine fixe) : même plan → même relief.
 
+Relief détaillé (section `relief` de `world_layout.json`) : collines dans la plaine, ravins en gradins,
+buttes à deux étages, rochers affleurants tirés au hasard (graine fixe, jamais sur les chemins, lieux,
+eau, grottes ni près du départ), petite falaise au-dessus de chaque entrée de grotte de montagne, puis
+**facettes low-poly** : triangles plans de 8 m aux sommets décalés de ±0,5 m (chemins, lieux et eau
+restent nets ; autour des grottes, le relief fin est gardé). Sans Python installé, celui d'Unreal suffit :
+`pip install --target <dossier> numpy Pillow`, puis `PYTHONPATH=<dossier>`.
+
 ## Importer le relief dans Unreal (5.6)
 
 Le niveau déjà prêt est **`Content/Odyssee/Maps/Lvl_Relief`** (relief + blockout, voir plus bas).
