@@ -1,7 +1,7 @@
 id	semaine	jalon	qui	labels	heures	titre	fini_quand	etat
 T001	1	M0	both	doc,lore	4	Mystère : trame et chronologie de la catastrophe	docs/LORE.md décrit ce qui s'est passé, la chronologie et la vérité finale que le joueur reconstitue.	fait
 T002	1	M0	both	doc,lore	3	Fiches des survivants prédéfinis	2 à 4 fiches (nom, passé, lien avec le mystère, traits visuels) dans docs/CHARACTERS.md ; décision sur « deux joueurs, même survivant ».	fait
-T003	1	M0	both	doc,gameplay	2	Règles de progression en coop	docs/VISION.md précise si artefacts, zones et journal sont partagés en coop.	en_cours
+T003	1	M0	both	doc,gameplay	2	Règles de progression en coop	docs/VISION.md précise si artefacts, zones et journal sont partagés en coop.	fait
 T004	1	M0	nicolas	tech,shared	2	Logger commun	Module odyssee::log (niveaux, horodatage) utilisé par le serveur ; testé.	fait
 T005	1	M0	nicolas	infra	1	Vérifier la CI et le badge	CI verte sur main, badge dans le README.	fait
 T006	2	M0	ami	design,figma	4	Plan des zones (Figma)	Carte macro des 5 zones (docs/ZONES.md) : départ, zones dangereuses, emplacements des boss et artefacts.	a_faire
@@ -51,7 +51,7 @@ T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit 
 T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.	a_faire
 T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	a_faire
 T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	a_faire
-T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	a_faire
+T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	fait
 T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	a_faire
 T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.	a_faire
 T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.	a_faire
