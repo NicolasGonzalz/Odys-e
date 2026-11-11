@@ -17,7 +17,6 @@ Lancer : Outils > Exécuter un script Python… > ce fichier. Relançable : il r
 """
 import importlib
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -39,7 +38,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 BLOCKOUT_TAG = "blockout"
-SPAWN_PLACE = "centre_stase"
+PLAYER_START_LIFT_M = 1.0  # un PlayerStart Unreal se place au centre de la capsule, pas aux pieds
 
 
 def _load(name):
@@ -53,11 +52,11 @@ def _clear_blockout(util):
         util.actors().destroy_actors(old)
 
 
-def _spawn_box(util, assets, box, origin, yaw, folder):
-    """Un bloc (cube ou cylindre de 1 m agrandi) tourné de `yaw` autour du centre du lieu."""
-    x, y, z = m["blockout"].place(box.center, origin, yaw)
-    actor = util.spawn(unreal.StaticMeshActor, util.to_cm(x, y, z), box.label, folder,
-                       [BLOCKOUT_TAG], unreal.Rotator(0.0, 0.0, yaw + box.yaw))
+def _spawn_box(util, assets, group, box):
+    """Un bloc (cube ou cylindre de 1 m agrandi), à sa place dans le monde."""
+    (x, y, z), yaw = m["blockout_plan"].world_box(group, box)
+    actor = util.spawn(unreal.StaticMeshActor, util.to_cm(x, y, z), box.label, group.folder,
+                       [BLOCKOUT_TAG], unreal.Rotator(0.0, 0.0, yaw))
     actor.set_actor_scale3d(unreal.Vector(*box.size))
     component = actor.static_mesh_component
     component.set_static_mesh(assets.shape_mesh(box.shape))
@@ -67,9 +66,10 @@ def _spawn_box(util, assets, box, origin, yaw, folder):
     util.safe_set(actor, "is_spatially_loaded", False)
 
 
-def _spawn_light(util, light, origin, yaw, folder):
-    x, y, z = m["blockout"].place(light.center, origin, yaw)
-    actor = util.spawn(unreal.PointLight, util.to_cm(x, y, z), light.label, folder, [BLOCKOUT_TAG])
+def _spawn_light(util, group, light):
+    x, y, z = m["blockout"].place(light.center, group.origin, group.yaw)
+    actor = util.spawn(unreal.PointLight, util.to_cm(x, y, z), light.label, group.folder,
+                       [BLOCKOUT_TAG])
     component = actor.get_component_by_class(unreal.PointLightComponent)
     r, g, b = (int(c * 255) for c in light.color)
     util.safe_set(component, "light_color", unreal.Color(r=r, g=g, b=b, a=255))
@@ -78,26 +78,19 @@ def _spawn_light(util, light, origin, yaw, folder):
     util.safe_set(actor, "is_spatially_loaded", False)
 
 
-def _stasis_center(util, assets, layout, terrain, floor):
-    """Centre de stase, enterré sous sa butte : la sortie regarde vers le monde (yaw_deg du lieu).
-    `floor` : sol du bunker (terrain_meta.json ; le relief au-dessus est celui de la butte).
-    Renvoie le trou à percer dans la face de l'entaille."""
-    place = next(p for p in layout.places if p["id"] == SPAWN_PLACE)
-    x, y = place["pos"]
-    origin, yaw = (x, y, floor), place["yaw_deg"]
-    relief = _relief_around(terrain, place, floor)
-    boxes, lights, player = m["blockout"].stasis_center(relief)
-    folder = "Odyssee/Blockout/Centre de stase"
-    for box in boxes:
-        _spawn_box(util, assets, box, origin, yaw, folder)
-    for light in lights:
-        _spawn_light(util, light, origin, yaw, folder)
-    px, py, pz = m["blockout"].place(player, origin, yaw)
-    start = util.spawn(unreal.PlayerStart, util.to_cm(px, py, pz), "Apparition — Centre de stase",
-                       "Odyssee/Joueurs", ["apparition", BLOCKOUT_TAG], unreal.Rotator(0, 0, yaw))
+def _spawn_plan(util, assets, plan):
+    """Blocs et lumières du centre de stase et des grottes, puis l'apparition du joueur."""
+    for group in plan.groups:
+        for box in group.boxes:
+            _spawn_box(util, assets, group, box)
+        for light in group.lights:
+            _spawn_light(util, group, light)
+    x, y, z = plan.spawn
+    start = util.spawn(unreal.PlayerStart, util.to_cm(x, y, z + PLAYER_START_LIFT_M),
+                       "Apparition — Centre de stase",
+                       "Odyssee/Joueurs", ["apparition", BLOCKOUT_TAG],
+                       unreal.Rotator(0, 0, plan.spawn_yaw))
     util.safe_set(start, "is_spatially_loaded", False)
-    along, half_width = m["blockout"].stasis_hole()
-    return _hole(place, along, half_width)
 
 
 def _places_and_markers(util, assets, layout, terrain):
@@ -105,7 +98,7 @@ def _places_and_markers(util, assets, layout, terrain):
     plan = m["plan"]
     catalog = m["catalog"].load_catalog(HERE / "elements.json")
     labeled = [item for item in plan._places(layout, terrain) + plan._markers(layout, terrain)
-               if SPAWN_PLACE not in item.tags]
+               if m["blockout_plan"].SPAWN_PLACE not in item.tags]
     for item in labeled:
         item.tags = [*item.tags, BLOCKOUT_TAG]
     m["unreal_spawn"].spawn_labeled(labeled, catalog, assets)
@@ -115,35 +108,11 @@ def _places_and_markers(util, assets, layout, terrain):
     return len(labeled)
 
 
-def _hole_length(terrain, cave, floor, shapes):
-    """Longueur de la sortie du tunnel hors du relief : jusqu'à ce que le relief passe au-dessus
-    du plafond du tunnel (on échantillonne l'axe et les deux bords)."""
-    tunnel = shapes[cave["type"]]["tunnel"]
-    ceiling = floor + tunnel[2] + 0.5
-    for step in range(int(tunnel[0]) + 1):
-        points = [m["blockout"].place((-step, b, 0), (*cave["pos"], 0), cave["yaw_deg"])
-                  for b in (-tunnel[1] / 2, 0, tunnel[1] / 2)]
-        if min(terrain.height(px, py) for px, py, _ in points) > ceiling:
-            return step + 1.0
-    return float(tunnel[0])
-
-
-def _relief_around(terrain, spot, floor):
-    """Hauteur du terrain au-dessus de `floor` autour d'une grotte ou d'un lieu, en coordonnées
-    locales (a vers la sortie)."""
-    def relief(a, b):
-        px, py, _ = m["blockout"].place((a, b, 0), (*spot["pos"], 0), spot["yaw_deg"])
-        return terrain.height(px, py) - floor
-    return relief
-
-
-def _hole(spot, along, half_width):
-    """Trou du Landscape (unreal.OdysseeHole) : rectangle local `along` × ±half_width, en cm."""
-    middle = m["blockout"].place(((along[0] + along[1]) / 2, 0, 0), (*spot["pos"], 0),
-                                 spot["yaw_deg"])
-    return unreal.OdysseeHole(center=unreal.Vector2D(middle[0] * 100, middle[1] * 100),
-                              size=unreal.Vector2D((along[1] - along[0]) * 100, half_width * 200),
-                              yaw_degrees=spot["yaw_deg"])
+def _unreal_hole(hole):
+    """Trou du plan (m) → unreal.OdysseeHole (cm)."""
+    return unreal.OdysseeHole(center=unreal.Vector2D(hole.center[0] * 100, hole.center[1] * 100),
+                              size=unreal.Vector2D(hole.length * 100, hole.width * 100),
+                              yaw_degrees=hole.yaw)
 
 
 def _apply_hole_brush(util, holes):
@@ -156,32 +125,11 @@ def _apply_hole_brush(util, holes):
     brush.set_holes(holes)
 
 
-def _caves(util, assets, layout, terrain, cave_floors):
-    """Pose les grottes (toutes cachées dans le relief) ; renvoie les trous à percer."""
-    blockout, shapes = m["blockout"], layout.data["cave_shapes"]
-    holes = []
-    for index, cave in enumerate(layout.data.get("caves", []), start=1):
-        x, y = cave["pos"]
-        label = f"Grotte {index:02d}"
-        folder = f"Odyssee/Blockout/Grottes/{cave['id']}"
-        floor = cave_floors[cave["id"]]
-        boxes, lights = blockout.cave(label, shapes, cave["type"],
-                                      _relief_around(terrain, cave, floor))
-        along, half_width = blockout.cave_hole(shapes, cave["type"],
-                                               _hole_length(terrain, cave, floor, shapes))
-        holes.append(_hole(cave, along, half_width))
-        for box in boxes:
-            _spawn_box(util, assets, box, (x, y, floor), cave["yaw_deg"], folder)
-        for light in lights:
-            _spawn_light(util, light, (x, y, floor), cave["yaw_deg"], folder)
-    return holes
-
-
 def main():
     global m
     m = {name: _load(name) for name in
          ("layout", "terrain", "catalog", "placement", "city", "scatter", "plan", "blockout",
-          "unreal_util", "unreal_assets", "unreal_spawn", "unreal_ground")}
+          "blockout_plan", "unreal_util", "unreal_assets", "unreal_spawn", "unreal_ground")}
     util = m["unreal_util"]
     layout = m["layout"].Layout.load(WORLDGEN / "world_layout.json")
     terrain = m["terrain"].Terrain(WORLDGEN / "output")
@@ -189,17 +137,17 @@ def main():
     assets = m["unreal_assets"].AssetLibrary()
 
     _clear_blockout(util)
-    stasis_hole = _stasis_center(util, assets, layout, terrain, meta["stasis_floor_m"])
+    plan = m["blockout_plan"].blockout_plan(layout, terrain, meta)
+    _spawn_plan(util, assets, plan)
     places = _places_and_markers(util, assets, layout, terrain)
-    holes = _caves(util, assets, layout, terrain, meta["cave_floors_m"])
-    _apply_hole_brush(util, holes + [stasis_hole])
+    _apply_hole_brush(util, [_unreal_hole(hole) for hole in plan.holes])
 
     _use_landscape_material_with_holes(util, assets)
 
     assets.save()
     unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).save_current_level()
     unreal.log(f"[Odyssée] blockout posé : centre de stase, {places} lieux et marqueurs, "
-               f"{len(holes)} grottes percées (pinceau OdysseeHoleBrush)")
+               f"{len(plan.holes)} entrées percées (pinceau OdysseeHoleBrush)")
 
 
 def _use_landscape_material_with_holes(util, assets):

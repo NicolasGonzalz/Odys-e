@@ -62,7 +62,7 @@ def stasis_center(relief):
               Light("Lumière — couloir", (_corridor_mid(), 0, FLOOR + 2.6), (1.0, 0.85, 0.6), 14),
               Light("Lumière — lampe de la sortie", (MOUTH + 1.5, 0, FLOOR + 4.0),
                     (1.0, 0.6, 0.3), 12)]
-    player = (-2.0, 0.0, FLOOR + 1.0)
+    player = (-2.0, 0.0, FLOOR)  # les pieds (le serveur fait apparaître les joueurs là)
     return boxes, lights, player
 
 
