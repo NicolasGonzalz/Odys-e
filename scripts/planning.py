@@ -218,6 +218,12 @@ def github(dry_run, project):
                  "--label", t["labels"], "--milestone", ms_titles[t["jalon"]],
                  dry_run=dry_run, capture=True).strip()
         print(f"{t['id']} créée {url}")
+        if t["etat"] == "fait" and (url or dry_run):
+            # Tâche déjà faite (ajoutée au planning après coup) : l'issue naît fermée, sans
+            # attendre une seconde synchronisation.
+            gh("issue", "close", url or t["id"], "--repo", REPO, "--reason", "completed",
+               dry_run=dry_run, capture=True)
+            print(f"{t['id']} : issue fermée (fait)")
         if project and url:
             gh("project", "item-add", str(project), "--owner", REPO.split("/")[0], "--url", url,
                dry_run=dry_run)
