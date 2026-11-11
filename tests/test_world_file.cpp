@@ -52,7 +52,8 @@ DecodedWorld decode(const std::vector<std::byte>& bytes) {
 
 /// Position du contenu de la section n° `index` (lue dans le répertoire).
 std::size_t sectionOffset(const std::vector<std::byte>& bytes, std::size_t index) {
-    net::ByteReader in(std::span(bytes).subspan(8 + index * 20 + 4));
+    const std::span<const std::byte> view(bytes);
+    net::ByteReader in(view.subspan(8 + index * 20 + 4));
     return static_cast<std::size_t>(*in.readU64());
 }
 
