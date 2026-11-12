@@ -32,7 +32,8 @@ std::string normalizeInviteCode(std::string_view code) {
 
 bool isValidInviteCode(std::string_view code) {
     const std::string normalized = normalizeInviteCode(code);
-    return normalized.size() <= kMaxInviteCodeLength && std::ranges::all_of(normalized, isAlphanumeric);
+    return normalized.size() <= kMaxInviteCodeLength &&
+           std::ranges::all_of(normalized, isAlphanumeric);
 }
 
 bool inviteCodeMatches(std::string_view expected, std::string_view given) {

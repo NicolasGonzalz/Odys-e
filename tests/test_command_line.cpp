@@ -54,7 +54,7 @@ TEST_CASE("Ligne de commande : code d'invitation") {
     CHECK(parse({"--invite", "ody-7kq2"}).value().inviteCode == "ODY7KQ2"); // normalisé
     CHECK_FALSE(parse({"--invite"}).has_value());
     CHECK_FALSE(parse({"--invite", ""}).has_value());
-    CHECK_FALSE(parse({"--invite", "--"}).has_value());    // vide une fois normalisé
+    CHECK_FALSE(parse({"--invite", "--"}).has_value());      // vide une fois normalisé
     CHECK_FALSE(parse({"--invite", "pas_bon"}).has_value()); // caractère interdit
 }
 

@@ -126,18 +126,19 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
 }
 
 std::string usage(std::string_view programName) {
-    return std::format("Usage : {} [--verbose] [--world fichier] [--invite code] [--lag ms] "
-                       "[--jitter ms] [--loss %] [--dup %] [port]\n"
-                       "  --verbose      affiche les messages de debug\n"
-                       "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
-                       "  --invite code  code d'invitation exigé des joueurs (lettres et chiffres,\n"
-                       "                 32 au plus) ; sans lui, le serveur est ouvert à tous\n"
-                       "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"
-                       "  --jitter ms    simulation réseau : ± au hasard autour du délai\n"
-                       "  --loss %       simulation réseau : envois perdus (0 à 100)\n"
-                       "  --dup %        simulation réseau : envois en double (0 à 100)\n"
-                       "  port           port UDP d'écoute (défaut : {})\n",
-                       programName, kDefaultPort);
+    return std::format(
+        "Usage : {} [--verbose] [--world fichier] [--invite code] [--lag ms] "
+        "[--jitter ms] [--loss %] [--dup %] [port]\n"
+        "  --verbose      affiche les messages de debug\n"
+        "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
+        "  --invite code  code d'invitation exigé des joueurs (lettres et chiffres,\n"
+        "                 32 au plus) ; sans lui, le serveur est ouvert à tous\n"
+        "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"
+        "  --jitter ms    simulation réseau : ± au hasard autour du délai\n"
+        "  --loss %       simulation réseau : envois perdus (0 à 100)\n"
+        "  --dup %        simulation réseau : envois en double (0 à 100)\n"
+        "  port           port UDP d'écoute (défaut : {})\n",
+        programName, kDefaultPort);
 }
 
 } // namespace odyssee::server

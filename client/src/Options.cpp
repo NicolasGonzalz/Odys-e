@@ -1,6 +1,7 @@
 #include "Options.hpp"
 
 #include <charconv>
+#include <utility>
 
 namespace odyssee::debugclient {
 
@@ -28,17 +29,31 @@ bool acceptPositional(Options& options, std::string_view arg, int& positional) {
     return true;
 }
 
+bool isTextOption(std::string_view arg) {
+    return arg == "--name" || arg == "--invite" || arg == "--world";
+}
+
+void applyTextOption(Options& options, std::string_view name, std::string value) {
+    if (name == "--name") {
+        options.name = std::move(value);
+    } else if (name == "--invite") {
+        options.inviteCode = std::move(value);
+    } else {
+        options.worldPath = std::move(value);
+    }
+}
+
 } // namespace
 
 std::optional<Options> parseOptions(std::span<const std::string_view> args) {
     Options options;
     int positional = 0;
     for (std::size_t i = 0; i < args.size(); ++i) {
-        if (args[i] == "--name" || args[i] == "--world") {
+        if (isTextOption(args[i])) {
             if (i + 1 >= args.size() || args[i + 1].empty()) {
                 return std::nullopt;
             }
-            (args[i] == "--name" ? options.name : options.worldPath) = std::string(args[i + 1]);
+            applyTextOption(options, args[i], std::string(args[i + 1]));
             ++i;
         } else if (args[i].starts_with("-") || !acceptPositional(options, args[i], positional)) {
             return std::nullopt;
@@ -49,10 +64,11 @@ std::optional<Options> parseOptions(std::span<const std::string_view> args) {
 
 std::string usage(std::string_view programName) {
     return "Usage : " + std::string(programName) +
-           " [--name Nom] [--world fichier] [adresse IPv4] [port]\n"
+           " [--name Nom] [--invite code] [--world fichier] [adresse IPv4] [port]\n"
            "  --world : la carte, la même que celle du serveur (sinon : sol plat)\n"
-           "  par défaut : 127.0.0.1 et le port " +
-           std::to_string(kDefaultPort) + "\n";
+           "  sans adresse : écran de connexion (réglages mémorisés) ;\n"
+           "  avec une adresse : connexion directe (port par défaut : " +
+           std::to_string(kDefaultPort) + ")\n";
 }
 
 } // namespace odyssee::debugclient

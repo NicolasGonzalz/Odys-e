@@ -230,9 +230,8 @@ TEST_CASE("ClientRegistry : reconnexion depuis la même adresse = nouvelle sessi
     // L'ancien jeton ne vaut plus rien, ni pour agir, ni pour revenir (réponse rejouée).
     (void)registry.handle(client(5000), Disconnect{oldToken}, t0 + 1s);
     CHECK(registry.playerCount() == 1);
-    CHECK_FALSE(
-        registry.handle(client(5000), ChallengeResponse{oldToken, 1, "Joueur", ""}, t0 + 1s)
-            .has_value());
+    CHECK_FALSE(registry.handle(client(5000), ChallengeResponse{oldToken, 1, "Joueur", ""}, t0 + 1s)
+                    .has_value());
     CHECK(tokenOf(registry, client(5000)) == newToken);
 }
 

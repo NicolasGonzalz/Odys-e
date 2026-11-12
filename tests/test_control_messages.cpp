@@ -23,17 +23,16 @@ std::optional<ControlMessage> roundTrip(const ControlMessage& message) {
 } // namespace
 
 TEST_CASE("ControlMessages : aller-retour de chaque message") {
-    const std::vector<ControlMessage> messages{
-        ConnectRequest{"Nadia", 7},
-        Challenge{0x0123456789ABCDEFULL, 7},
-        ChallengeResponse{42, 7, "Nadia", ""},
-        ChallengeResponse{42, 7, "Nadia", "ody-7kq2"},
-        Accepted{3, 42},
-        Refused{RefuseReason::ServerFull},
-        Refused{RefuseReason::TooManyFromAddress},
-        Refused{RefuseReason::WrongInviteCode},
-        Disconnect{42},
-        KeepAlive{42}};
+    const std::vector<ControlMessage> messages{ConnectRequest{"Nadia", 7},
+                                               Challenge{0x0123456789ABCDEFULL, 7},
+                                               ChallengeResponse{42, 7, "Nadia", ""},
+                                               ChallengeResponse{42, 7, "Nadia", "ody-7kq2"},
+                                               Accepted{3, 42},
+                                               Refused{RefuseReason::ServerFull},
+                                               Refused{RefuseReason::TooManyFromAddress},
+                                               Refused{RefuseReason::WrongInviteCode},
+                                               Disconnect{42},
+                                               KeepAlive{42}};
 
     for (const ControlMessage& message : messages) {
         CAPTURE(message.index());

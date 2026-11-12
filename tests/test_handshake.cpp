@@ -261,7 +261,7 @@ TEST_CASE("Connexion hostile : un jeton de défi inventé n'ouvre pas de place")
 
     std::mt19937_64 random(99);
     for (int i = 0; i < 200; ++i) {
-        const ChallengeResponse guess{random(), random(), "Intrus"};
+        const ChallengeResponse guess{random(), random(), "Intrus", ""};
         REQUIRE(socket.send(server, buildControlPacket(guess)));
         if (i % 20 == 19) {
             deliver(service, now);

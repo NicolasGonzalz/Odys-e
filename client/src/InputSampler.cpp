@@ -47,6 +47,12 @@ void InputSampler::update() {
 
 net::InputCommand InputSampler::sample() const {
     net::InputCommand command;
+    if (!IsCursorHidden()) {
+        // Souris libre (menu Échap, fenêtre quittée) : le joueur ne bouge plus, il garde son cap.
+        command.yaw = net::quantizeYaw(_yaw);
+        command.pitch = net::quantizePitch(_pitch);
+        return command;
+    }
     command.moveForward = net::quantizeAxis(axis(KEY_W, KEY_S));
     command.moveRight = net::quantizeAxis(axis(KEY_D, KEY_A));
     command.yaw = net::quantizeYaw(_yaw);
