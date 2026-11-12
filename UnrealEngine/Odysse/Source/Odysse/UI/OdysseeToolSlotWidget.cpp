@@ -10,7 +10,8 @@
 
 namespace
 {
-	constexpr float SlotSize = 76.f;
+	constexpr float SlotSize = 104.f;
+	constexpr float IconSize = 80.f;
 
 	void Place(UOverlaySlot* Cell, EHorizontalAlignment H, EVerticalAlignment V, const FMargin& Padding)
 	{
@@ -24,16 +25,16 @@ UWidget* UOdysseeToolSlotWidget::BuildTree()
 {
 	UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
 	Frame = MakeImage(TEXT("Frame"), TEXT("case"), FVector2D(SlotSize));
-	Icon = MakeImage(TEXT("Icon"), TEXT("outil_baton"), FVector2D(58.f));
-	KeyText = MakeText(TEXT("KeyText"), FText::AsNumber(1), 12, true, OdysseeUi::BoneDim);
-	CountText = MakeText(TEXT("CountText"), FText::GetEmpty(), 13, true);
+	Icon = MakeImage(TEXT("Icon"), TEXT("outil_baton"), FVector2D(IconSize));
+	KeyText = MakeText(TEXT("KeyText"), FText::AsNumber(1), 15, true, OdysseeUi::BoneDim);
+	CountText = MakeText(TEXT("CountText"), FText::GetEmpty(), 17, true);
 	DurabilityBar = MakeBar(TEXT("DurabilityBar"), FLinearColor(0.55f, 0.80f, 0.40f), 1.f);
 	Place(Root->AddChildToOverlay(Frame), HAlign_Fill, VAlign_Fill, FMargin(0.f));
 	Place(Root->AddChildToOverlay(Icon), HAlign_Center, VAlign_Center, FMargin(0.f, 0.f, 0.f, 4.f));
-	Place(Root->AddChildToOverlay(KeyText), HAlign_Left, VAlign_Top, FMargin(9.f, 5.f));
-	Place(Root->AddChildToOverlay(CountText), HAlign_Right, VAlign_Bottom, FMargin(9.f, 0.f, 9.f, 11.f));
-	Place(Root->AddChildToOverlay(MakeSized(DurabilityBar, FVector2D(SlotSize - 24.f, 5.f))), HAlign_Center,
-		VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 6.f));
+	Place(Root->AddChildToOverlay(KeyText), HAlign_Left, VAlign_Top, FMargin(11.f, 6.f));
+	Place(Root->AddChildToOverlay(CountText), HAlign_Right, VAlign_Bottom, FMargin(11.f, 0.f, 12.f, 14.f));
+	Place(Root->AddChildToOverlay(MakeSized(DurabilityBar, FVector2D(SlotSize - 30.f, 7.f))), HAlign_Center,
+		VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 8.f));
 	return MakeSized(Root, FVector2D(SlotSize));
 }
 
@@ -48,7 +49,7 @@ void UOdysseeToolSlotWidget::ShowItem(const TCHAR* InIcon, int32 Count, float Du
 	Icon->SetVisibility(bEmpty ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 	if (!bEmpty)
 	{
-		Icon->SetBrush(OdysseeUi::ImageBrush(InIcon, FVector2D(58.f)));
+		Icon->SetBrush(OdysseeUi::ImageBrush(InIcon, FVector2D(IconSize)));
 	}
 	CountText->SetText(Count > 1 ? FText::AsNumber(Count) : FText::GetEmpty());
 	DurabilityBar->GetParent()->SetVisibility(

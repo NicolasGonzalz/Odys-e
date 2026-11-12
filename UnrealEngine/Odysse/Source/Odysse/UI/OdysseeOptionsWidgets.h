@@ -46,6 +46,9 @@ public:
 	TObjectPtr<USlider> VolumeSlider;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
 	TObjectPtr<UComboBoxString> GraphicsPresetCombo;
+	/** Ouvre l'écran des touches (menu pause ; caché dans le menu principal, qui a son bouton). */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
+	TObjectPtr<UButton> KeyBindingsButton;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
 	TObjectPtr<UButton> ApplyButton;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")

@@ -85,10 +85,10 @@ UWidget* UOdysseeHudWidget::BuildToolBar()
 			UOdysseeToolSlotWidget::StaticClass(), *FString::Printf(TEXT("ToolSlot%d"), Index + 1));
 		Tool->SetKey(Index + 1);
 		ToolSlots.Add(Tool);
-		AddTo(Bar, Tool, FMargin(4.f, 0.f));
+		AddTo(Bar, Tool, FMargin(5.f, 0.f));
 	}
-	ItemNameText = MakeText(TEXT("ItemNameText"), FText::GetEmpty(), 16, true);
-	ItemNameText->SetFont(OdysseeUi::Font(16, true, 80));
+	ItemNameText = MakeText(TEXT("ItemNameText"), FText::GetEmpty(), 19, true);
+	ItemNameText->SetFont(OdysseeUi::Font(19, true, 80));
 	UVerticalBox* Column = MakeColumn();
 	AddTo(Column, ItemNameText, FMargin(0.f, 0.f, 0.f, 8.f), HAlign_Center);
 	AddTo(Column, Bar, FMargin(0.f), HAlign_Center);

@@ -46,6 +46,7 @@ UWidget* UOdysseeMainMenuWidget::BuildTree()
 	Settings = WidgetTree->ConstructWidget<UOdysseeSettingsWidget>(UOdysseeSettingsWidget::StaticClass(),
 		TEXT("Settings"));
 	Settings->BackButton->OnClicked.AddDynamic(this, &UOdysseeMainMenuWidget::ShowOptions);
+	Settings->KeyBindingsButton->GetParent()->SetVisibility(ESlateVisibility::Collapsed); // déjà dans Options
 	Pages->AddChild(Settings);
 
 	UVerticalBox* Left = MakeColumn();
