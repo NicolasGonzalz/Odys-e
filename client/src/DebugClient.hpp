@@ -3,6 +3,7 @@
 #include "Hud.hpp"
 #include "InputSampler.hpp"
 #include "MapView.hpp"
+#include "PauseMenu.hpp"
 
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/Prediction.hpp"
@@ -14,10 +15,16 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
-#include <memory>
 #include <optional>
+#include <string>
 
 namespace odyssee::debugclient {
+
+/// Pourquoi une partie s'est terminée.
+struct SessionEnd {
+    bool quit = false;   ///< fermer le client ; sinon, retour à l'écran de connexion
+    std::string message; ///< à afficher sur l'écran de connexion (refus, coupure…)
+};
 
 /// Le client de debug : il se connecte au serveur, prédit le joueur local (T031) en se recalant
 /// sur chaque snapshot (T032), et affiche les autres joueurs interpolés entre deux snapshots,
@@ -29,30 +36,35 @@ class DebugClient {
   public:
     using Clock = std::chrono::steady_clock;
 
-    /// `map` : la carte, la même que celle du serveur (sinon la prédiction diverge). Sans
-    /// carte : le sol plat provisoire du serveur lancé sans carte.
-    DebugClient(client::ServerLink link, std::unique_ptr<const world::WorldTerrain> map);
+    /// `map` : la carte, la même que celle du serveur (sinon la prédiction diverge), gardée par
+    /// l'appelant tant que l'objet vit. Nulle : le sol plat du serveur lancé sans carte.
+    DebugClient(client::ServerLink link, const world::WorldTerrain* map);
 
     // La prédiction garde une référence vers le sol : l'objet ne se copie ni ne se déplace.
     DebugClient(const DebugClient&) = delete;
     DebugClient& operator=(const DebugClient&) = delete;
 
-    /// Boucle principale, jusqu'à la fermeture de la fenêtre (déjà ouverte).
-    void run();
+    /// Se connecte et joue jusqu'à la fin de la partie : fenêtre fermée, choix du menu Échap
+    /// (T056), refus du serveur ou connexion perdue. La fenêtre doit être ouverte.
+    [[nodiscard]] SessionEnd run();
 
   private:
+    void advance(float& accumulated);
+    [[nodiscard]] std::optional<SessionEnd> endAfter(PauseChoice choice);
+    [[nodiscard]] std::optional<SessionEnd> connectionLost() const;
     void handleWindowKeys();
+    void setPaused(bool paused);
     void tick(Clock::time_point now);
     void keepLatestSnapshot();
     void reconcileWithLatest();
     void startPredictionWhenPossible();
-    void draw(float betweenTicks) const;
+    [[nodiscard]] PauseChoice draw(float betweenTicks) const;
     void drawWorld(float betweenTicks) const;
     [[nodiscard]] HudInfo hudInfo() const;
     void leave();
 
     client::ServerLink _link;
-    std::unique_ptr<const world::WorldTerrain> _map; ///< nul : sol plat provisoire
+    const world::WorldTerrain* _map; ///< nul : sol plat provisoire
     sim::FlatTerrain _flat;
     client::Prediction _prediction; ///< après _map et _flat : elle se réfère à l'un d'eux
     std::optional<MapView> _mapView;
@@ -62,6 +74,7 @@ class DebugClient {
     /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
     std::optional<std::array<std::int32_t, 3>> _previousDisplay;
     bool _thirdPerson = false;
+    bool _paused = false; ///< menu Échap ouvert : la souris est libre, le joueur ne bouge plus
 };
 
 } // namespace odyssee::debugclient

@@ -35,7 +35,7 @@ TEST_CASE("ClientConnection : poignée de main complète") {
 
     client.onMessage(Challenge{77, salt}, t0 + 10ms);
     CHECK(client.state() == State::Answering);
-    CHECK(client.nextOutgoing(t0 + 10ms) == ControlMessage{ChallengeResponse{77, salt, "Teo"}});
+    CHECK(client.nextOutgoing(t0 + 10ms) == ControlMessage{ChallengeResponse{77, salt, "Teo", ""}});
 
     client.onMessage(Accepted{2, 77}, t0 + 20ms);
     CHECK(client.state() == State::Connected);
@@ -101,7 +101,7 @@ TEST_CASE("ClientConnection : les messages hors de propos sont ignorés") {
     const auto salt = client.clientSalt();
     client.onMessage(Challenge{5, salt}, t0);
     client.onMessage(Challenge{6, salt}, t0); // second défi : on garde le premier
-    CHECK(client.nextOutgoing(t0) == ControlMessage{ChallengeResponse{5, salt, "Teo"}});
+    CHECK(client.nextOutgoing(t0) == ControlMessage{ChallengeResponse{5, salt, "Teo", ""}});
 }
 
 TEST_CASE("ClientConnection : un défi ou une acceptation qui ne sont pas les nôtres sont ignorés") {

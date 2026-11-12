@@ -10,17 +10,19 @@
 
 namespace odyssee::debugclient {
 
-/// Options du client de debug, issues de la ligne de commande.
+/// Options du client de debug, issues de la ligne de commande. Ce qui est donné remplace les
+/// réglages enregistrés de l'écran de connexion.
 struct Options {
-    std::string host = "127.0.0.1"; ///< adresse IPv4 du serveur
-    std::uint16_t port = kDefaultPort;
-    std::string name = "Joueur";
+    std::optional<std::string> host; ///< adresse IPv4 : donnée, on se connecte sans l'écran
+    std::optional<std::uint16_t> port;
+    std::optional<std::string> name;
+    std::optional<std::string> inviteCode;
     /// Fichier monde : le même que celui du serveur. Vide : sol plat provisoire.
     std::string worldPath;
 };
 
-/// Lit `[--name Nom] [--world fichier] [adresse] [port]` (sans le nom du programme). std::nullopt
-/// si un argument est inconnu ou invalide.
+/// Lit `[--name Nom] [--invite code] [--world fichier] [adresse] [port]` (sans le nom du
+/// programme). std::nullopt si un argument est inconnu ou invalide.
 [[nodiscard]] std::optional<Options> parseOptions(std::span<const std::string_view> args);
 
 /// Texte d'aide affiché quand les arguments sont invalides.

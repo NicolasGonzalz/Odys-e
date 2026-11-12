@@ -63,7 +63,7 @@ T052	20	M5	nicolas	gameplay	6	Mort, sac au sol et réapparition	Inventaire laiss
 T053	21	M5	nicolas	server,data	10	Persistance SQLite	Joueurs, inventaires et modifications du monde sauvegardés et rechargés.	a_faire
 T054	21	M5	nicolas	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage sans perte, automatisé.	a_faire
 T055	22	M5	both	client,ui	8	Menu principal et serveur local intégré	Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant.	a_faire
-T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.	a_faire
+T056	22	M5	nicolas	net,server	4	Codes d'invitation V1	Connexion refusée sans le bon code.	fait
 T057	23	M5	both	tests,devlog	12	Playtest, corrections et sortie du MVP	Session de jeu avec des amis sur le homelab, bugs bloquants corrigés, post MVP.	a_faire
 T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odyssee-sage.vercel.app : accueil, univers et survivants, sans spoiler du mystère ; images reprises de art/.	fait
 T068	16	M4	both	art,blender	4	Matériaux transformés et munitions	Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils.	fait

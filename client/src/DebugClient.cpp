@@ -1,5 +1,6 @@
 #include "DebugClient.hpp"
 
+#include "PauseMenu.hpp"
 #include "Scene.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -35,49 +36,101 @@ const char* describe(net::ConnectionState state) {
 
 } // namespace
 
-DebugClient::DebugClient(client::ServerLink link, std::unique_ptr<const world::WorldTerrain> map)
-    : _link(std::move(link)), _map(std::move(map)), _flat(sim::provisionalGroundHeight()),
-      _prediction(_map ? static_cast<const sim::Terrain&>(*_map) : _flat) {
-    if (_map) {
+DebugClient::DebugClient(client::ServerLink link, const world::WorldTerrain* map)
+    : _link(std::move(link)), _map(map), _flat(sim::provisionalGroundHeight()),
+      _prediction(_map != nullptr ? static_cast<const sim::Terrain&>(*_map) : _flat) {
+    if (_map != nullptr) {
         _mapView.emplace(_map->world());
     }
 }
 
-void DebugClient::run() {
+SessionEnd DebugClient::run() {
     _link.connect(Clock::now());
+    DisableCursor();
     float accumulated = 0.0f;
 
     while (!WindowShouldClose()) {
         handleWindowKeys();
         _input.update();
+        advance(accumulated);
 
-        accumulated += GetFrameTime();
-        for (int i = 0; i < kMaxTicksPerFrame && accumulated >= kTickSeconds; ++i) {
-            tick(Clock::now());
-            accumulated -= kTickSeconds;
+        const PauseChoice choice = draw(accumulated / kTickSeconds);
+        if (const auto end = endAfter(choice)) {
+            leave();
+            return *end;
         }
-        if (accumulated >= kTickSeconds) {
-            accumulated = 0.0f; // trop de retard : on repart du présent
-        }
-
-        _remote.advance(GetFrameTime() * static_cast<float>(kTickRate));
-        if (_mapView && _prediction.started()) {
-            _mapView->update(toWorld(_prediction.displayPosition()));
-        }
-        draw(accumulated / kTickSeconds);
     }
     leave();
+    return {true, {}};
+}
+
+void DebugClient::advance(float& accumulated) {
+    accumulated += GetFrameTime();
+    for (int i = 0; i < kMaxTicksPerFrame && accumulated >= kTickSeconds; ++i) {
+        tick(Clock::now());
+        accumulated -= kTickSeconds;
+    }
+    if (accumulated >= kTickSeconds) {
+        accumulated = 0.0f; // trop de retard : on repart du présent
+    }
+
+    _remote.advance(GetFrameTime() * static_cast<float>(kTickRate));
+    if (_mapView && _prediction.started()) {
+        _mapView->update(toWorld(_prediction.displayPosition()));
+    }
+}
+
+std::optional<SessionEnd> DebugClient::endAfter(PauseChoice choice) {
+    if (choice == PauseChoice::Resume) {
+        setPaused(false);
+    }
+    if (choice == PauseChoice::Disconnect) {
+        return SessionEnd{false, {}};
+    }
+    if (choice == PauseChoice::Quit) {
+        return SessionEnd{true, {}};
+    }
+    return connectionLost();
+}
+
+std::optional<SessionEnd> DebugClient::connectionLost() const {
+    switch (_link.state()) {
+    case net::ConnectionState::Refused: {
+        const auto reason = _link.refuseReason();
+        const std::string why = reason ? std::string(net::describe(*reason)) : "inconnue";
+        return SessionEnd{false, "Connexion refusée : " + why};
+    }
+    case net::ConnectionState::TimedOut:
+        return SessionEnd{false, "Le serveur ne répond pas (adresse, port ou pare-feu ?)"};
+    case net::ConnectionState::Closed:
+        return SessionEnd{false, "Déconnecté par le serveur"};
+    case net::ConnectionState::Idle:
+    case net::ConnectionState::Requesting:
+    case net::ConnectionState::Answering:
+    case net::ConnectionState::Connected:
+        return std::nullopt;
+    }
+    return std::nullopt;
 }
 
 void DebugClient::handleWindowKeys() {
     if (IsKeyPressed(KEY_ESCAPE)) {
-        EnableCursor();
+        setPaused(!_paused);
     }
-    if (!IsCursorHidden() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        DisableCursor();
+    if (!_paused && !IsCursorHidden() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        DisableCursor(); // la souris avait été libérée (fenêtre quittée) : on la reprend
     }
     if (IsKeyPressed(KEY_V)) {
         _thirdPerson = !_thirdPerson;
+    }
+}
+
+void DebugClient::setPaused(bool paused) {
+    _paused = paused;
+    if (paused) {
+        EnableCursor();
+    } else {
+        DisableCursor();
     }
 }
 
@@ -122,14 +175,16 @@ void DebugClient::startPredictionWhenPossible() {
     }
 }
 
-void DebugClient::draw(float betweenTicks) const {
+PauseChoice DebugClient::draw(float betweenTicks) const {
     BeginDrawing();
     ClearBackground(Color{150, 195, 230, 255});
     if (_prediction.started()) {
         drawWorld(betweenTicks);
     }
     drawHud(hudInfo());
+    const PauseChoice choice = _paused ? drawPauseMenu() : PauseChoice::None;
     EndDrawing();
+    return choice;
 }
 
 void DebugClient::drawWorld(float betweenTicks) const {

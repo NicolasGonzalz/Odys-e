@@ -3,9 +3,13 @@ add_executable(odyssee_client
     src/main.cpp
     src/Options.cpp
     src/InputSampler.cpp
+    src/ConnectScreen.cpp
+    src/ConnectSettings.cpp
     src/MapView.cpp
+    src/PauseMenu.cpp
     src/Scene.cpp
     src/Hud.cpp
+    src/Widgets.cpp
     src/DebugClient.cpp
 )
 target_link_libraries(odyssee_client PRIVATE odyssee::shared raylib)

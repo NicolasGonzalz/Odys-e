@@ -39,7 +39,7 @@
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
-| M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
+| M5 — Survivre & persister (MVP) | 1 / 9 | 4 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
 
@@ -228,7 +228,7 @@
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T055 | Les deux | Menu principal et serveur local intégré | 8 | Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant. |
-| ☐ | T056 | Nicolas | Codes d'invitation V1 | 4 | Connexion refusée sans le bon code. |
+| ☑ | T056 | Nicolas | Codes d'invitation V1 | 4 | Connexion refusée sans le bon code. |
 | ☐ | T077 | Les deux | Menu pause, touches et sauvegardes | 6 | Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique. |
 
 ### Semaine 23 — du 19 avr. 2027 · M5 · Nicolas 12 h · Coéquipier 12 h

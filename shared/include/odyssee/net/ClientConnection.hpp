@@ -27,11 +27,12 @@ class ClientConnection {
   public:
     using Clock = std::chrono::steady_clock;
 
-    /// Le sel de la première tentative est tiré du générateur du système.
-    explicit ClientConnection(std::string playerName);
+    /// Le sel de la première tentative est tiré du générateur du système. `inviteCode` : celui
+    /// que demande le serveur (T056), vide s'il n'en demande pas.
+    explicit ClientConnection(std::string playerName, std::string inviteCode = {});
 
     /// `salt` : sel de départ imposé, pour des tests reproductibles.
-    ClientConnection(std::string playerName, std::uint64_t salt);
+    ClientConnection(std::string playerName, std::uint64_t salt, std::string inviteCode = {});
 
     /// Lance la poignée de main (avec un nouveau sel : chaque tentative a son jeton de session).
     void connect(Clock::time_point now);
@@ -77,6 +78,7 @@ class ClientConnection {
     [[nodiscard]] bool isDue(Clock::duration interval, Clock::time_point now) const;
 
     std::string _playerName;
+    std::string _inviteCode;
     ConnectionState _state = ConnectionState::Idle;
     std::uint64_t _salt = 0;  ///< sel de la tentative en cours
     std::uint64_t _token = 0; ///< jeton du défi, puis jeton de session

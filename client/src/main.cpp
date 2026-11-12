@@ -1,5 +1,7 @@
 // Client de debug d'Odyssée (raylib) : se connecte au serveur et prédit le joueur local (T031).
 // Le vrai client est Unreal (plugin OdysseeNet) ; celui-ci sert à tester le réseau sous Linux.
+#include "ConnectScreen.hpp"
+#include "ConnectSettings.hpp"
 #include "DebugClient.hpp"
 #include "Options.hpp"
 
@@ -24,8 +26,53 @@ namespace {
 void openWindow() {
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(1280, 720, "Odyssée - client de debug");
-    SetExitKey(KEY_NULL); // Échap libère la souris ; on quitte en fermant la fenêtre
-    DisableCursor();
+    SetExitKey(KEY_NULL); // Échap ouvre le menu ; on quitte par le menu ou la fenêtre
+}
+
+/// Réglages enregistrés, remplacés par ce que la ligne de commande donne.
+debugclient::ConnectSettings initialSettings(const debugclient::Options& options) {
+    auto settings = debugclient::loadSettings(debugclient::settingsPath());
+    settings.host = options.host.value_or(settings.host);
+    settings.port = options.port ? std::to_string(*options.port) : settings.port;
+    settings.name = options.name.value_or(settings.name);
+    settings.inviteCode = options.inviteCode.value_or(settings.inviteCode);
+    return settings;
+}
+
+/// Une partie avec ces réglages. Le message dit pourquoi elle s'est arrêtée, s'il y a lieu.
+debugclient::SessionEnd playOnce(const debugclient::ConnectTarget& target,
+                                 const world::WorldTerrain* map) {
+    auto link =
+        client::ServerLink::open(target.settings.name, target.server, target.settings.inviteCode);
+    if (!link) {
+        return {false, "Impossible d'ouvrir un socket UDP"};
+    }
+    debugclient::DebugClient game(std::move(*link), map);
+    return game.run();
+}
+
+/// Écran de connexion, partie, et retour à l'écran, jusqu'à ce que le joueur quitte. Avec une
+/// adresse en ligne de commande, la première partie part sans passer par l'écran.
+void play(const debugclient::Options& options, const world::WorldTerrain* map) {
+    auto settings = initialSettings(options);
+    bool skipScreen = options.host.has_value();
+    std::string message;
+    while (true) {
+        debugclient::ConnectScreen screen(settings, message);
+        auto target = skipScreen ? screen.validate() : std::nullopt;
+        target = target ? target : screen.run();
+        skipScreen = false;
+        if (!target) {
+            return;
+        }
+        settings = target->settings;
+        debugclient::saveSettings(settings, debugclient::settingsPath());
+        const auto end = playOnce(*target, map);
+        if (end.quit) {
+            return;
+        }
+        message = end.message;
+    }
 }
 
 /// La carte demandée (nul si aucune). std::nullopt si elle n'a pas pu être chargée.
@@ -51,27 +98,13 @@ int main(int argc, char** argv) {
         std::cerr << debugclient::usage(argv[0]);
         return 1;
     }
-
-    const auto server = net::Address::parse(options->host, options->port);
-    if (!server) {
-        std::cerr << "Adresse invalide : " << options->host << " (IPv4 attendue)\n";
-        return 1;
-    }
     auto map = loadMap(options->worldPath);
     if (!map) {
         return 1;
     }
-    auto link = client::ServerLink::open(options->name, *server);
-    if (!link) {
-        std::cerr << "Impossible d'ouvrir un socket UDP\n";
-        return 1;
-    }
 
     openWindow();
-    {
-        debugclient::DebugClient game(std::move(*link), std::move(*map));
-        game.run();
-    }
+    play(*options, map->get());
     CloseWindow();
     return 0;
 }

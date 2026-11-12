@@ -4,6 +4,9 @@
 
 #include <doctest/doctest.h>
 
+#include <string>
+#include <utility>
+
 #include <chrono>
 #include <set>
 
@@ -36,7 +39,7 @@ std::optional<ControlMessage> join(ClientRegistry& registry, const Address& from
     if (challenge == nullptr) {
         return reply; // refus direct
     }
-    return registry.handle(from, ChallengeResponse{challenge->token, salt, "Joueur"}, now);
+    return registry.handle(from, ChallengeResponse{challenge->token, salt, "Joueur", ""}, now);
 }
 
 /// Jeton de session du joueur connecté à `address`.
@@ -76,13 +79,13 @@ TEST_CASE("ClientRegistry : une mauvaise réponse au défi est ignorée") {
     const auto answer = [&](const Address& from, const ChallengeResponse& response) {
         return registry.handle(from, response, t0).has_value();
     };
-    CHECK_FALSE(answer(client(5000), {token + 1, 9, "Joueur"})); // mauvais jeton
-    CHECK_FALSE(answer(client(6000), {token, 9, "Joueur"}));     // autre adresse
-    CHECK_FALSE(answer(client(5000), {token, 10, "Joueur"}));    // autre sel
-    CHECK_FALSE(answer(client(5000), {token, 9, "Autre"}));      // autre pseudo
+    CHECK_FALSE(answer(client(5000), {token + 1, 9, "Joueur", ""})); // mauvais jeton
+    CHECK_FALSE(answer(client(6000), {token, 9, "Joueur", ""}));     // autre adresse
+    CHECK_FALSE(answer(client(5000), {token, 10, "Joueur", ""}));    // autre sel
+    CHECK_FALSE(answer(client(5000), {token, 9, "Autre", ""}));      // autre pseudo
     CHECK(registry.playerCount() == 0);
 
-    CHECK(answer(client(5000), {token, 9, "Joueur"}));
+    CHECK(answer(client(5000), {token, 9, "Joueur", ""}));
     CHECK(registry.playerCount() == 1);
 }
 
@@ -94,7 +97,7 @@ TEST_CASE("ClientRegistry : demandes en double = mêmes réponses") {
 
     // Acceptation perdue : le client renvoie sa réponse, le serveur renvoie la même acceptation.
     const auto token = std::get<Challenge>(*first).token;
-    const ChallengeResponse response{token, 3, "Teo"};
+    const ChallengeResponse response{token, 3, "Teo", ""};
     const auto accepted = registry.handle(client(5000), response, t0);
     CHECK(accepted == ControlMessage{Accepted{0, token}});
     CHECK(registry.handle(client(5000), response, t0 + 250ms) == accepted);
@@ -137,7 +140,7 @@ TEST_CASE("ClientRegistry : 4 joueurs maximum") {
 }
 
 TEST_CASE("ClientRegistry : plafond de joueurs par adresse IP") {
-    ClientRegistry registry(1, ClientRegistry::Limits{2});
+    ClientRegistry registry(1, ClientRegistry::Limits{2, ""});
     const Address elsewhere{0xC0A80014u, 5000}; // 192.168.0.20
 
     CHECK(idOf(join(registry, client(5000))) == 0);
@@ -147,10 +150,10 @@ TEST_CASE("ClientRegistry : plafond de joueurs par adresse IP") {
     CHECK(idOf(join(registry, elsewhere)) == 2); // une autre IP n'est pas concernée
 
     // Le plafond vaut aussi pour un défi obtenu avant que l'adresse soit pleine.
-    ClientRegistry late(1, ClientRegistry::Limits{1});
+    ClientRegistry late(1, ClientRegistry::Limits{1, ""});
     const auto token = challengeFor(late, client(5001), 4);
     REQUIRE(idOf(join(late, client(5000))) == 0);
-    CHECK(late.handle(client(5001), ChallengeResponse{token, 4, "Joueur"}, t0) ==
+    CHECK(late.handle(client(5001), ChallengeResponse{token, 4, "Joueur", ""}, t0) ==
           ControlMessage{Refused{RefuseReason::TooManyFromAddress}});
     CHECK(late.playerCount() == 1);
 }
@@ -227,9 +230,8 @@ TEST_CASE("ClientRegistry : reconnexion depuis la même adresse = nouvelle sessi
     // L'ancien jeton ne vaut plus rien, ni pour agir, ni pour revenir (réponse rejouée).
     (void)registry.handle(client(5000), Disconnect{oldToken}, t0 + 1s);
     CHECK(registry.playerCount() == 1);
-    CHECK_FALSE(
-        registry.handle(client(5000), ChallengeResponse{oldToken, 1, "Joueur"}, t0 + 1s)
-            .has_value());
+    CHECK_FALSE(registry.handle(client(5000), ChallengeResponse{oldToken, 1, "Joueur", ""}, t0 + 1s)
+                    .has_value());
     CHECK(tokenOf(registry, client(5000)) == newToken);
 }
 
@@ -245,7 +247,7 @@ TEST_CASE("ClientRegistry : même plein, un joueur peut se reconnecter depuis so
 TEST_CASE("ClientRegistry : la réponse d'une session terminée ne recrée pas de joueur") {
     ClientRegistry registry(1);
     const auto token = challengeFor(registry, client(5000), 5);
-    const ChallengeResponse response{token, 5, "Joueur"};
+    const ChallengeResponse response{token, 5, "Joueur", ""};
     REQUIRE(registry.handle(client(5000), response, t0).has_value());
 
     (void)registry.handle(client(5000), Disconnect{token}, t0 + 1s);
@@ -272,7 +274,7 @@ TEST_CASE("ClientRegistry : joueur silencieux retiré après le timeout") {
 TEST_CASE("ClientRegistry : un défi périmé n'est plus accepté") {
     ClientRegistry registry(1);
     const auto token = challengeFor(registry, client(5000), 1);
-    const ChallengeResponse response{token, 1, "Joueur"};
+    const ChallengeResponse response{token, 1, "Joueur", ""};
 
     // Valable au moins le temps d'une poignée de main, au plus deux fois ce temps.
     CHECK_FALSE(registry.handle(client(5000), response, t0 + 2 * kHandshakeTimeout).has_value());
@@ -288,4 +290,32 @@ TEST_CASE("ClientRegistry : KeepAlive envoyé à chaque joueur une fois par seco
     REQUIRE(targets.size() == 1);
     CHECK(targets.front().sessionToken == tokenOf(registry, client(5000)));
     CHECK(registry.takeKeepAliveTargets(t0 + kKeepAliveInterval + 1ms).empty()); // déjà fait
+}
+
+TEST_CASE("ClientRegistry : code d'invitation exigé (T056)") {
+    ClientRegistry registry(1, ClientRegistry::Limits{kMaxPlayers, "ODY7KQ2"});
+    const auto answerWith = [&](const Address& from, std::uint64_t salt, std::string code) {
+        const auto token = challengeFor(registry, from, salt);
+        return registry.handle(from, ChallengeResponse{token, salt, "Joueur", std::move(code)}, t0);
+    };
+    const ControlMessage wrongCode{Refused{RefuseReason::WrongInviteCode}};
+
+    CHECK(answerWith(client(5000), 1, "") == wrongCode);
+    CHECK(answerWith(client(5001), 2, "ODY7KQ3") == wrongCode);
+    CHECK(registry.playerCount() == 0);
+
+    // Tapé en minuscules avec un tiret : accepté.
+    const auto accepted = answerWith(client(5002), 3, "ody-7kq2");
+    REQUIRE(accepted);
+    CHECK(std::holds_alternative<Accepted>(*accepted));
+    CHECK(registry.playerCount() == 1);
+}
+
+TEST_CASE("ClientRegistry : sans code exigé, le code envoyé est ignoré") {
+    ClientRegistry registry(1);
+    const auto token = challengeFor(registry, client(5000), 1);
+    const auto reply =
+        registry.handle(client(5000), ChallengeResponse{token, 1, "Joueur", "PEUIMPORTE"}, t0);
+    REQUIRE(reply);
+    CHECK(std::holds_alternative<Accepted>(*reply));
 }

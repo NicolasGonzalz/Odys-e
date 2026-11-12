@@ -51,8 +51,9 @@ Un monde solo peut être ouvert plus tard en coop : c'est le même format de sau
 
 ### Codes d'invitation
 
-1. **V1** : le code est un secret vérifié par le serveur pendant la connexion (étape de challenge, voir [NETWORK.md](NETWORK.md)).
-   L'adresse du serveur est saisie ou enregistrée dans les favoris.
+1. **V1** (fait, T056) : le code est un secret vérifié par le serveur pendant la connexion (étape de
+   challenge, voir [NETWORK.md](NETWORK.md)), donné par `odyssee_server --invite CODE`. L'adresse du
+   serveur et le code se tapent sur l'écran de connexion, qui les retient.
 2. **V2** : un petit service « annuaire » traduit un code court (`ODY-7KQ2`) en adresse et port.
    Le joueur ne tape plus d'IP.
 3. **Héberger depuis son PC** derrière une box (NAT) est le cas le plus difficile (traversée de NAT, relais) :

@@ -5,6 +5,7 @@
 
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
+#include "odyssee/net/InviteCode.hpp"
 #include "odyssee/net/UdpSocket.hpp"
 
 #include <thread>
@@ -21,8 +22,10 @@ constexpr int kMaxCatchUpTicks = 5;
 
 } // namespace
 
-Server::Server(std::uint16_t port, net::NetworkConditions network, GameWorld world)
-    : _port(port), _network(network), _world(std::move(world)) {}
+Server::Server(std::uint16_t port, net::NetworkConditions network, GameWorld world,
+               std::string inviteCode)
+    : _port(port), _network(network), _world(std::move(world)),
+      _inviteCode(net::normalizeInviteCode(inviteCode)) {}
 
 bool Server::run() {
     auto socket = net::UdpSocket::open(_port);
@@ -31,10 +34,13 @@ bool Server::run() {
         return false;
     }
 
+    ConnectionLimits limits;
+    limits.registry.inviteCode = _inviteCode;
     // Secret des défis de connexion : imprévisible, tiré une fois au démarrage.
-    ConnectionService connections(std::move(*socket), SipKey::random(), _network);
-    kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max", ODYSSEE_VERSION_STRING, _port,
-              kTickRate, kMaxPlayers);
+    ConnectionService connections(std::move(*socket), SipKey::random(), _network, limits);
+    kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max, {}", ODYSSEE_VERSION_STRING,
+              _port, kTickRate, kMaxPlayers,
+              _inviteCode.empty() ? "ouvert à tous" : "code d'invitation exigé");
     if (!_network.isPerfect()) {
         kLog.warn("simulation réseau active : {} ms ± {} ms, {} % de pertes, {} % de doublons",
                   _network.latency.count(), _network.jitter.count(), _network.lossPercent,

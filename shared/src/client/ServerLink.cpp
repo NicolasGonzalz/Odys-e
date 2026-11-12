@@ -10,16 +10,19 @@
 
 namespace odyssee::client {
 
-std::optional<ServerLink> ServerLink::open(std::string playerName, const net::Address& server) {
+std::optional<ServerLink> ServerLink::open(std::string playerName, const net::Address& server,
+                                           std::string inviteCode) {
     auto socket = net::UdpSocket::open();
     if (!socket) {
         return std::nullopt;
     }
-    return ServerLink(std::move(playerName), std::move(*socket), server);
+    return ServerLink(std::move(playerName), std::move(inviteCode), std::move(*socket), server);
 }
 
-ServerLink::ServerLink(std::string playerName, net::UdpSocket socket, const net::Address& server)
-    : _connection(std::move(playerName)), _socket(std::move(socket)), _server(server) {}
+ServerLink::ServerLink(std::string playerName, std::string inviteCode, net::UdpSocket socket,
+                       const net::Address& server)
+    : _connection(std::move(playerName), std::move(inviteCode)), _socket(std::move(socket)),
+      _server(server) {}
 
 void ServerLink::poll(Clock::time_point now) {
     sendControlMessages(now);

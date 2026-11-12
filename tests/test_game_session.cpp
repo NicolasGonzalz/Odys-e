@@ -44,8 +44,9 @@ struct GameClient {
     client::InputHistory inputs;
     std::optional<Snapshot> latest; ///< snapshot le plus récent reçu
 
-    GameClient(std::string name, std::uint16_t serverPort)
-        : link(*client::ServerLink::open(std::move(name), Address::loopback(serverPort))) {}
+    GameClient(std::string name, std::uint16_t serverPort, std::string inviteCode = {})
+        : link(*client::ServerLink::open(std::move(name), Address::loopback(serverPort),
+                                         std::move(inviteCode))) {}
 
     void step(Clock::time_point now) {
         link.poll(now);
@@ -84,8 +85,8 @@ struct Match {
     Tick serverTick = 0;
     Clock::time_point now = Clock::now();
 
-    explicit Match(NetworkConditions network = {})
-        : service(*UdpSocket::open(), 4321, network) {}
+    explicit Match(NetworkConditions network = {}, ConnectionService::Limits limits = {})
+        : service(*UdpSocket::open(), 4321, network, limits) {}
 
     template <typename Done> void runUntil(std::vector<GameClient*> clients, Done done) {
         for (int i = 0; i < 300 && !done(); ++i) {
@@ -205,4 +206,21 @@ TEST_CASE("Partie : un paquet de jeu d'un inconnu ne crée pas de joueur") {
     match.runUntil({}, [] { return false; });
     CHECK(match.service.playerCount() == 0);
     CHECK(match.world.playerCount() == 0);
+}
+
+TEST_CASE("Partie : un serveur à code d'invitation refuse le mauvais code, accepte le bon") {
+    ConnectionService::Limits limits;
+    limits.registry.inviteCode = "ODY7KQ2";
+    Match match({}, limits);
+    const std::uint16_t port = match.service.port();
+
+    GameClient intruder("Intrus", port, "ODY0000");
+    intruder.link.connect(match.now);
+    match.runUntil({&intruder}, [&] { return intruder.link.refuseReason().has_value(); });
+    CHECK(intruder.link.refuseReason() == RefuseReason::WrongInviteCode);
+    CHECK(intruder.link.state() == ConnectionState::Refused);
+
+    GameClient friendly("Nadia", port, "ody-7kq2");
+    match.connect(friendly);
+    CHECK(match.service.playerCount() == 1);
 }

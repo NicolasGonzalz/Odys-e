@@ -45,7 +45,7 @@ Les numéros de séquence sur 16 bits rebouclent ; la comparaison se fait en ari
 Client                                        Serveur
   │── ConnectRequest(sel, pseudo, rembourrage) ──▶│  version (en-tête), pseudo, place libre ?
   │◀────────── Challenge(sel, jeton u64) ─────────│  jeton calculé, rien n'est retenu
-  │── ChallengeResponse(sel, jeton, pseudo) ─────▶│  jeton recalculé : le client reçoit bien à cette adresse
+  │── ChallengeResponse(sel, jeton, pseudo, code) ▶│  jeton recalculé : le client reçoit bien à cette adresse ; code d'invitation
   │◀──────── Accepted(playerId, jeton) ───────────│  numéro de joueur 0 à 3 ; le jeton devient le jeton de session
   │◀═══ paquets de jeu, KeepAlive, Disconnect ═══▶│  tous portent le jeton de session
 ```
@@ -57,9 +57,9 @@ de l'en-tête ne servent qu'après la connexion (valeurs à 0 pendant la poigné
 |---|---|---|
 | `ConnectRequest` = 1 | client → serveur | sel (u64), pseudo (chaîne, 16 octets max), puis des zéros jusqu'à **64 octets** de contenu au moins |
 | `Challenge` = 2 | serveur → client | sel (u64, celui de la demande), jeton (u64) |
-| `ChallengeResponse` = 3 | client → serveur | sel (u64), jeton (u64), pseudo (chaîne) |
+| `ChallengeResponse` = 3 | client → serveur | sel (u64), jeton (u64), pseudo (chaîne), code d'invitation (chaîne, vide si aucun) |
 | `Accepted` = 4 | serveur → client | numéro de joueur (u8), jeton de session (u64) |
-| `Refused` = 5 | serveur → client | raison (u8) : 1 mauvaise version, 2 serveur plein, 3 pseudo invalide, 4 trop de joueurs depuis cette adresse IP |
+| `Refused` = 5 | serveur → client | raison (u8) : 1 mauvaise version, 2 serveur plein, 3 pseudo invalide, 4 trop de joueurs depuis cette adresse IP, 5 code d'invitation absent ou faux |
 | `Disconnect` = 6 | les deux | jeton de session (u64) — envoyé 3 fois par celui qui part (client qui quitte, serveur qui s'arrête) : il peut se perdre |
 | `KeepAlive` = 7 | les deux | jeton de session (u64) — chaque seconde sans autre trafic |
 
@@ -84,6 +84,10 @@ jeton = SipHash-2-4(secret du serveur, IP | port | sel | période | pseudo)
   de la période en cours ou de la précédente : un défi vaut donc de 5 à 10 s.
 - `ChallengeResponse` répète le sel et le pseudo : le serveur recalcule le jeton et compare. Un jeton ne
   vaut que pour l'adresse, le sel et le pseudo de la demande.
+- **Code d'invitation (T056, protocole v4)** : un serveur lancé avec `--invite CODE` refuse
+  (`Refused` 5) toute réponse au défi sans le bon code. Le code n'arrive qu'avec `ChallengeResponse`,
+  donc d'une adresse prouvée, et les essais restent soumis à la limite de poignées de main par IP.
+  Comparaison en temps constant ; majuscules/minuscules, tirets et espaces indifférents.
 - Il n'y a plus de table de poignées de main à saturer : un flot de fausses demandes ne consomme pas de
   mémoire et ne bloque pas les vrais joueurs.
 

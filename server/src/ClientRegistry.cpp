@@ -2,6 +2,7 @@
 
 #include "odyssee/core/Config.hpp"
 #include "odyssee/core/Log.hpp"
+#include "odyssee/net/InviteCode.hpp"
 #include "odyssee/net/PlayerName.hpp"
 
 #include <algorithm>
@@ -71,6 +72,11 @@ std::optional<net::ControlMessage> ClientRegistry::onChallengeResponse(
     if (isRetired(response.token)) {
         return std::nullopt; // réponse d'une session déjà terminée (rejouée ou en retard)
     }
+    if (!hasInvitation(response)) {
+        kLog.warn("{} « {} » refusé : code d'invitation absent ou faux", from.toString(),
+                  response.playerName);
+        return net::Refused{net::RefuseReason::WrongInviteCode};
+    }
     if (const auto reason = refusalFor(from)) {
         return net::Refused{*reason};
     }
@@ -92,6 +98,11 @@ net::Accepted ClientRegistry::admit(const net::Address& from,
     kLog.info("joueur {} « {} » connecté depuis {} ({}/{})", id, response.playerName,
               from.toString(), _players.size(), kMaxPlayers);
     return net::Accepted{id, response.token};
+}
+
+bool ClientRegistry::hasInvitation(const net::ChallengeResponse& response) const {
+    return _limits.inviteCode.empty() ||
+           net::inviteCodeMatches(_limits.inviteCode, response.inviteCode);
 }
 
 std::optional<net::RefuseReason> ClientRegistry::refusalFor(const net::Address& from) const {

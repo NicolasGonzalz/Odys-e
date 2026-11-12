@@ -49,6 +49,15 @@ TEST_CASE("Ligne de commande : carte à charger") {
     CHECK_FALSE(parse({"--world", ""}).has_value());
 }
 
+TEST_CASE("Ligne de commande : code d'invitation") {
+    CHECK(parse({}).value().inviteCode.empty());
+    CHECK(parse({"--invite", "ody-7kq2"}).value().inviteCode == "ODY7KQ2"); // normalisé
+    CHECK_FALSE(parse({"--invite"}).has_value());
+    CHECK_FALSE(parse({"--invite", ""}).has_value());
+    CHECK_FALSE(parse({"--invite", "--"}).has_value());      // vide une fois normalisé
+    CHECK_FALSE(parse({"--invite", "pas_bon"}).has_value()); // caractère interdit
+}
+
 TEST_CASE("Ligne de commande : simulation réseau") {
     using namespace std::chrono_literals;
     const auto options = parse({"--lag", "120", "27016", "--jitter", "30", "--loss", "5", "--dup",

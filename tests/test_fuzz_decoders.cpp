@@ -64,6 +64,7 @@ void checkBounds(const ControlMessage& message) {
         CHECK(request->playerName.size() <= 64);
     } else if (const auto* response = std::get_if<ChallengeResponse>(&message)) {
         CHECK(response->playerName.size() <= 64);
+        CHECK(response->inviteCode.size() <= 64);
     }
 }
 
@@ -87,7 +88,7 @@ std::vector<std::vector<std::byte>> validPackets() {
 
     return {buildControlPacket(ConnectRequest{"Nadia", 99}),
             buildControlPacket(Challenge{1234, 99}),
-            buildControlPacket(ChallengeResponse{1234, 99, "Nadia"}),
+            buildControlPacket(ChallengeResponse{1234, 99, "Nadia", ""}),
             buildControlPacket(Accepted{2, 1234}),
             buildControlPacket(Refused{RefuseReason::ServerFull}),
             buildControlPacket(Disconnect{1234}),

@@ -17,6 +17,7 @@ add_library(odyssee_shared STATIC
     src/net/PacketFraming.cpp
     src/net/PlayerName.cpp
     src/net/Quantize.cpp
+    src/net/InviteCode.cpp
     src/net/PacketHeader.cpp
     src/net/ReceivedPackets.cpp
     src/net/ReliableCodec.cpp

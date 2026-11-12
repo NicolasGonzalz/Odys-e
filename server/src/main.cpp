@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    server::Server gameServer(options->port, options->network, std::move(*world));
+    server::Server gameServer(options->port, options->network, std::move(*world),
+                              options->inviteCode);
     server::stopOnShutdownSignals(gameServer);
     return gameServer.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
