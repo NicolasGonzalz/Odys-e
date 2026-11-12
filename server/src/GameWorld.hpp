@@ -11,6 +11,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <span>
 
@@ -18,12 +19,22 @@ namespace odyssee::server {
 
 /// L'état de vérité du monde, côté serveur.
 ///
+/// Où apparaissent les joueurs : en 1/256 m, et cap quantifié (net::quantizeYaw).
+struct SpawnPoint {
+    std::array<std::int32_t, 3> position{};
+    std::uint16_t yaw = 0;
+};
+
 /// Pour l'instant : les joueurs connectés, déplacés par la simulation partagée (sim::step, la
-/// même que la prédiction du client) sur un sol plat. La carte, son relief et son point
-/// d'apparition viendront avec son chargement par le serveur (T041).
+/// même que la prédiction du client) sur le sol et les murs de la carte (T041).
 class GameWorld {
   public:
+    /// Sans carte : sol plat provisoire (sim/ProvisionalGround.hpp), apparition dans la salle des
+    /// capsules du centre de stase.
     GameWorld();
+    /// Sur une carte : son sol et ses murs (le client doit charger la même), et son point
+    /// d'apparition.
+    GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn);
 
     /// Fait correspondre les joueurs du monde à ceux qui sont connectés : ajoute les nouveaux
     /// (au point d'apparition), retire ceux qui sont partis. Une place dont la génération a
@@ -37,10 +48,15 @@ class GameWorld {
     /// Inputs manquants devinés d'affilée, au plus (200 ms). Voir step().
     static constexpr std::uint32_t kMaxGuessedInputs = 4;
 
+    /// À partir de ce nombre d'inputs en attente, le joueur en rattrape un par tick (voir step()).
+    static constexpr std::size_t kCatchUpBacklog = 3;
+
     /// Avance d'un tick : **chaque** joueur est simulé, qu'un input soit arrivé ou non (sinon
     /// un client qui se tait resterait suspendu en l'air, à l'abri de la gravité).
     ///
-    /// - Un input en attente : il est appliqué (au plus un par tick).
+    /// - Un input en attente : il est appliqué. S'il en reste encore kCatchUpBacklog ou plus
+    ///   (retard accumulé pendant une coupure), un second est appliqué dans le même tick : le
+    ///   serveur rattrape le client au lieu de garder ce retard pour toujours.
     /// - Aucun, mais le joueur en a déjà envoyé : le tick manquant est **deviné** en rejouant le
     ///   dernier input, et compté comme traité (lastProcessedInput avance). S'il arrive plus
     ///   tard, il est ignoré : le serveur reste aligné sur les ticks du client, qui corrige sa
@@ -69,10 +85,12 @@ class GameWorld {
     };
 
     void stepPlayer(PlayerState& player) const;
+    void catchUp(PlayerState& player) const;
     void apply(PlayerState& player, const net::InputCommand& command, net::Tick tick) const;
-    static PlayerState spawn(const ConnectedPlayer& player);
+    [[nodiscard]] PlayerState spawn(const ConnectedPlayer& player) const;
 
-    sim::FlatTerrain _terrain; ///< sol plat à la hauteur du point d'apparition, en attendant T041
+    std::unique_ptr<const sim::Terrain> _terrain;
+    SpawnPoint _spawn;
     std::array<std::optional<PlayerState>, kMaxPlayers> _players;
 };
 

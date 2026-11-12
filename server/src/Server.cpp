@@ -8,6 +8,7 @@
 #include "odyssee/net/UdpSocket.hpp"
 
 #include <thread>
+#include <utility>
 
 namespace odyssee::server {
 
@@ -20,8 +21,8 @@ constexpr int kMaxCatchUpTicks = 5;
 
 } // namespace
 
-Server::Server(std::uint16_t port, net::NetworkConditions network)
-    : _port(port), _network(network) {}
+Server::Server(std::uint16_t port, net::NetworkConditions network, GameWorld world)
+    : _port(port), _network(network), _world(std::move(world)) {}
 
 bool Server::run() {
     auto socket = net::UdpSocket::open(_port);

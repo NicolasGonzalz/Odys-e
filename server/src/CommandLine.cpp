@@ -84,6 +84,13 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
             options.verbose = true;
             continue;
         }
+        if (arg == "--world") {
+            if (i + 1 >= args.size() || args[i + 1].empty()) {
+                return std::nullopt; // chemin manquant
+            }
+            options.worldPath = std::string(args[++i]);
+            continue;
+        }
         if (isNetworkOption(arg)) {
             if (i + 1 >= args.size() || !applyNetworkOption(arg, args[i + 1], options.network)) {
                 return std::nullopt; // valeur manquante ou invalide
@@ -103,9 +110,10 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
 }
 
 std::string usage(std::string_view programName) {
-    return std::format("Usage : {} [--verbose] [--lag ms] [--jitter ms] [--loss %] [--dup %] "
-                       "[port]\n"
+    return std::format("Usage : {} [--verbose] [--world fichier] [--lag ms] [--jitter ms] "
+                       "[--loss %] [--dup %] [port]\n"
                        "  --verbose      affiche les messages de debug\n"
+                       "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
                        "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"
                        "  --jitter ms    simulation réseau : ± au hasard autour du délai\n"
                        "  --loss %       simulation réseau : envois perdus (0 à 100)\n"

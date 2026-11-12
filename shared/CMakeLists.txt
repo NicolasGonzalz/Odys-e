@@ -27,9 +27,13 @@ add_library(odyssee_shared STATIC
     src/sim/Movement.cpp
     src/sim/ProvisionalGround.cpp
     src/sim/Replication.cpp
+    src/world/BoxGrid.cpp
+    src/world/CollisionShape.cpp
     src/world/HeightField.cpp
     src/world/WorldFileReader.cpp
+    src/world/WorldFileLoader.cpp
     src/world/WorldFileWriter.cpp
+    src/world/WorldTerrain.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
 

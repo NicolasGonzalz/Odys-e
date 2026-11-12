@@ -24,12 +24,15 @@ add_executable(odyssee_tests
     test_network_simulator.cpp
     test_fuzz_decoders.cpp
     test_world_file.cpp
+    test_world_terrain.cpp
     test_input_history.cpp
     test_prediction.cpp
     test_interpolation.cpp
     test_traffic_meter.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
+# Pour retrouver les fichiers du dépôt (la vraie carte) d'où que les tests soient lancés.
+target_compile_definitions(odyssee_tests PRIVATE ODYSSEE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 # Les tests du serveur ne sont compilés que si le serveur l'est.
 if(ODYSSEE_BUILD_SERVER)

@@ -97,19 +97,35 @@ void applyGravity(PlayerState& state, bool onGround, const MovementTuning& tunin
     state.velocity[2] = toInt16(std::max(state.velocity[2] - tuning.gravity, -tuning.maxFallSpeed));
 }
 
-/// Déplacement horizontal. Au sol, un mur ou une pente de plus de 45° (montée plus grande que la
-/// distance parcourue, au-delà d'une petite marche) bloque le joueur.
+/// Hauteur (sur 64 bits, pour ne pas déborder) à laquelle on cherche un sol : z + `reach`.
+std::int32_t reachUp(std::int32_t z, std::int64_t reach) {
+    return static_cast<std::int32_t>(
+        std::min<std::int64_t>(std::int64_t{z} + reach, kMaxCoordinate));
+}
+
+void stopHorizontally(PlayerState& state) {
+    state.velocity[0] = 0;
+    state.velocity[1] = 0;
+}
+
+/// Déplacement horizontal. Un volume solide entre les genoux (au-dessus d'une petite marche) et
+/// la tête bloque le joueur, au sol comme en l'air. Au sol, une pente de plus de 45° (montée plus
+/// grande que la distance parcourue, au-delà d'une petite marche) le bloque aussi.
 void moveHorizontally(PlayerState& state, const Terrain& terrain, bool grounded,
                       const MovementTuning& tuning) {
     const std::int32_t x = advance(state.position[0], state.velocity[0]);
     const std::int32_t y = advance(state.position[1], state.velocity[1]);
+    const std::int32_t z = state.position[2];
+    if (terrain.isSolid(x, y, reachUp(z, tuning.stepHeight), reachUp(z, tuning.height))) {
+        stopHorizontally(state);
+        return;
+    }
     if (grounded) {
-        // Sur 64 bits : la hauteur du sol vient de la carte, la différence ne doit pas déborder.
-        const std::int64_t rise = std::int64_t{terrain.groundHeight(x, y)} - state.position[2];
         const std::int64_t distance = length(state.velocity[0], state.velocity[1]);
-        if (rise > distance + tuning.stepHeight) {
-            state.velocity[0] = 0;
-            state.velocity[1] = 0;
+        const std::int32_t ground =
+            terrain.groundBelow(x, y, reachUp(z, distance + tuning.stepHeight));
+        if (std::int64_t{ground} - z > distance + tuning.stepHeight) {
+            stopHorizontally(state);
             return;
         }
     }
@@ -117,12 +133,30 @@ void moveHorizontally(PlayerState& state, const Terrain& terrain, bool grounded,
     state.position[1] = y;
 }
 
+/// En montant (saut), la tête bute sur un plafond : le joueur reste sous le plafond et retombe.
+void hitCeiling(PlayerState& state, const Terrain& terrain, std::int32_t before,
+                const MovementTuning& tuning) {
+    if (state.velocity[2] <= 0) {
+        return;
+    }
+    if (terrain.isSolid(state.position[0], state.position[1], reachUp(before, tuning.height),
+                        reachUp(state.position[2], tuning.height))) {
+        state.position[2] = before;
+        state.velocity[2] = 0;
+    }
+}
+
 /// Déplacement vertical et contact avec le sol. En descente, un joueur qui était au sol y reste
 /// collé (pas de petits sauts à chaque tick sur une pente). Renvoie vrai s'il est au sol.
 bool moveVertically(PlayerState& state, const Terrain& terrain, bool stickToGround,
                     const MovementTuning& tuning) {
-    state.position[2] = advance(state.position[2], state.velocity[2]);
-    const std::int32_t ground = terrain.groundHeight(state.position[0], state.position[1]);
+    const std::int32_t before = state.position[2];
+    state.position[2] = advance(before, state.velocity[2]);
+    hitCeiling(state, terrain, before, tuning);
+    // Le sol cherché part d'au-dessus des pieds d'avant (d'une marche) : on ne traverse pas un
+    // plancher en tombant vite, et on monte sur une marche franchie à l'horizontale.
+    const std::int32_t ground = terrain.groundBelow(state.position[0], state.position[1],
+                                                    reachUp(before, tuning.stepHeight));
     const bool landed = state.position[2] <= ground;
     const bool snapped = stickToGround && state.velocity[2] <= 0 &&
                          std::int64_t{state.position[2]} - ground <= tuning.snapDown;

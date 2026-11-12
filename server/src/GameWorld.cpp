@@ -6,22 +6,23 @@
 
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 namespace odyssee::server {
 
 namespace {
 
-/// Point d'apparition provisoire : la salle des capsules du centre de stase
+/// Point d'apparition sans carte : la salle des capsules du centre de stase
 /// (tools/worldgen/world_layout.json, centre_stase), posé sur le sol provisoire partagé avec le
-/// client (sim/ProvisionalGround.hpp). Remplacé par celui de la carte quand le serveur la
-/// chargera (T041).
-constexpr float kSpawnX = 1900.0f;
-constexpr float kSpawnY = 2602.0f;
-constexpr float kSpawnZ = sim::kProvisionalGroundMeters;
-constexpr float kSpawnYawDegrees = 270.0f; // vers le nord : face à la sortie, vers le monde
+/// client (sim/ProvisionalGround.hpp).
+SpawnPoint provisionalSpawn() {
+    return {{net::quantizePosition(1900.0f), net::quantizePosition(2602.0f),
+             sim::provisionalGroundHeight()},
+            net::quantizeYaw(270.0f)}; // vers le nord : face à la sortie, vers le monde
+}
 
-/// Les joueurs apparaissent côte à côte, à 2 m d'écart (entre les capsules).
-constexpr float kSpawnSpacing = 2.0f;
+/// Les joueurs apparaissent côte à côte d'ouest en est, à 2 m d'écart (entre les capsules).
+constexpr std::int32_t kSpawnSpacing = 2 * 256;
 
 /// Vrai si le tick suivant peut être deviné : le joueur a déjà envoyé un input, et on n'a pas
 /// déjà trop deviné d'affilée (un client muet ne doit pas voir ses ticks avancer sans lui).
@@ -44,7 +45,12 @@ net::InputCommand idleCommand(const sim::PlayerState& motion) {
 
 } // namespace
 
-GameWorld::GameWorld() : _terrain(sim::provisionalGroundHeight()) {}
+GameWorld::GameWorld()
+    : GameWorld(std::make_unique<sim::FlatTerrain>(sim::provisionalGroundHeight()),
+                provisionalSpawn()) {}
+
+GameWorld::GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn)
+    : _terrain(std::move(terrain)), _spawn(spawn) {}
 
 void GameWorld::syncPlayers(std::span<const ConnectedPlayer> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
@@ -77,6 +83,7 @@ void GameWorld::stepPlayer(PlayerState& player) const {
     if (const auto input = player.inputs.pop()) {
         apply(player, input->command, input->tick);
         player.guessedInARow = 0;
+        catchUp(player);
         return;
     }
     if (canGuess(player.lastProcessedInput, player.guessedInARow)) {
@@ -88,12 +95,22 @@ void GameWorld::stepPlayer(PlayerState& player) const {
         return;
     }
     // Rien de plausible à rejouer : le joueur subit quand même la simulation (gravité, arrêt).
-    player.motion = sim::step(player.motion, idleCommand(player.motion), _terrain);
+    player.motion = sim::step(player.motion, idleCommand(player.motion), *_terrain);
+}
+
+void GameWorld::catchUp(PlayerState& player) const {
+    // Trop d'inputs en attente (après une coupure, le client a continué de jouer) : on en
+    // applique un de plus ce tick-ci, sinon le serveur garderait ce retard pour toujours.
+    if (player.inputs.size() >= kCatchUpBacklog) {
+        if (const auto extra = player.inputs.pop()) {
+            apply(player, extra->command, extra->tick);
+        }
+    }
 }
 
 void GameWorld::apply(PlayerState& player, const net::InputCommand& command,
                       net::Tick tick) const {
-    player.motion = sim::step(player.motion, command, _terrain);
+    player.motion = sim::step(player.motion, command, *_terrain);
     player.lastCommand = command;
     player.lastProcessedInput = tick;
 }
@@ -131,12 +148,13 @@ std::size_t GameWorld::playerCount() const {
                       [](const auto& slot) { return slot.has_value(); }));
 }
 
-GameWorld::PlayerState GameWorld::spawn(const ConnectedPlayer& player) {
-    const float offset = (static_cast<float>(player.id) - 1.5f) * kSpawnSpacing;
+GameWorld::PlayerState GameWorld::spawn(const ConnectedPlayer& player) const {
+    // Décalage de -1,5 à +1,5 fois l'écart : les quatre joueurs centrés sur le point.
+    const std::int32_t offset = (2 * std::int32_t{player.id} - 3) * kSpawnSpacing / 2;
     sim::PlayerState motion;
-    motion.position = {net::quantizePosition(kSpawnX + offset), net::quantizePosition(kSpawnY),
-                       net::quantizePosition(kSpawnZ)};
-    motion.yaw = net::quantizeYaw(kSpawnYawDegrees);
+    motion.position = _spawn.position;
+    motion.position[0] += offset;
+    motion.yaw = _spawn.yaw;
     return PlayerState{player.generation, motion, 0, {}, {}, 0};
 }
 

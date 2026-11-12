@@ -2,16 +2,19 @@
 
 #include "Hud.hpp"
 #include "InputSampler.hpp"
+#include "MapView.hpp"
 
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/Prediction.hpp"
 #include "odyssee/client/ServerLink.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Terrain.hpp"
+#include "odyssee/world/WorldTerrain.hpp"
 
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <optional>
 
 namespace odyssee::debugclient {
@@ -26,7 +29,9 @@ class DebugClient {
   public:
     using Clock = std::chrono::steady_clock;
 
-    explicit DebugClient(client::ServerLink link);
+    /// `map` : la carte, la même que celle du serveur (sinon la prédiction diverge). Sans
+    /// carte : le sol plat provisoire du serveur lancé sans carte.
+    DebugClient(client::ServerLink link, std::unique_ptr<const world::WorldTerrain> map);
 
     // La prédiction garde une référence vers le sol : l'objet ne se copie ni ne se déplace.
     DebugClient(const DebugClient&) = delete;
@@ -47,8 +52,10 @@ class DebugClient {
     void leave();
 
     client::ServerLink _link;
-    sim::FlatTerrain _ground;
-    client::Prediction _prediction; ///< après _ground : elle s'y réfère
+    std::unique_ptr<const world::WorldTerrain> _map; ///< nul : sol plat provisoire
+    sim::FlatTerrain _flat;
+    client::Prediction _prediction; ///< après _map et _flat : elle se réfère à l'un d'eux
+    std::optional<MapView> _mapView;
     InputSampler _input;
     std::optional<net::Snapshot> _latest;
     client::Interpolation _remote; ///< les autres joueurs, affichés entre deux snapshots (T033)
