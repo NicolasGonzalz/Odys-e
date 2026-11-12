@@ -55,6 +55,7 @@ void DebugClient::run() {
             accumulated = 0.0f; // trop de retard : on repart du présent
         }
 
+        _remote.advance(GetFrameTime() * static_cast<float>(kTickRate));
         draw(accumulated / kTickSeconds);
     }
     leave();
@@ -86,6 +87,7 @@ void DebugClient::tick(Clock::time_point now) {
 
 void DebugClient::keepLatestSnapshot() {
     for (auto& snapshot : _link.takeSnapshots()) {
+        _remote.push(snapshot); // T033 : tous les snapshots, même en retard, servent à interpoler
         if (!_latest || snapshot.serverTick > _latest->serverTick) {
             _latest = std::move(snapshot); // un snapshot arrivé en retard est plus vieux : ignoré
             reconcileWithLatest();
@@ -127,12 +129,10 @@ void DebugClient::drawWorld(float betweenTicks) const {
     const Vector3 feet = _previousDisplay ? lerp(toWorld(*_previousDisplay), now, betweenTicks) : now;
 
     BeginMode3D(cameraFor(feet, _input.yawDegrees(), _input.pitchDegrees(), _thirdPerson));
-    drawGround(feet, toWorld({0, 0, _ground.groundHeight(0, 0)}).y);
-    for (const auto& entity : _latest->entities) {
-        if (entity.id != _link.playerId()) {
-            drawPlayer(toWorld(entity.position), net::dequantizeYaw(entity.yaw),
-                       playerColor(entity.id));
-        }
+    drawGround(feet, net::dequantizePosition(_ground.groundHeight(0, 0)));
+    for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
+        drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),
+                   playerColor(entity.id));
     }
     if (_thirdPerson) {
         drawPlayer(feet, _input.yawDegrees(), playerColor(_link.playerId().value_or(0)));
@@ -160,6 +160,10 @@ HudInfo DebugClient::hudInfo() const {
                        static_cast<float>(sim::kDefaultTuning.maxStamina);
         info.exhausted = state->has(sim::kExhausted);
     }
+    const auto traffic = _link.traffic(Clock::now());
+    info.lossPercent = static_cast<float>(traffic.incomingLossPercent);
+    info.uploadKbps = static_cast<float>(traffic.sentKilobytesPerSecond);
+    info.downloadKbps = static_cast<float>(traffic.receivedKilobytesPerSecond);
     info.playersInView = _latest ? static_cast<int>(_latest->entities.size()) - 1 : 0;
     info.corrections = static_cast<int>(_prediction.corrections());
     info.lastCorrectionCm = net::dequantizePosition(_prediction.lastCorrection()) * 100.0f;

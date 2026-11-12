@@ -35,7 +35,7 @@ void ServerLink::sendInputs(const net::InputBatch& batch, Clock::time_point now)
     }
 
     _session->queueUnreliable(batch);
-    (void)_socket.send(_server, _session->buildPacket(now));
+    sendDatagram(_session->buildPacket(now), now);
     _connection.onGamePacketSent(now);
 }
 
@@ -45,7 +45,13 @@ std::vector<net::Snapshot> ServerLink::takeSnapshots() {
 
 void ServerLink::sendControlMessages(Clock::time_point now) {
     while (const auto message = _connection.nextOutgoing(now)) {
-        (void)_socket.send(_server, net::buildControlPacket(*message));
+        sendDatagram(net::buildControlPacket(*message), now);
+    }
+}
+
+void ServerLink::sendDatagram(std::span<const std::byte> bytes, Clock::time_point now) {
+    if (_socket.send(_server, bytes)) {
+        _traffic.onSent(bytes.size(), now);
     }
 }
 
@@ -66,6 +72,7 @@ void ServerLink::receiveAll(Clock::time_point now) {
         if (received->from != _server) {
             continue; // seul le serveur a quelque chose à nous dire
         }
+        _traffic.onReceived(received->size, now);
         handle(std::span(buffer).first(received->size), now);
     }
 }
@@ -88,6 +95,7 @@ void ServerLink::handle(std::span<const std::byte> datagram, Clock::time_point n
 void ServerLink::handleGamePacket(const net::IncomingPacket& packet, Clock::time_point now) {
     if (_session && _session->receive(packet, now)) {
         _connection.onGamePacketReceived(now);
+        _traffic.onGamePacket(packet.header.sequence, now);
     }
 }
 

@@ -26,6 +26,8 @@ add_executable(odyssee_tests
     test_world_file.cpp
     test_input_history.cpp
     test_prediction.cpp
+    test_interpolation.cpp
+    test_traffic_meter.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 

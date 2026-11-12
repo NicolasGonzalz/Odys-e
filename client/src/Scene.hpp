@@ -14,6 +14,7 @@ namespace odyssee::debugclient {
 
 /// Position de simulation (1/256 m) → point raylib (mètres).
 [[nodiscard]] Vector3 toWorld(const std::array<std::int32_t, 3>& position);
+[[nodiscard]] Vector3 toWorld(const std::array<double, 3>& position); ///< position interpolée
 
 /// Interpolation entre deux points (rendu fluide entre deux ticks).
 [[nodiscard]] Vector3 lerp(Vector3 from, Vector3 to, float t);

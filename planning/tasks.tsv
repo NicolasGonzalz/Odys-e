@@ -37,8 +37,8 @@ T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = mê
 T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.	fait
 T063	10	M2	ami	art,blender	5	Survivant 4 (Nadia) : modèle et rig	Corps + bras FPS riggés.	a_faire
 T032	11	M2	nicolas	client,net	5	Réconciliation	Correction + rejeu des inputs, lissage des petites erreurs.	fait
-T033	11	M2	nicolas	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.	a_faire
-T034	11	M2	nicolas	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.	a_faire
+T033	11	M2	nicolas	client,net	5	Interpolation des entités distantes	Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte.	fait
+T034	11	M2	nicolas	client,tools	2	HUD de debug réseau	RTT, perte, ko/s, corrections affichés à l'écran.	fait
 T064	11	M2	ami	art,blender	6	Kit de végétation low-poly	Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal.	a_faire
 T035	12	M2	both	devlog	4	Semaine tampon + post d'avancement	Retard rattrapé, post public M1/M2 publié.	a_faire
 T036	13	M3	ami	map,unreal	6	Terrain de la zone de départ	Relief, chemins et lieux de l'Abri (docs/ZONES.md) dans Unreal.	fait

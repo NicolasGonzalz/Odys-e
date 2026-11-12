@@ -34,6 +34,13 @@ Vector3 toWorld(const std::array<std::int32_t, 3>& position) {
             net::dequantizePosition(position[1])};
 }
 
+Vector3 toWorld(const std::array<double, 3>& position) {
+    const auto meters = [](double units) {
+        return static_cast<float>(units / static_cast<double>(net::kPositionUnitsPerMeter));
+    };
+    return {meters(position[0]), meters(position[2]), meters(position[1])};
+}
+
 Vector3 lerp(Vector3 from, Vector3 to, float t) {
     return {from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t,
             from.z + (to.z - from.z) * t};

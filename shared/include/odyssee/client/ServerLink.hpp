@@ -1,5 +1,6 @@
 #pragma once
 
+#include "odyssee/client/TrafficMeter.hpp"
 #include "odyssee/net/Address.hpp"
 #include "odyssee/net/ClientConnection.hpp"
 #include "odyssee/net/GameMessages.hpp"
@@ -53,10 +54,14 @@ class ServerLink {
     /// Session de jeu (ping, statistiques), une fois connecté.
     [[nodiscard]] const std::optional<net::Session>& session() const { return _session; }
 
+    /// Débit et pertes sur la dernière seconde (HUD réseau, T034).
+    [[nodiscard]] TrafficStats traffic(Clock::time_point now) const { return _traffic.stats(now); }
+
   private:
     ServerLink(std::string playerName, net::UdpSocket socket, const net::Address& server);
 
     void sendControlMessages(Clock::time_point now);
+    void sendDatagram(std::span<const std::byte> bytes, Clock::time_point now);
     void openSessionOnceConnected();
     void receiveAll(Clock::time_point now);
     void handle(std::span<const std::byte> datagram, Clock::time_point now);
@@ -68,6 +73,7 @@ class ServerLink {
     net::UdpSocket _socket;
     net::Address _server;
     std::vector<net::Snapshot> _snapshots;
+    TrafficMeter _traffic;
 };
 
 } // namespace odyssee::client
