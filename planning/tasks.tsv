@@ -69,7 +69,7 @@ T067	2	M0	both	site,devlog	4	Site de présentation (Vercel)	Site public sur odys
 T068	16	M4	both	art,blender	4	Matériaux transformés et munitions	Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils.	fait
 T069	2	M0	both	doc,gameplay	3	Conception des systèmes de jeu	docs/GAMEPLAY.md : déplacement, artisanat (main, établi, forge), carte, GPS, menus, notifications, animations de combat.	fait
 T070	16	M4	ami	art,blender	2	Objet carte (Blender)	Carte vierge (seule la zone de départ dessinée) : .blend, .fbx et icône d'inventaire.	fait
-T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.	a_faire
+T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.	fait
 T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal.	a_faire
 T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.	a_faire
 T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.	a_faire

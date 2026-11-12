@@ -38,7 +38,7 @@
 | M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
 | M2 — Mouvement fluide | 4 / 9 | 17 / 39 h | — |
 | M3 — Zone de départ | 2 / 8 | 8 / 42 h | T039 |
-| M4 — Récolter, fabriquer, enquêter | 3 / 16 | 11 / 88 h | — |
+| M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
@@ -171,7 +171,7 @@
 | ☐ | T041 | Nicolas | Chargement de la carte et collisions serveur | 8 | Le serveur charge la carte par chunks et applique les collisions du terrain. |
 | ☐ | T042 | Nicolas | Zone d'intérêt (AOI) | 4 | Chaque joueur ne reçoit que les entités proches. |
 | ☐ | T065 | Coéquipier | Habillage de la zone de départ | 6 | Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place. |
-| ☐ | T071 | Coéquipier | Postes d'artisanat (Blender) | 6 | Établi, forge et table de cartographie : modèles posables, .fbx et icônes. |
+| ☑ | T071 | Coéquipier | Postes d'artisanat (Blender) | 6 | Établi, forge et table de cartographie : modèles posables, .fbx et icônes. |
 
 ### Semaine 16 — du 1 mars 2027 · M4 · Nicolas 16 h · Coéquipier 11 h
 
