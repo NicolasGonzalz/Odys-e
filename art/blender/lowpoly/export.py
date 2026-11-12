@@ -24,6 +24,18 @@ def save_blend(category, name):
     return blend
 
 
+def save_palette(image, category, name):
+    """La texture-palette, à côté du .fbx (Unreal la retrouve à l'import) et dans le .blend."""
+    path = ART / "exports" / category / f"{name}_palette.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _make_writable(path)
+    image.filepath_raw = str(path)
+    image.file_format = "PNG"
+    image.save()
+    image.pack()
+    return path
+
+
 def export_model(obj, category, name):
     blend = save_blend(category, name)
     fbx = ART / "exports" / category / f"{name}.fbx"
@@ -40,5 +52,7 @@ def export_model(obj, category, name):
         axis_up="Z",
         mesh_smooth_type="FACE",  # facettes nettes (low-poly)
         bake_space_transform=True,
+        path_mode="COPY",
+        embed_textures=True,  # la palette voyage dans le .fbx
     )
     return blend, fbx
