@@ -17,7 +17,8 @@ struct Options {
     std::optional<std::uint16_t> port;
     std::optional<std::string> name;
     std::optional<std::string> inviteCode;
-    /// Fichier monde : le même que celui du serveur. Vide : sol plat provisoire.
+    /// Fichier monde : le même que celui du serveur. Vide : `odyssee.world` à côté de
+    /// l'exécutable s'il y en a un, sinon sol plat provisoire.
     std::string worldPath;
 };
 

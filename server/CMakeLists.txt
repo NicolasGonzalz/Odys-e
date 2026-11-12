@@ -22,3 +22,9 @@ odyssee_set_options(odyssee_server_core)
 add_executable(odyssee_server src/main.cpp)
 target_link_libraries(odyssee_server PRIVATE odyssee_server_core)
 odyssee_set_options(odyssee_server)
+
+# Binaire de déploiement (homelab) : lié en statique, il ne dépend pas de la version de la glibc
+# du conteneur. Possible car le serveur n'utilise ni DNS ni comptes système (NSS).
+if(ODYSSEE_STATIC_SERVER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_options(odyssee_server PRIVATE -static)
+endif()

@@ -75,8 +75,18 @@ void play(const debugclient::Options& options, const world::WorldTerrain* map) {
     }
 }
 
-/// La carte demandée (nul si aucune). std::nullopt si elle n'a pas pu être chargée.
-std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(const std::string& path) {
+/// Carte posée à côté de l'exécutable (paquet Windows de la CI) : prise sans --world.
+std::string bundledMapPath() {
+    const std::string path = std::string(GetApplicationDirectory()) + "odyssee.world";
+    return FileExists(path.c_str()) ? path : std::string{};
+}
+
+/// La carte demandée, sinon celle posée à côté de l'exécutable (nul si aucune). std::nullopt
+/// si elle n'a pas pu être chargée.
+std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(std::string path) {
+    if (path.empty()) {
+        path = bundledMapPath();
+    }
     if (path.empty()) {
         return std::unique_ptr<const world::WorldTerrain>{};
     }
@@ -86,6 +96,7 @@ std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(const std::str
                   << "\n";
         return std::nullopt;
     }
+    std::cout << "Carte : " << path << "\n";
     return std::make_unique<const world::WorldTerrain>(std::move(*decoded.world));
 }
 

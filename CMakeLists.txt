@@ -18,6 +18,7 @@ option(ODYSSEE_BUILD_CLIENT "Compiler le client graphique (raylib)" ON)
 option(ODYSSEE_BUILD_SERVER "Compiler le serveur dédié" ON)
 option(ODYSSEE_BUILD_TESTS  "Compiler les tests unitaires" ON)
 option(ODYSSEE_SANITIZERS   "Activer ASan + UBSan (Debug)" OFF)
+option(ODYSSEE_STATIC_SERVER "Serveur Linux lié en statique (tourne sur toute distribution)" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(CompilerWarnings)
