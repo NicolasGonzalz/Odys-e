@@ -13,20 +13,23 @@ import bpy
 
 from lowpoly.materials import flat_material
 from lowpoly.shading import two_tone
-from lowpoly.shapes import bevel
+from lowpoly.carpentry import stain
+from lowpoly.outline import without_outline
+from lowpoly.shapes import bevel, box
 
 ICON = True
 VIEW = (0.5, -1.0, 0.8)
 
-BOTTOM = (0.13, 0.05)   # longueur, largeur du fond du moule (m)
-TOP = (0.15, 0.066)     # longueur, largeur du dessus
-HEIGHT = 0.034
-SHRINK = 0.005          # creux du dessus, au centre
+BOTTOM = (0.115, 0.042)  # longueur, largeur du fond du moule (m) : bords bien évasés
+TOP = (0.165, 0.078)     # longueur, largeur du dessus
+HEIGHT = 0.042
+SHRINK = 0.008           # creux du dessus, au centre (retrait du métal en refroidissant)
 
-METAL = (0.62, 0.62, 0.62)
-METAL_DARK = (0.44, 0.45, 0.47)
-HAMMERED = (0.76, 0.75, 0.73)   # marques de marteau sur le dessus
-SOOT = (0.22, 0.21, 0.22)
+METAL = (0.67, 0.64, 0.60)      # fer chaud, pas un gris froid
+METAL_DARK = (0.46, 0.44, 0.42)
+HAMMERED = (0.82, 0.79, 0.74)   # marques de marteau sur le dessus
+SOOT = (0.24, 0.22, 0.21)
+STAMP = (0.30, 0.28, 0.27)
 
 
 def _block():
@@ -83,5 +86,17 @@ def build():
     bm = _block()
     _shape(bm, random.Random(3))
     ingot = _mesh(bm, "lingot")
-    bevel(ingot, 0.0025)
-    return [_colors(ingot)]
+    bevel(ingot, 0.005, segments=2)  # arêtes adoucies : coulé, pas usiné
+    return [_colors(ingot)] + _marks()
+
+
+def _marks():
+    """Poinçon du forgeron (un petit carré creusé) et deux coups de marteau sur le dessus."""
+    z = HEIGHT - SHRINK * 0.4
+    stamp = flat_material("lingot_poincon", STAMP)
+    parts = [box("poincon", (0.016, 0.016, 0.003), stamp, location=(-0.045, 0.012, z),
+                 rotation_deg=(0, 0, 12))]
+    for i, (x, y) in enumerate(((0.03, -0.012), (0.05, 0.016))):
+        parts.append(without_outline(stain(f"coup_{i}", (x, y, z + 0.0012), 0.009, HAMMERED,
+                                           seed=i)))
+    return parts

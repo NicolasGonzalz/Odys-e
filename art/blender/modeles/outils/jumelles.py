@@ -14,10 +14,10 @@ from lowpoly.shapes import box, cylinder
 ICON = True
 VIEW = (-0.6, -1.0, 0.7)   # on voit les oculaires et le dessus
 
-OLIVE = (0.48, 0.51, 0.41)
-OLIVE_DARK = (0.32, 0.35, 0.28)
-RUBBER = (0.20, 0.21, 0.20)
-LENS = (0.30, 0.62, 0.40)
+OLIVE = (0.58, 0.61, 0.47)
+OLIVE_DARK = (0.42, 0.45, 0.34)
+RUBBER = (0.30, 0.31, 0.29)
+LENS = (0.40, 0.78, 0.52)
 SPACING = 0.034   # demi-écart entre les deux tubes
 AXIS_Z = 0.032
 
@@ -37,7 +37,7 @@ def _barrel(side):
     grip_band = cylinder(f"gaine_{side}", 0.0255, 0.05, rubber, vertices=8,
                          location=(0.065, y, AXIS_Z), rotation_deg=(0, 90, 0))
     lens = cylinder(f"lentille_{side}", 0.024, 0.003, flat_material("jumelles_verre", LENS,
-                    emission=0.4), vertices=8, location=(0.15, y, AXIS_Z), rotation_deg=(0, 90, 0))
+                    emission=0.8), vertices=8, location=(0.15, y, AXIS_Z), rotation_deg=(0, 90, 0))
     eyepiece = cylinder(f"oculaire_{side}", 0.009, 0.003, flat_material("jumelles_noir", (0.05,) * 3),
                         vertices=8, location=(-0.0155, y, AXIS_Z), rotation_deg=(0, 90, 0))
     return [body, eyecup, grip_band, lens, eyepiece]

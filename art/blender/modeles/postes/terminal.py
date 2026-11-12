@@ -4,7 +4,8 @@ opérateurs), et il peut servir d'épreuve dans un niveau (rétablir le courant,
 Référence : art/concepts/objets/objets-interactifs.jpg (découpe : references/terminal.png).
 Meuble en tôle grise rouillée : deux écrans (l'un éteint, l'autre affichant du texte vert), un
 pupitre incliné avec clavier et pavé de touches rouges, un lecteur de carte sur le côté, une
-trappe sur le bas. Les écrans émettent de la lumière. 0,8 m de large, 1,6 m de haut.
+trappe sur le bas, grilles d'aération, voyant allumé, plaque du constructeur effacée, câbles qui
+sortent du dos et rampent au sol. Les écrans et le voyant émettent de la lumière. 0,8 m de large, 1,6 m de haut.
 """
 import math
 
@@ -13,6 +14,7 @@ from lowpoly.finish import posed
 from lowpoly.materials import flat_material
 from lowpoly.profile import profile_solid
 from lowpoly.shading import two_tone
+from lowpoly.organic import tube
 from lowpoly.shapes import bevel, box
 from lowpoly.tool_parts import material
 
@@ -39,7 +41,7 @@ DESK_TILT = math.degrees(math.atan2(DESK[0][1] - DESK[1][1], DESK[0][0] - DESK[1
 def _cabinet():
     """Le meuble : profil épaissi sur la largeur, puis tourné pour que l'avant regarde vers -y."""
     body = profile_solid("terminal", PROFILE, lambda _: WIDTH, [flat_material("terminal_gris", GREY)],
-                         lambda _: 0, cuts_x=(-0.3, -0.16, 0.0, 0.15), chamfer=0.012)
+                         lambda _: 0, cuts_x=(-0.3, -0.16, 0.0, 0.15), chamfer=0.03, segments=2)
     two_tone(body, GREY, GREY_DARK, "terminal_gris", dark_side=(0.6, 0.4, -0.3), threshold=0.1)
     return posed([body], (0, 0, 90), (0, 0, 0))
 
@@ -117,5 +119,39 @@ def _rust():
     return parts
 
 
+def _vents():
+    """Grilles d'aération : sur les deux côtés, et sur le bas de la façade."""
+    dark = flat_material("terminal_grille", (0.20, 0.20, 0.21))
+    parts = []
+    for side in (-1, 1):
+        for k in range(5):
+            parts.append(box(f"aeration_{side}_{k}", (0.004, 0.22, 0.018), dark,
+                             location=(side * (WIDTH / 2 + 0.002), 0.05, 1.3 - k * 0.04)))
+    for k in range(4):
+        parts.append(box(f"aeration_bas_{k}", (0.3, 0.004, 0.016), dark,
+                         location=(0.0, -0.254, 0.1 + k * 0.035)))
+    return parts
+
+
+def _details():
+    """Voyant allumé, plaque du constructeur effacée, socle, câbles qui sortent du dos."""
+    parts = [box("voyant", (0.022, 0.012, 0.022),
+                 flat_material("terminal_voyant", (0.4, 1.0, 0.4), emission=4.0),
+                 location=(0.33, -0.205, 0.74)),
+             box("plaque_constructeur", (0.16, 0.004, 0.05),
+                 flat_material("terminal_plaque", (0.80, 0.78, 0.70)),
+                 location=(-0.22, -0.248, 0.72)),
+             bevel(box("socle", (WIDTH + 0.04, 0.6, 0.04), material("metal_sombre"),
+                       location=(0.0, 0.03, 0.02)), 0.01)]
+    cable = flat_material("terminal_cable", (0.12, 0.12, 0.13))
+    for i, (x, color) in enumerate(((-0.2, cable), (0.05, cable),
+                                    (0.22, flat_material("cable_rouge", (0.55, 0.16, 0.12))))):
+        path = [(x, 0.3, 0.5 - i * 0.08), (x + 0.05, 0.42, 0.3), (x + 0.12, 0.55, 0.03),
+                (x + 0.3, 0.75, 0.02)]
+        parts.append(tube(f"cable_{i}", path, [0.016] * len(path), color, sides=6))
+    return parts
+
+
 def build():
-    return _cabinet() + _screens() + _desk_items() + _lower_panel() + _rust()
+    return (_cabinet() + _screens() + _desk_items() + _lower_panel() + _vents() + _details()
+            + _rust())

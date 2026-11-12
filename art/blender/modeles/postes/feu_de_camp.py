@@ -13,11 +13,13 @@ import random
 from mathutils import Vector
 
 from lowpoly.carpentry import stain
+from lowpoly.finish import posed
 from lowpoly.materials import flat_material
 from lowpoly.organic import tube
+from lowpoly.profile import profile_solid
 from lowpoly.rock import rock
 from lowpoly.shading import two_tone
-from lowpoly.shapes import box, cone, cylinder
+from lowpoly.shapes import box, cylinder
 from lowpoly.tool_parts import TOOL_COLORS
 from lowpoly.wood import end_grain, streaked
 
@@ -38,7 +40,7 @@ FLAMES = [((1.0, 0.45, 0.10), 0.11, 0.62, 0.0, 0.0, 0.0),
           ((1.0, 0.55, 0.14), 0.06, 0.26, -0.05, -0.04, -16.0),
           ((1.0, 0.80, 0.30), 0.045, 0.22, 0.02, -0.07, 10.0),
           ((1.0, 0.88, 0.45), 0.035, 0.2, -0.03, 0.07, -8.0)]
-SPIT_HEIGHT = 1.0  # traverse de la broche
+SPIT_HEIGHT = 0.85  # traverse de la broche
 LOG_RINGS = [(0.3, TOOL_COLORS["bois_coeur"]), (1.0, TOOL_COLORS["bois_bout"])]
 
 
@@ -48,9 +50,10 @@ def _stones():
     parts = []
     for i in range(STONES):
         angle = math.tau * i / STONES + rng.uniform(-0.12, 0.12)
-        size = (0.12 * rng.uniform(0.85, 1.15), 0.1, 0.085 * rng.uniform(0.9, 1.2))
-        piece = rock(f"pierre_{i}", size, stone, count=18, jitter=0.15, dents=1, base=0.7,
-                     facets=0.3, seed=10 + i)
+        size = (0.13 * rng.uniform(0.75, 1.25), 0.1 * rng.uniform(0.85, 1.15),
+                0.065 * rng.uniform(0.8, 1.3))  # plus plates, et toutes différentes
+        piece = rock(f"pierre_{i}", size, stone, count=16, jitter=0.2, dents=2, base=0.6,
+                     facets=0.35, seed=10 + i)
         piece.location = (math.cos(angle) * RING, math.sin(angle) * RING, size[2] * 0.7)
         piece.rotation_euler = (0, 0, angle)
         parts.append(two_tone(piece, STONE, STONE_DARK, "feu_pierre", dark_side=(0.3, 0.6, -1.0),
@@ -98,16 +101,27 @@ def _coal_bed():
     return [stain("braises_lit", (0.0, 0.0, 0.004), 0.17, (0.95, 0.35, 0.08), seed=3)]
 
 
+def _flame(name, color, height, width, angle, offset, tilt):
+    """Une langue de flamme : un contour ondulé et pointu, en deux plans croisés pour se voir de
+    tous les côtés (dans Unreal, des particules la remplaceront)."""
+    w, h = width / 2, height
+    outline = [(-w, 0.0), (-w * 0.9, h * 0.3), (-w * 0.35, h * 0.55), (-w * 0.6, h * 0.72),
+               (0.0, h), (w * 0.45, h * 0.62), (w * 0.85, h * 0.4), (w, 0.0)]
+    material = flat_material(f"feu_flamme_{color}", color, emission=4.0)
+    planes = []
+    for k, turn in enumerate((0.0, 90.0)):
+        plane = profile_solid(f"{name}_{k}", outline, lambda _: 0.012, [material], lambda _: 0,
+                              chamfer=0.002)
+        planes += posed([plane], (tilt, 0, angle + turn), (offset[0], offset[1], 0.08))
+    return planes
+
+
 def _flames():
-    """Plusieurs langues de flamme séparées (orange au centre, jaunes autour), penchées chacune un
-    peu de travers ; des braises au sol et des étincelles qui montent."""
+    """Langues de flamme (orange au centre, jaunes autour), penchées de travers ; des braises au
+    sol et des étincelles qui montent."""
     parts = []
     for i, (color, radius, height, dx, dy, tilt) in enumerate(FLAMES):
-        flame = cone(f"flamme_{i}", radius, height, flat_material(f"feu_flamme_{i}", color,
-                                                                  emission=4.0),
-                     vertices=5, location=(dx, dy, 0.1 + height / 2),
-                     rotation_deg=(tilt * 0.6, tilt, i * 37.0))
-        parts.append(flame)
+        parts += _flame(f"flamme_{i}", color, height, radius * 2.4, i * 37.0, (dx, dy), tilt)
     rng = random.Random(7)
     for i in range(8):
         ember = rock(f"braise_{i}", (0.03, 0.025, 0.02),
@@ -130,7 +144,7 @@ def _spit():
     for side in (-1, 1):
         x = side * 0.52
         parts.append(tube(f"broche_poteau_{side}", [(x, 0.0, 0.0), (x, 0.0, SPIT_HEIGHT - 0.01)],
-                          [0.02, 0.016], stick, sides=5))
+                          [0.026, 0.021], stick, sides=5))
         for branch in (-1, 1):  # la fourche
             parts.append(tube(f"broche_fourche_{side}_{branch}",
                               [(x, 0.0, SPIT_HEIGHT - 0.07), (x, branch * 0.05, SPIT_HEIGHT + 0.05)],

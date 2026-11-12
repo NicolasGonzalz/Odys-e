@@ -10,6 +10,7 @@ from lowpoly.materials import flat_material
 from lowpoly.organic import loft, tube
 from lowpoly.shading import two_tone
 from lowpoly.shapes import roughen
+from lowpoly.wood import grain_strokes
 
 ICON = True
 VIEW = (0.3, -1.0, 1.0)
@@ -31,7 +32,18 @@ def _body():
     bag = loft("sac", BODY, flat_material("sac_tissu", FABRIC), sides=12)
     roughen(bag, 0.014, seed=4)  # le tissu n'est pas tendu : plis et bosses
     return two_tone(bag, FABRIC, FABRIC_DARK, "sac_tissu", dark_side=(0.3, 0.6, -0.6),
-                    threshold=0.05, spread=0.1, seed=4)
+                    threshold=0.05, spread=0.03, seed=4)
+
+
+def _folds():
+    """Plis du tissu : des traits sombres en travers et en biais sur le dessus."""
+    folds = []
+    for x, dy, bend in ((0.3, 0.25, 0.04), (0.62, -0.2, -0.05), (0.9, 0.28, 0.03),
+                        (1.2, -0.25, 0.05), (1.42, 0.2, -0.03)):
+        top = BODY[min(range(len(BODY)), key=lambda i: abs(BODY[i][0] - x))]
+        z = top[1] + top[3] + 0.002
+        folds.append([(x - 0.04, -dy, z), (x, bend, z + 0.004), (x + 0.05, dy, z)])
+    return grain_strokes("sac_pli", folds, FABRIC_DARK, radius=0.006)
 
 
 def _roll():
@@ -41,7 +53,7 @@ def _roll():
                 flat_material("sac_tissu", FABRIC), sides=10)
     roughen(roll, 0.006, seed=5)
     two_tone(roll, FABRIC, FABRIC_DARK, "sac_rouleau", dark_side=(0.3, 0.6, -0.6), threshold=0.05,
-             seed=5)
+             spread=0.03, seed=5)
     spiral = tube("rouleau_spirale", [(ROLL_X + 0.03, -0.375, ROLL_RADIUS + 0.01),
                                       (ROLL_X - 0.04, -0.378, ROLL_RADIUS - 0.04),
                                       (ROLL_X + 0.02, -0.38, ROLL_RADIUS - 0.07)],
@@ -69,4 +81,4 @@ def _tears():
 
 
 def build():
-    return [_body()] + _roll() + _tears()
+    return [_body()] + _folds() + _roll() + _tears()

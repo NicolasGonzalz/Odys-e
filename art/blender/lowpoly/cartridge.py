@@ -46,7 +46,7 @@ def ammo_material(name):
 def _brass(part, seed, patina=2, radius=0.004):
     """Laiton à deux tons, avec quelques plaques de patine."""
     two_tone(part, AMMO_COLORS["laiton"], AMMO_COLORS["laiton_sombre"], "munition_laiton",
-             dark_side=(0.3, 0.4, -1.0), threshold=0.1, seed=seed)
+             dark_side=(0.3, 0.4, -1.0), threshold=0.1, spread=0.03, seed=seed)
     return blotches(part, ammo_material("patine"), count=patina, radius=radius, seed=seed)
 
 
@@ -73,7 +73,7 @@ def revolver_round(name, seed=0):
                   [r for _, r in BULLET], ammo_material("plomb"), sides=SIDES)
     two_tone(bullet, AMMO_COLORS["plomb"], AMMO_COLORS["plomb_sombre"], "munition_plomb",
              dark_side=(0.3, 0.4, -1.0), threshold=0.1, seed=seed)
-    return [_brass(case, seed, patina=2, radius=0.0035), _rim(name, CASE_RADIUS * 1.13, 0.0008, seed),
+    return [_brass(case, seed, patina=1, radius=0.003), _rim(name, CASE_RADIUS * 1.13, 0.0008, seed),
             bullet]
 
 
@@ -92,8 +92,9 @@ def shotgun_shell(name, seed=0):
     body = tube(f"{name}_tube", body_points, [SHELL_RADIUS] * len(body_points),
                 ammo_material("plastique"), sides=SIDES)
     two_tone(body, AMMO_COLORS["plastique"], AMMO_COLORS["plastique_sombre"],
-             "munition_plastique", dark_side=(0.3, 0.4, -1.0), threshold=0.1, seed=seed)
-    blotches(body, ammo_material("delave"), count=2, radius=0.008, seed=seed + 3)
+             "munition_plastique", dark_side=(0.3, 0.4, -1.0), threshold=0.1, spread=0.03,
+             seed=seed)
+    blotches(body, ammo_material("delave"), count=1, radius=0.007, seed=seed + 3)
     head = _brass(head, seed, patina=1, radius=0.006)
     return [head, _rim(name, SHELL_RADIUS * 1.16, 0.0008, seed), body] + _star_crimp(name)
 

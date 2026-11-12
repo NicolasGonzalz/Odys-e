@@ -9,6 +9,8 @@ charbon. Braises et métal en fusion émettent de la lumière. Environ 1,7 × 1,
 import math
 import random
 
+import bmesh
+
 from lowpoly.carpentry import board
 from lowpoly.finish import posed
 from lowpoly.materials import flat_material
@@ -135,10 +137,7 @@ def _hood():
     poteaux qui la portent, tuyau de cheminée."""
     hood = cone("hotte", 0.72, 0.5, material("metal"), vertices=4,
                 location=(0, 0, HOOD_BOTTOM + 0.25), rotation_deg=(0, 0, 45))
-    hood.data.materials.append(material("rouille"))
-    hood.data.materials.append(material("metal_sombre"))
-    for i, polygon in enumerate(hood.data.polygons):
-        polygon.material_index = i % 3  # pans dépareillés
+    _patchwork(hood)
     base = HOOD_BOTTOM + 0.4
     pipe_points = [(0, 0, base + 0.9 * i / 6) for i in range(7)]  # tronçons : rouille par plaques
     pipe = tube("cheminee", pipe_points, [0.1] * 7, material("metal_sombre"), sides=12)
@@ -147,7 +146,39 @@ def _hood():
     blotches(pipe, material("rouille"), count=3, radius=0.1, seed=8)
     collar = cylinder("cheminee_collier", 0.12, 0.05, material("metal"), vertices=12,
                       location=(0, 0, HOOD_BOTTOM + 0.5))
-    return [hood, pipe, collar] + _posts()
+    rim = cylinder("hotte_cerclage", 0.73, 0.04, material("metal_sombre"), vertices=4,
+                   location=(0, 0, HOOD_BOTTOM + 0.02), rotation_deg=(0, 0, 45))
+    return [hood, rim, pipe, collar] + _rivets() + _posts()
+
+
+def _patchwork(hood):
+    """Découpe chaque pan de la hotte en tôles plus petites (subdivision), chacune d'une teinte :
+    métal, métal sombre, rouille, comme des plaques récupérées et assemblées."""
+    bm = bmesh.new()
+    bm.from_mesh(hood.data)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=2, use_grid_fill=True)
+    bm.to_mesh(hood.data)
+    bm.free()
+    hood.data.materials.append(material("metal_sombre"))
+    hood.data.materials.append(material("rouille"))
+    rng = random.Random(6)
+    for polygon in hood.data.polygons:
+        polygon.material_index = rng.choices((0, 1, 2), weights=(5, 3, 2))[0]
+
+
+def _rivets():
+    """Rivets le long du cerclage, sur les quatre pans."""
+    dark = material("metal_sombre")
+    rivets = []
+    for side in range(4):
+        angle = math.pi / 2 * side
+        nx, ny = math.cos(angle), math.sin(angle)
+        for k in (-0.35, -0.12, 0.12, 0.35):
+            x = nx * 0.52 - ny * k
+            y = ny * 0.52 + nx * k
+            rivets.append(cylinder(f"rivet_{side}_{k}", 0.012, 0.012, dark, vertices=6,
+                                   location=(x, y, HOOD_BOTTOM + 0.045)))
+    return rivets
 
 
 def _posts():
@@ -167,8 +198,11 @@ def _bellows():
     x = -HEARTH[0] / 2 - 0.38
     parts = posed(board("soufflet_haut", 0.6, 0.32, 0.03, seed=12, grain=1), (0, -8, 0), (x, 0, 0.58))
     parts += posed(board("soufflet_bas", 0.6, 0.32, 0.03, seed=13, grain=1), (0, 6, 0), (x, 0, 0.42))
-    parts.append(box("soufflet_cuir", (0.5, 0.28, 0.12), flat_material("forge_cuir", LEATHER),
-                     location=(x + 0.02, 0, 0.5)))
+    for i in range(4):  # le cuir en accordéon : plis alternés clair et sombre
+        color = LEATHER if i % 2 == 0 else tuple(c * 0.7 for c in LEATHER)
+        fold = box(f"soufflet_pli_{i}", (0.5 - i * 0.03, 0.3 - (i % 2) * 0.03, 0.035),
+                   flat_material(f"forge_cuir_{i % 2}", color), location=(x + 0.02, 0, 0.455 + i * 0.03))
+        parts.append(bevel(fold, 0.01, segments=2))
     parts.append(cylinder("soufflet_buse", 0.025, 0.25, material("metal_sombre"), vertices=6,
                           location=(x + 0.4, 0, 0.5), rotation_deg=(0, 90, 0)))
     parts.append(tube("soufflet_poignee", [(x - 0.3, 0, 0.6), (x - 0.42, 0, 0.66)], [0.015, 0.015],
