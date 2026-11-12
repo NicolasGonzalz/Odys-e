@@ -26,10 +26,11 @@ VIEW = (-0.6, -1.0, 0.55)
 LENGTH, DEPTH, HEIGHT = 0.8, 0.5, 0.38   # corps (sans le couvercle)
 LID_RADIUS = 0.27
 LID_CENTER = HEIGHT - 0.1               # centre de l'arc du couvercle (sous le bord)
-LID_ANGLES = (-55, -28, 0, 28, 55)      # planches du couvercle, en degrés depuis le sommet
+LID_STEP = 16                           # écart entre deux planches du couvercle (degrés)
+LID_ANGLES = tuple(range(-64, 65, LID_STEP))  # 9 planches étroites : un vrai bombé
 BANDS_X = (-0.24, 0.24)
-IRON = (0.36, 0.36, 0.38)
-IRON_DARK = (0.24, 0.24, 0.26)
+IRON = (0.52, 0.52, 0.54)       # fer gris, comme les bandes du concept
+IRON_DARK = (0.36, 0.36, 0.38)
 
 
 def _body():
@@ -55,10 +56,10 @@ def _body():
     return parts
 
 
-def _arc(radius, steps=8):
-    """Points de l'arc du couvercle (y, z), d'un bord à l'autre."""
-    a0 = math.radians(LID_ANGLES[0] - 14)
-    a1 = math.radians(LID_ANGLES[-1] + 14)
+def _arc(radius, steps=18):
+    """Points de l'arc du couvercle (y, z), d'un bord à l'autre (finement : la courbe est lisse)."""
+    a0 = math.radians(LID_ANGLES[0] - LID_STEP / 2)
+    a1 = math.radians(LID_ANGLES[-1] + LID_STEP / 2)
     return [(radius * math.sin(a0 + (a1 - a0) * i / steps),
              LID_CENTER + radius * math.cos(a0 + (a1 - a0) * i / steps)) for i in range(steps + 1)]
 
@@ -68,8 +69,9 @@ def _lid():
     parts = []
     for i, angle in enumerate(LID_ANGLES):
         a = math.radians(angle)
-        plank = board(f"couvercle_{i}", LENGTH + 0.02, 0.15, 0.03, tint=1.0 + (i % 2) * 0.06,
-                      seed=40 + i, grain=2)
+        width = 2 * math.pi * LID_RADIUS * LID_STEP / 360 + 0.004  # jointive avec la voisine
+        plank = board(f"couvercle_{i}", LENGTH + 0.02, width, 0.028, tint=1.0 + (i % 3) * 0.05,
+                      seed=40 + i, grain=1)
         parts += posed(plank, (-angle, 0, 0),
                        (0, LID_RADIUS * math.sin(a), LID_CENTER + LID_RADIUS * math.cos(a)))
     for side in (-1, 1):
@@ -91,7 +93,7 @@ def _bands():
     """Deux bandes de fer : sur le devant, par-dessus le couvercle, et sur l'arrière."""
     parts = []
     for i, x in enumerate(BANDS_X):
-        over = [(x, y, z) for y, z in _arc(LID_RADIUS + 0.018, steps=10)]
+        over = [(x, y, z) for y, z in _arc(LID_RADIUS + 0.018, steps=24)]
         parts.append(_iron(band(f"bande_couvercle_{i}", over, 0.05, 0.008, material("metal")),
                            seed=60 + i))
         for side in (-1, 1):
