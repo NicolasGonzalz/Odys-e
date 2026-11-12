@@ -1,0 +1,31 @@
+Odyssée — client de debug pour Windows
+======================================
+
+Ce n'est pas encore le vrai jeu (le vrai client sera fait avec Unreal) : c'est l'outil qui sert à
+tester le serveur, le réseau et la carte. Graphismes en blocs, c'est normal.
+
+Lancer
+------
+Double-cliquer sur odyssee_client.exe. Une fenêtre de console s'ouvre aussi : elle affiche le
+journal, utile si quelque chose ne marche pas.
+
+Écran de connexion :
+  - Adresse du serveur : l'adresse IPv4 donnée par l'hôte (exemple : 82.64.10.20)
+  - Port : laisser vide (27015) sauf indication contraire
+  - Pseudo : ce que les autres verront
+  - Code d'invitation : celui donné par l'hôte
+Ces réglages sont retenus dans odyssee_client.cfg, à côté de l'exécutable.
+
+Garder odyssee.world à côté de odyssee_client.exe : c'est la carte, la même que celle du
+serveur.
+
+Touches
+-------
+ZQSD (ou WASD) : bouger      Maj : courir       Espace : sauter     Ctrl : s'accroupir
+V : vue extérieure          Échap : menu (reprendre, se déconnecter, quitter)
+
+Si Windows affiche « Windows a protégé votre ordinateur » : « Informations complémentaires »,
+puis « Exécuter quand même » (l'exécutable n'est pas signé).
+
+Jouer en solo / héberger : odyssee_server.exe --world odyssee.world
+(puis se connecter à 127.0.0.1 dans le client).

@@ -1,0 +1,31 @@
+name: Carte (Git LFS)
+description: >
+  Télécharge uniquement la carte (tools/worldgen/output/odyssee.world) depuis Git LFS, en la
+  gardant en cache d'une exécution à l'autre tant qu'elle ne change pas : la bande passante LFS
+  de GitHub est limitée (1 Go par mois sur l'offre gratuite).
+runs:
+  using: composite
+  steps:
+    # Sans LFS, l'extraction contient le « pointeur » (quelques lignes, dont l'empreinte du
+    # fichier) : il sert de clé de cache, et change dès que la carte change.
+    - id: pointer
+      shell: bash
+      run: echo "hash=$(git hash-object tools/worldgen/output/odyssee.world)" >> "$GITHUB_OUTPUT"
+
+    - id: cache
+      uses: actions/cache@v4
+      with:
+        path: .carte-lfs
+        key: carte-lfs-${{ steps.pointer.outputs.hash }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        git lfs pull --include "tools/worldgen/output/odyssee.world"
+        mkdir -p .carte-lfs
+        cp tools/worldgen/output/odyssee.world .carte-lfs/
+
+    - shell: bash
+      run: |
+        cp .carte-lfs/odyssee.world tools/worldgen/output/odyssee.world
+        head -c 4 tools/worldgen/output/odyssee.world | grep -q ODYW || { echo "carte invalide"; exit 1; }

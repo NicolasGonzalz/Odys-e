@@ -1,0 +1,79 @@
+name: Paquets
+
+# Exécutables à télécharger (onglet Actions, « Artifacts ») : le client de debug Windows pour les
+# tests à plusieurs, et le serveur Linux pour le homelab. Pas à chaque PR : chaque paquet embarque
+# la carte (Git LFS, ~26 Mo), et la bande passante LFS de GitHub est limitée.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Une PR qui touche à l'assemblage des paquets les fabrique, pour vérifier qu'ils sortent.
+  pull_request:
+    paths:
+      - .github/workflows/paquets.yml
+      - .github/actions/carte-lfs/**
+      - packaging/**
+
+jobs:
+  windows-client:
+    name: Client Windows (Release)
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Carte (Git LFS, mise en cache)
+        uses: ./.github/actions/carte-lfs
+
+      - name: Configuration
+        run: >
+          cmake -S . -B build -DODYSSEE_BUILD_TESTS=OFF -DODYSSEE_WARNINGS_AS_ERRORS=ON
+
+      - name: Compilation
+        run: cmake --build build --config Release -j
+
+      - name: Assemblage
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force odyssee-windows | Out-Null
+          Copy-Item build/client/Release/odyssee_client.exe odyssee-windows/
+          Copy-Item build/server/Release/odyssee_server.exe odyssee-windows/
+          Copy-Item tools/worldgen/output/odyssee.world odyssee-windows/
+          Copy-Item packaging/windows/LISEZMOI.txt odyssee-windows/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: odyssee-windows
+          path: odyssee-windows/
+          retention-days: 30
+
+  linux-server:
+    name: Serveur Linux (Release, statique)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Carte (Git LFS, mise en cache)
+        uses: ./.github/actions/carte-lfs
+
+      - name: Configuration
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DODYSSEE_BUILD_CLIENT=OFF
+          -DODYSSEE_BUILD_TESTS=OFF -DODYSSEE_STATIC_SERVER=ON -DODYSSEE_WARNINGS_AS_ERRORS=ON
+
+      - name: Compilation
+        run: cmake --build build -j
+
+      - name: Assemblage
+        run: |
+          mkdir -p odyssee-server-linux
+          strip -o odyssee-server-linux/odyssee_server build/server/odyssee_server
+          cp tools/worldgen/output/odyssee.world odyssee-server-linux/
+          ./odyssee-server-linux/odyssee_server --help 2>&1 | head -1 || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: odyssee-server-linux
+          path: odyssee-server-linux/
+          retention-days: 30

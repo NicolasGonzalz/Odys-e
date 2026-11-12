@@ -99,6 +99,16 @@ Client de debug : ZQSD/WASD pour bouger, Maj pour courir, Espace pour sauter, Ct
 V pour la vue extérieure, Échap pour le menu (reprendre, se déconnecter, quitter). L'écran de connexion
 retient l'adresse, le port, le pseudo et le code (`odyssee_client.cfg`, à côté de l'exécutable). Lancer deux clients pour se voir.
 
+## Paquets prêts à l'emploi
+
+À chaque fusion sur `main`, la CI (workflow « Paquets ») fabrique deux archives, à télécharger dans
+l'onglet **Actions** → dernière exécution de « Paquets » → **Artifacts** (gardées 30 jours) :
+
+- `odyssee-windows` : client de debug (`odyssee_client.exe`), serveur, carte et `LISEZMOI.txt`.
+  Le client prend tout seul la carte posée à côté de lui.
+- `odyssee-server-linux` : serveur lié en statique (tourne sur toute distribution) et carte, pour
+  le homelab.
+
 ## Documentation
 
 - [Vision & game design](docs/VISION.md)

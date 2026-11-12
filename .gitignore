@@ -52,3 +52,4 @@ __pycache__/
 *.blend1
 __pycache__/
 *.pyc
+.carte-lfs/
