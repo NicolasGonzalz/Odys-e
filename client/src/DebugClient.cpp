@@ -160,6 +160,10 @@ HudInfo DebugClient::hudInfo() const {
                        static_cast<float>(sim::kDefaultTuning.maxStamina);
         info.exhausted = state->has(sim::kExhausted);
     }
+    const auto traffic = _link.traffic(Clock::now());
+    info.lossPercent = static_cast<float>(traffic.incomingLossPercent);
+    info.uploadKbps = static_cast<float>(traffic.sentKilobytesPerSecond);
+    info.downloadKbps = static_cast<float>(traffic.receivedKilobytesPerSecond);
     info.playersInView = _latest ? static_cast<int>(_latest->entities.size()) - 1 : 0;
     info.corrections = static_cast<int>(_prediction.corrections());
     info.lastCorrectionCm = net::dequantizePosition(_prediction.lastCorrection()) * 100.0f;

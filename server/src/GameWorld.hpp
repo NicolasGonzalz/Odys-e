@@ -37,10 +37,15 @@ class GameWorld {
     /// Inputs manquants devinés d'affilée, au plus (200 ms). Voir step().
     static constexpr std::uint32_t kMaxGuessedInputs = 4;
 
+    /// À partir de ce nombre d'inputs en attente, le joueur en rattrape un par tick (voir step()).
+    static constexpr std::size_t kCatchUpBacklog = 3;
+
     /// Avance d'un tick : **chaque** joueur est simulé, qu'un input soit arrivé ou non (sinon
     /// un client qui se tait resterait suspendu en l'air, à l'abri de la gravité).
     ///
-    /// - Un input en attente : il est appliqué (au plus un par tick).
+    /// - Un input en attente : il est appliqué. S'il en reste encore kCatchUpBacklog ou plus
+    ///   (retard accumulé pendant une coupure), un second est appliqué dans le même tick : le
+    ///   serveur rattrape le client au lieu de garder ce retard pour toujours.
     /// - Aucun, mais le joueur en a déjà envoyé : le tick manquant est **deviné** en rejouant le
     ///   dernier input, et compté comme traité (lastProcessedInput avance). S'il arrive plus
     ///   tard, il est ignoré : le serveur reste aligné sur les ticks du client, qui corrige sa
@@ -69,6 +74,7 @@ class GameWorld {
     };
 
     void stepPlayer(PlayerState& player) const;
+    void catchUp(PlayerState& player) const;
     void apply(PlayerState& player, const net::InputCommand& command, net::Tick tick) const;
     static PlayerState spawn(const ConnectedPlayer& player);
 

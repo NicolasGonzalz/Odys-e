@@ -10,6 +10,9 @@ struct HudInfo {
     std::string connection;           ///< état de la connexion, en clair
     std::optional<int> playerId;
     std::optional<int> pingMs;        ///< aller-retour mesuré par la session
+    float lossPercent = 0.0f;         ///< paquets du serveur perdus (dernière seconde)
+    float uploadKbps = 0.0f;          ///< débit montant, ko/s
+    float downloadKbps = 0.0f;        ///< débit descendant, ko/s
     std::optional<float> x, y, z;     ///< position prédite, en mètres
     float stamina = 0.0f;             ///< 0 à 1
     bool exhausted = false;

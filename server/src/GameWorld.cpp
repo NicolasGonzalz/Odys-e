@@ -77,6 +77,7 @@ void GameWorld::stepPlayer(PlayerState& player) const {
     if (const auto input = player.inputs.pop()) {
         apply(player, input->command, input->tick);
         player.guessedInARow = 0;
+        catchUp(player);
         return;
     }
     if (canGuess(player.lastProcessedInput, player.guessedInARow)) {
@@ -89,6 +90,16 @@ void GameWorld::stepPlayer(PlayerState& player) const {
     }
     // Rien de plausible à rejouer : le joueur subit quand même la simulation (gravité, arrêt).
     player.motion = sim::step(player.motion, idleCommand(player.motion), _terrain);
+}
+
+void GameWorld::catchUp(PlayerState& player) const {
+    // Trop d'inputs en attente (après une coupure, le client a continué de jouer) : on en
+    // applique un de plus ce tick-ci, sinon le serveur garderait ce retard pour toujours.
+    if (player.inputs.size() >= kCatchUpBacklog) {
+        if (const auto extra = player.inputs.pop()) {
+            apply(player, extra->command, extra->tick);
+        }
+    }
 }
 
 void GameWorld::apply(PlayerState& player, const net::InputCommand& command,
