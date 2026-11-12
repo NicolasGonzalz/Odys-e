@@ -3,6 +3,7 @@ add_library(odyssee_shared STATIC
     src/ByteBuffer.cpp
     src/Log.cpp
     src/client/InputHistory.cpp
+    src/client/Interpolation.cpp
     src/client/Prediction.cpp
     src/client/ServerLink.cpp
     src/net/Acknowledgements.cpp
