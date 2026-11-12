@@ -20,7 +20,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from lowpoly.export import export_model, save_blend  # noqa: E402
+from lowpoly.export import export_model, save_blend, save_palette  # noqa: E402
+from lowpoly.palette import bake  # noqa: E402
 from lowpoly.finish import dimensions, join, origin_at_base  # noqa: E402
 from lowpoly.outline import ink_outline  # noqa: E402
 from lowpoly.preview import DEFAULT_VIEW, render_icon, render_preview  # noqa: E402
@@ -65,10 +66,12 @@ def build_one(path):
         blend = save_blend(category, name)
         print(f"[odyssee] {category}/{name} : {dimensions(model)} m -> {blend.name} (sans export)")
         return
+    save_palette(bake(model, name), category, name)  # un seul matériau (deux si lumineux)
     blend, fbx = export_model(model, category, name)
     view = getattr(module, "VIEW", DEFAULT_VIEW)
     _tilt_for_preview(model, getattr(module, "PREVIEW_ROTATION_DEG", (0, 0, 0)))
-    preview = render_preview(model, HERE / "apercus" / f"{name}.png", view=view)
+    preview = render_preview(model, HERE / "apercus" / f"{name}.png", view=view,
+                             color_type="TEXTURE")
     if getattr(module, "ICON", False):  # objet d'inventaire : une icône PNG transparente
         ICONS.mkdir(parents=True, exist_ok=True)
         render_icon(model, ICONS / f"{name}.png", view=getattr(module, "ICON_VIEW", view))

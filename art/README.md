@@ -77,6 +77,7 @@ blender -b --python art/blender/build.py -- --all        # tous
 | `exports/<catégorie>/<nom>.fbx` | Le modèle prêt pour Unreal (mètres → centimètres, pivot au pied) |
 | `blender/apercus/<nom>.png` | Rendu de vérification |
 | `exports/icones/<nom>.png` | Icône d'inventaire (PNG transparent 256 px), pour les modèles qui déclarent `ICON = True` |
+| `exports/<catégorie>/<nom>_palette.png` | Texture-palette du modèle : **1 matériau par modèle** (2 s'il a des parties lumineuses), voir `lowpoly/palette.py`. Dans Blender, mettre la vue en mode **Texture** (Viewport Shading → Color → Texture) |
 
 Options d'un modèle (variables de son fichier) : `VIEW` (angle de l'aperçu), `ICON = True` (objet
 d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLINE = False` (sans contour noir).
@@ -92,6 +93,12 @@ d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLI
 | `armes/fleche` | 🟡 flèche universelle : même munition pour l'arc et l'arbalète (`lowpoly/arrow.py`) |
 | `objets/pile` | 🟡 pile récupérée, énergie de la lampe et du GPS |
 | `objets/carte` | 🟡 carte vierge : seule la zone de départ est dessinée, le reste se dévoile en jeu (docs/GAMEPLAY.md § 3) |
+| `outils/marteau` | 🟡 marteau de charpentier, pour la construction (bac à sable, plus tard) |
+| `postes/etabli`, `postes/forge`, `postes/table_cartographie` | 🟡 postes d'artisanat (docs/GAMEPLAY.md § 2 et 3) : établi d'après le concept, forge et table dans le même style |
+| `postes/coffre`, `postes/feu_de_camp` | 🟡 d'après le concept des objets interactifs ; animations (couvercle, flammes) plus tard |
+| `postes/coffre_metal`, `postes/terminal`, `postes/sac_couchage`, `objets/journal` | 🟡 d'après le concept des objets interactifs ; lianes : `lowpoly/vines.py` |
+| `objets/gourde`, `outils/torche`, `armes/couteau`, `objets/sac_a_dos` | 🟡 survie : gourde et torche d'après la planche, sac d'après celui de Teo |
+| `ressources/corde`, `ressources/fibres`, `ressources/tissu` | 🟡 matériaux tirés des fibres (fibres → corde, tissu) |
 | `ressources/planches`, `ressources/baton`, `ressources/lingot` | 🟡 matériaux transformés : pile de 3 planches, branche, lingot fondu main |
 | `munitions/munitions_pistolet`, `munitions/munitions_fusil` | 🟡 petits tas de 3 cartouches (`lowpoly/cartridge.py`), contour plus fin |
 | `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |

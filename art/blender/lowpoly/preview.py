@@ -54,7 +54,7 @@ def render_icon(obj, path, view=DEFAULT_VIEW, resolution=256):
     """Icône d'inventaire : le modèle seul sur fond transparent (PNG RGBA), cadré serré."""
     scene = bpy.context.scene
     _camera_for(obj, view, margin=1.12)
-    _workbench(scene, "MATERIAL")
+    _workbench(scene, "TEXTURE")  # les couleurs sont dans la texture-palette
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
