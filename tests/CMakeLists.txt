@@ -12,6 +12,7 @@ add_executable(odyssee_tests
     test_reliable_receiver.cpp
     test_reliable_channel.cpp
     test_player_name.cpp
+    test_invite_code.cpp
     test_control_messages.cpp
     test_client_connection.cpp
     test_quantize.cpp

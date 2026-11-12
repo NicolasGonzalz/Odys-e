@@ -27,11 +27,12 @@ std::uint64_t nextSalt(std::uint64_t salt) {
 
 } // namespace
 
-ClientConnection::ClientConnection(std::string playerName)
-    : ClientConnection(std::move(playerName), randomSalt()) {}
+ClientConnection::ClientConnection(std::string playerName, std::string inviteCode)
+    : ClientConnection(std::move(playerName), randomSalt(), std::move(inviteCode)) {}
 
-ClientConnection::ClientConnection(std::string playerName, std::uint64_t salt)
-    : _playerName(std::move(playerName)), _salt(salt) {}
+ClientConnection::ClientConnection(std::string playerName, std::uint64_t salt,
+                                   std::string inviteCode)
+    : _playerName(std::move(playerName)), _inviteCode(std::move(inviteCode)), _salt(salt) {}
 
 // --- Actions du joueur ------------------------------------------------------------------------
 
@@ -162,7 +163,7 @@ std::optional<ControlMessage> ClientConnection::handshakeMessage() const {
     if (_state == ConnectionState::Requesting) {
         return ConnectRequest{_playerName, _salt};
     }
-    return ChallengeResponse{_token, _salt, _playerName};
+    return ChallengeResponse{_token, _salt, _playerName, _inviteCode};
 }
 
 std::optional<SessionToken> ClientConnection::sessionToken() const {

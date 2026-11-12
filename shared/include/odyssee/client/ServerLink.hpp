@@ -26,8 +26,9 @@ class ServerLink {
     using Clock = std::chrono::steady_clock;
 
     /// Ouvre un socket sur un port libre. std::nullopt si le système le refuse.
-    [[nodiscard]] static std::optional<ServerLink> open(std::string playerName,
-                                                        const net::Address& server);
+    /// `inviteCode` : celui que demande le serveur (T056), vide s'il n'en demande pas.
+    [[nodiscard]] static std::optional<ServerLink>
+    open(std::string playerName, const net::Address& server, std::string inviteCode = {});
 
     /// Lance la poignée de main (les messages partent au prochain poll()).
     void connect(Clock::time_point now) { _connection.connect(now); }
@@ -58,7 +59,8 @@ class ServerLink {
     [[nodiscard]] TrafficStats traffic(Clock::time_point now) const { return _traffic.stats(now); }
 
   private:
-    ServerLink(std::string playerName, net::UdpSocket socket, const net::Address& server);
+    ServerLink(std::string playerName, std::string inviteCode, net::UdpSocket socket,
+               const net::Address& server);
 
     void sendControlMessages(Clock::time_point now);
     void sendDatagram(std::span<const std::byte> bytes, Clock::time_point now);

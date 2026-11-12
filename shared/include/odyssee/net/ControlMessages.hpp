@@ -22,6 +22,7 @@ enum class RefuseReason : std::uint8_t {
     ServerFull = 2,
     InvalidName = 3,
     TooManyFromAddress = 4, ///< trop de joueurs déjà connectés depuis cette adresse IP
+    WrongInviteCode = 5,    ///< le serveur demande un code d'invitation (T056) : absent ou faux
 };
 
 /// Jeton de session : tiré par le serveur pendant la poignée de main (c'est le jeton du défi),
@@ -46,11 +47,13 @@ struct Challenge {
     friend bool operator==(const Challenge&, const Challenge&) = default;
 };
 /// Le serveur ne retient rien avant cette réponse : elle répète donc tout ce dont il a besoin
-/// (sel et pseudo), que le jeton authentifie.
+/// (sel et pseudo), que le jeton authentifie. Le code d'invitation n'arrive qu'ici, une fois
+/// l'adresse du client prouvée : on ne peut pas l'essayer depuis une adresse usurpée.
 struct ChallengeResponse {
     std::uint64_t token = 0;
     std::uint64_t clientSalt = 0;
     std::string playerName;
+    std::string inviteCode; ///< tel que tapé par le joueur (vide : aucun)
     friend bool operator==(const ChallengeResponse&, const ChallengeResponse&) = default;
 };
 struct Accepted {

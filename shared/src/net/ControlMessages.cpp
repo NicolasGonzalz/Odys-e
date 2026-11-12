@@ -11,6 +11,8 @@ namespace {
 /// On accepte de lire un pseudo plus long que permis, pour pouvoir répondre « pseudo invalide »
 /// au lieu d'ignorer la demande. La règle elle-même est dans PlayerName.
 constexpr std::size_t kMaxNameOnWire = 64;
+/// Idem pour le code d'invitation (tirets et espaces compris) : « code faux » plutôt que silence.
+constexpr std::size_t kMaxInviteCodeOnWire = 64;
 
 // --- Écriture : une fonction par message ------------------------------------------------------
 
@@ -29,6 +31,7 @@ void writeBody(ByteWriter& w, const ChallengeResponse& m) {
     w.writeU64(m.clientSalt);
     w.writeU64(m.token);
     w.writeString(m.playerName);
+    w.writeString(m.inviteCode);
 }
 void writeBody(ByteWriter& w, const Accepted& m) {
     w.writeU8(m.playerId);
@@ -66,10 +69,11 @@ std::optional<ControlMessage> readChallengeResponse(ByteReader& r) {
     const auto salt = r.readU64();
     const auto token = r.readU64();
     auto name = r.readString(kMaxNameOnWire);
-    if (!salt || !token || !name) {
+    auto code = r.readString(kMaxInviteCodeOnWire);
+    if (!salt || !token || !name || !code) {
         return std::nullopt;
     }
-    return ChallengeResponse{*token, *salt, std::move(*name)};
+    return ChallengeResponse{*token, *salt, std::move(*name), std::move(*code)};
 }
 
 std::optional<ControlMessage> readAccepted(ByteReader& r) {
@@ -83,7 +87,7 @@ std::optional<ControlMessage> readAccepted(ByteReader& r) {
 
 std::optional<ControlMessage> readRefused(ByteReader& r) {
     const auto reason = r.readU8();
-    const bool known = reason && *reason >= 1 && *reason <= 4;
+    const bool known = reason && *reason >= 1 && *reason <= 5;
     if (!known) {
         return std::nullopt;
     }
@@ -158,6 +162,8 @@ std::string_view describe(RefuseReason reason) {
         return "pseudo invalide";
     case RefuseReason::TooManyFromAddress:
         return "trop de joueurs connectés depuis cette adresse";
+    case RefuseReason::WrongInviteCode:
+        return "code d'invitation absent ou faux";
     }
     return "raison inconnue";
 }

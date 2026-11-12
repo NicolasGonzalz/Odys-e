@@ -25,6 +25,9 @@ struct RegistryLimits {
     /// Joueurs connectés depuis une même adresse IP. Par défaut, pas plus strict que le
     /// nombre de places : quatre amis derrière la même box partagent une IP.
     std::size_t maxPlayersPerIp = kMaxPlayers;
+    /// Code d'invitation exigé (T056), normalisé (net::normalizeInviteCode). Vide : serveur
+    /// ouvert à tous (en local, ou derrière un VPN).
+    std::string inviteCode;
 };
 
 /// Qui est connecté au serveur, et quelles places sont libres. Aucune notion de réseau : on lui
@@ -103,6 +106,7 @@ class ClientRegistry {
 
     /// Raison de refuser un nouveau joueur à cette adresse, s'il y en a une. Le joueur déjà
     /// connecté à cette adresse ne compte pas : s'il revient, il libère sa place.
+    [[nodiscard]] bool hasInvitation(const net::ChallengeResponse& response) const;
     [[nodiscard]] std::optional<net::RefuseReason> refusalFor(const net::Address& from) const;
     net::Accepted admit(const net::Address& from, const net::ChallengeResponse& response,
                         Clock::time_point now);

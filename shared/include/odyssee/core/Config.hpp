@@ -9,7 +9,8 @@ namespace odyssee {
 /// Version du protocole réseau. Incrémentée à chaque changement incompatible :
 /// un client et un serveur de versions différentes refusent de se connecter.
 /// 2 : paquets de jeu (T024). 3 : poignée de main sans état, jeton de session.
-inline constexpr std::uint16_t kProtocolVersion = 3;
+/// 4 : code d'invitation dans la réponse au défi (T056).
+inline constexpr std::uint16_t kProtocolVersion = 4;
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;

@@ -1,5 +1,7 @@
 #include "CommandLine.hpp"
 
+#include "odyssee/net/InviteCode.hpp"
+
 #include <charconv>
 #include <format>
 
@@ -72,6 +74,20 @@ bool isNetworkOption(std::string_view arg) {
     return arg == "--lag" || arg == "--jitter" || arg == "--loss" || arg == "--dup";
 }
 
+bool isTextOption(std::string_view arg) {
+    return arg == "--world" || arg == "--invite";
+}
+
+/// Applique `--world fichier` ou `--invite code`. Faux si la valeur est vide ou invalide.
+bool applyTextOption(std::string_view name, std::string_view value, Options& options) {
+    if (name == "--world") {
+        options.worldPath = std::string(value);
+        return !value.empty();
+    }
+    options.inviteCode = net::normalizeInviteCode(value);
+    return !options.inviteCode.empty() && net::isValidInviteCode(value);
+}
+
 } // namespace
 
 std::optional<Options> parseCommandLine(std::span<const std::string_view> args) {
@@ -84,11 +100,11 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
             options.verbose = true;
             continue;
         }
-        if (arg == "--world") {
-            if (i + 1 >= args.size() || args[i + 1].empty()) {
-                return std::nullopt; // chemin manquant
+        if (isTextOption(arg)) {
+            if (i + 1 >= args.size() || !applyTextOption(arg, args[i + 1], options)) {
+                return std::nullopt; // valeur manquante ou invalide
             }
-            options.worldPath = std::string(args[++i]);
+            ++i;
             continue;
         }
         if (isNetworkOption(arg)) {
@@ -110,10 +126,12 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
 }
 
 std::string usage(std::string_view programName) {
-    return std::format("Usage : {} [--verbose] [--world fichier] [--lag ms] [--jitter ms] "
-                       "[--loss %] [--dup %] [port]\n"
+    return std::format("Usage : {} [--verbose] [--world fichier] [--invite code] [--lag ms] "
+                       "[--jitter ms] [--loss %] [--dup %] [port]\n"
                        "  --verbose      affiche les messages de debug\n"
                        "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
+                       "  --invite code  code d'invitation exigé des joueurs (lettres et chiffres,\n"
+                       "                 32 au plus) ; sans lui, le serveur est ouvert à tous\n"
                        "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"
                        "  --jitter ms    simulation réseau : ± au hasard autour du délai\n"
                        "  --loss %       simulation réseau : envois perdus (0 à 100)\n"
