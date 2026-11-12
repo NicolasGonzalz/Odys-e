@@ -13,10 +13,9 @@ import random
 from mathutils import Vector
 
 from lowpoly.carpentry import stain
-from lowpoly.finish import posed
+from lowpoly.fire import flame
 from lowpoly.materials import flat_material
 from lowpoly.organic import tube
-from lowpoly.profile import profile_solid
 from lowpoly.rock import rock
 from lowpoly.shading import two_tone
 from lowpoly.shapes import box, cylinder
@@ -101,27 +100,12 @@ def _coal_bed():
     return [stain("braises_lit", (0.0, 0.0, 0.004), 0.17, (0.95, 0.35, 0.08), seed=3)]
 
 
-def _flame(name, color, height, width, angle, offset, tilt):
-    """Une langue de flamme : un contour ondulé et pointu, en deux plans croisés pour se voir de
-    tous les côtés (dans Unreal, des particules la remplaceront)."""
-    w, h = width / 2, height
-    outline = [(-w, 0.0), (-w * 0.9, h * 0.3), (-w * 0.35, h * 0.55), (-w * 0.6, h * 0.72),
-               (0.0, h), (w * 0.45, h * 0.62), (w * 0.85, h * 0.4), (w, 0.0)]
-    material = flat_material(f"feu_flamme_{color}", color, emission=4.0)
-    planes = []
-    for k, turn in enumerate((0.0, 90.0)):
-        plane = profile_solid(f"{name}_{k}", outline, lambda _: 0.012, [material], lambda _: 0,
-                              chamfer=0.002)
-        planes += posed([plane], (tilt, 0, angle + turn), (offset[0], offset[1], 0.08))
-    return planes
-
-
 def _flames():
     """Langues de flamme (orange au centre, jaunes autour), penchées de travers ; des braises au
     sol et des étincelles qui montent."""
     parts = []
     for i, (color, radius, height, dx, dy, tilt) in enumerate(FLAMES):
-        parts += _flame(f"flamme_{i}", color, height, radius * 2.4, i * 37.0, (dx, dy), tilt)
+        parts += flame(f"flamme_{i}", color, height, radius * 2.4, i * 37.0, (dx, dy, 0.08), tilt)
     rng = random.Random(7)
     for i in range(8):
         ember = rock(f"braise_{i}", (0.03, 0.025, 0.02),
