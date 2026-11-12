@@ -338,3 +338,15 @@ TEST_CASE("Réconciliation : des inputs perdus et mal devinés par le serveur so
     game.prediction.reconcile(last, 2);
     CHECK(*game.prediction.state() == *game.world.motionOf(2));
 }
+
+TEST_CASE("GameWorld : après une coupure, le serveur rattrape le retard des inputs") {
+    // Coupure de 8 ticks : le serveur devine 4 inputs puis attend. Quand les vrais inputs
+    // reviennent, il en a d'avance ; sans rattrapage, il garderait ce retard pour toujours.
+    ReconciledGame game;
+    game.play(200, 3, [](net::Tick tick) { return tick > 40 && tick <= 48; });
+
+    const net::Tick processed = game.world.snapshotFor(2, 201).lastProcessedInput;
+    // Le client a joué 200 inputs. Sans rattrapage, le serveur restait à 196 (4 d'écart) ; avec,
+    // il redescend sous kCatchUpBacklog : au plus 2 d'avance gardés contre la gigue.
+    CHECK(processed >= 198);
+}
