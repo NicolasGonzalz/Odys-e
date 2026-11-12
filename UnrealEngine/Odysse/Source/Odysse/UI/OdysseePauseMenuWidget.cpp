@@ -22,11 +22,12 @@ UWidget* UOdysseePauseMenuWidget::BuildTree()
 	Pages->AddChild(BuildRootPage());
 	KeyBindings = WidgetTree->ConstructWidget<UOdysseeKeyBindingsWidget>(
 		UOdysseeKeyBindingsWidget::StaticClass(), TEXT("KeyBindings"));
-	KeyBindings->BackButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowRoot);
+	KeyBindings->BackButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowSettings);
 	Pages->AddChild(KeyBindings);
 	Settings = WidgetTree->ConstructWidget<UOdysseeSettingsWidget>(UOdysseeSettingsWidget::StaticClass(),
 		TEXT("Settings"));
 	Settings->BackButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowRoot);
+	Settings->KeyBindingsButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowKeyBindings);
 	Pages->AddChild(Settings);
 
 	// Le jeu reste visible derrière un voile : en coop, le monde continue pendant la pause.
@@ -47,18 +48,13 @@ UWidget* UOdysseePauseMenuWidget::BuildRootPage()
 	UVerticalBox* Column = nullptr;
 	UBorder* Panel = MakeMenuPanel(NAME_None, LOCTEXT("Title", "Pause"), Column);
 	ResumeButton = MakeButton(TEXT("ResumeButton"), LOCTEXT("Resume", "Reprendre"));
-	KeyBindingsButton = MakeButton(TEXT("KeyBindingsButton"), LOCTEXT("Keys", "Modifier les touches"));
 	SettingsButton = MakeButton(TEXT("SettingsButton"), LOCTEXT("Settings", "Paramètres"));
 	SaveButton = MakeButton(TEXT("SaveButton"), LOCTEXT("Save", "Enregistrer"));
-	LoadButton = MakeButton(TEXT("LoadButton"), LOCTEXT("Load", "Charger une partie"));
-	NewGameButton = MakeButton(TEXT("NewGameButton"), LOCTEXT("NewGame", "Nouvelle partie"));
 	QuitButton = MakeButton(TEXT("QuitButton"), LOCTEXT("Quit", "Quitter"));
-	for (UButton* Button : {ResumeButton.Get(), KeyBindingsButton.Get(), SettingsButton.Get(), SaveButton.Get(),
-			 LoadButton.Get(), NewGameButton.Get(), QuitButton.Get()})
+	for (UButton* Button : {ResumeButton.Get(), SettingsButton.Get(), SaveButton.Get(), QuitButton.Get()})
 	{
 		AddButton(Column, Button);
 	}
-	KeyBindingsButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowKeyBindings);
 	SettingsButton->OnClicked.AddDynamic(this, &UOdysseePauseMenuWidget::ShowSettings);
 	return Panel;
 }
@@ -66,8 +62,6 @@ UWidget* UOdysseePauseMenuWidget::BuildRootPage()
 void UOdysseePauseMenuWidget::SetCoopMode(bool bCoop)
 {
 	SaveButton->SetIsEnabled(!bCoop);
-	LoadButton->SetIsEnabled(!bCoop);
-	NewGameButton->SetIsEnabled(!bCoop);
 }
 
 void UOdysseePauseMenuWidget::ShowRoot() { Pages->SetActiveWidgetIndex(int32(EPausePage::Root)); }

@@ -77,8 +77,10 @@ UWidget* UOdysseeSettingsWidget::BuildTree()
 	AddTo(Column, BuildSettingRow(LOCTEXT("Volume", "Volume général"), VolumeSlider));
 	AddTo(Column, BuildSettingRow(LOCTEXT("Graphics", "Qualité graphique"), GraphicsPresetCombo),
 		FMargin(0.f, 4.f, 0.f, 18.f));
+	KeyBindingsButton = MakeButton(TEXT("KeyBindingsButton"), LOCTEXT("Keys", "Modifier les touches"));
 	ApplyButton = MakeButton(TEXT("ApplyButton"), LOCTEXT("Apply", "Appliquer"));
 	BackButton = MakeButton(TEXT("BackButton"), LOCTEXT("Back", "Retour"));
+	AddButton(Column, KeyBindingsButton);
 	AddButton(Column, ApplyButton);
 	AddButton(Column, BackButton);
 	return Panel;
