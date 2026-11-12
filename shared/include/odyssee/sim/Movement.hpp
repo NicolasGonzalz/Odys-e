@@ -22,6 +22,7 @@ struct MovementTuning {
     std::int32_t jumpSpeed = 61;    ///< saut d'environ 1,1 m (la gravité s'applique dès le 1er tick)
     std::int32_t maxFallSpeed = 640;///< 64 m/s
     std::int32_t stepHeight = 64;   ///< 25 cm : marche franchie sans sauter
+    std::int32_t height = 461;      ///< 1,8 m : taille du joueur (murs, plafonds)
     std::int32_t snapDown = 77;     ///< 30 cm : en descente, on reste collé au sol
 
     std::int32_t maxStamina = 1000;

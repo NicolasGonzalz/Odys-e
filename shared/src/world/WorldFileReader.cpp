@@ -313,6 +313,8 @@ const char* describe(WorldFileError error) {
         return "version du format non prise en charge";
     case WorldFileError::Truncated:
         return "fichier tronqué";
+    case WorldFileError::CannotOpen:
+        return "fichier introuvable ou illisible";
     case WorldFileError::BadDirectory:
         return "répertoire des sections invalide";
     case WorldFileError::MissingTerrain:

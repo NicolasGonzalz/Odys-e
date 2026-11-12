@@ -19,7 +19,8 @@ class Server {
     using Clock = std::chrono::steady_clock;
 
     /// `network` : mauvaises conditions réseau à simuler sur les envois (aucune par défaut).
-    explicit Server(std::uint16_t port, net::NetworkConditions network = {});
+    /// `world` : la carte et son point d'apparition (sol plat provisoire par défaut).
+    explicit Server(std::uint16_t port, net::NetworkConditions network = {}, GameWorld world = {});
 
     /// Ouvre le port UDP puis tourne jusqu'à stop(). Renvoie false si le port n'a pas pu être
     /// ouvert (déjà utilisé, droits insuffisants…).

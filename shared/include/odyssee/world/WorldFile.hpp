@@ -39,6 +39,12 @@ struct HeightField {
     [[nodiscard]] std::uint16_t raw(std::int64_t col, std::int64_t row) const;
     /// Hauteur du point (col, row) en 1/256 m.
     [[nodiscard]] std::int32_t height(std::int64_t col, std::int64_t row) const;
+    /// Hauteur de la surface en (x, y), en 1/256 m : interpolée sur les deux triangles de la
+    /// case (diagonale de (col, row) à (col + 1, row + 1)). Hors de la carte, celle du bord.
+    [[nodiscard]] std::int32_t surfaceHeight(std::int32_t x, std::int32_t y) const;
+    /// Largeur et profondeur de la carte, en 1/256 m.
+    [[nodiscard]] std::int64_t width() const;
+    [[nodiscard]] std::int64_t depth() const;
 };
 
 /// Hauteur brute → 1/256 m, et l'inverse (arrondi ; bornée à l'intervalle du codage).
@@ -104,6 +110,7 @@ enum class WorldFileError : std::uint8_t {
     BadMagic,
     UnsupportedVersion,
     Truncated,
+    CannotOpen,
     BadDirectory,
     MissingTerrain,
     BadTerrain,

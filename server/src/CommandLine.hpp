@@ -15,11 +15,13 @@ namespace odyssee::server {
 struct Options {
     std::uint16_t port = kDefaultPort;
     bool verbose = false;
+    /// Fichier monde à charger (tools/worldgen/output/odyssee.world). Vide : sol plat provisoire.
+    std::string worldPath;
     net::NetworkConditions network; ///< simulation de mauvais réseau (aucune par défaut)
 };
 
-/// Lit les arguments (sans le nom du programme) : `[--verbose] [--lag ms] [--jitter ms]
-/// [--loss %] [--dup %] [port]`, dans n'importe quel ordre.
+/// Lit les arguments (sans le nom du programme) : `[--verbose] [--world fichier] [--lag ms]
+/// [--jitter ms] [--loss %] [--dup %] [port]`, dans n'importe quel ordre.
 /// Renvoie std::nullopt si un argument est inconnu, une valeur invalide ou manquante, ou si le
 /// port est donné deux fois.
 [[nodiscard]] std::optional<Options> parseCommandLine(std::span<const std::string_view> args);

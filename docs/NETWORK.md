@@ -230,9 +230,10 @@ de 1. (2 : ajout des paquets de jeu.)
     autre correction du serveur.
 - **Snapshot** : tous les joueurs (pas encore de zone d'intérêt), et le dernier input appliqué du joueur
   destinataire. Le client garde le plus récent (`serverTick`) : un snapshot arrivé en retard est ignoré.
-- **Monde provisoire** (`server/GameWorld`) : les joueurs apparaissent dans la salle des capsules du
-  centre de stase, à 2 m d'écart, et sont déplacés par la simulation partagée (`sim::step`, T029) sur un
-  sol plat. Relief et point d'apparition viendront de la carte chargée par le serveur (T041).
+- **Monde** (`server/GameWorld`) : les joueurs apparaissent côte à côte, à 2 m d'écart, au point
+  d'apparition de la carte (salle des capsules du centre de stase), et sont déplacés par la simulation
+  partagée (`sim::step`, T029) sur le sol et les murs de la carte (`world::WorldTerrain`, T041 :
+  `--world` côté serveur **et** client, même fichier). Sans carte : sol plat provisoire.
 - **KeepAlive** : inutiles tant que des paquets de jeu circulent (ils comptent comme trafic des deux
   côtés : `ClientRegistry::touch/noteSent`, `ClientConnection::onGamePacketReceived/Sent`).
 

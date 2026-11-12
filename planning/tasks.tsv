@@ -46,7 +46,7 @@ T037	13	M3	ami	art,blender	6	Kit de ruines modulaires	Murs, sols, débris, véhi
 T038	14	M3	both	map,unreal	4	Acteurs marqueurs de gameplay	Nicolas crée les acteurs ResourceSpawn, ClueSpot, BossArena, ZoneGate ; le coéquipier les place dans la zone de départ.	a_faire
 T039	14	M3	nicolas	tools,unreal	6	Outil d'export de la carte	Un utilitaire d'éditeur Unreal produit le fichier monde serveur (heightmap, collisions, marqueurs).	en_cours
 T040	14	M3	nicolas	doc,shared	2	Format du fichier monde	Format documenté et versionné.	fait
-T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.	a_faire
+T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.	fait
 T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.	a_faire
 T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.	a_faire
 T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	a_faire

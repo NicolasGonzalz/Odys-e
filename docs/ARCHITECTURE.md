@@ -107,8 +107,11 @@ le client pour prédire (puis réconcilier) : **le résultat doit être identiqu
   calcul entier.
 - **Fonction pure** : aucun état caché, aucun hasard, aucune horloge. L'input est celui envoyé, déjà
   quantifié.
-- **Terrain abstrait** (`sim::Terrain`) : sol plat pour l'instant ; la heightmap (T041) devra répondre en
-  entiers, identiquement des deux côtés.
+- **Terrain abstrait** (`sim::Terrain`) : le sol **sous une hauteur donnée** (`groundBelow` : sous le
+  relief, on marche sur le sol du bunker ou de la grotte) et les volumes solides (`isSolid` : murs et
+  plafonds). La vraie carte (`world::WorldTerrain`, T041) répond en entiers, identiquement des deux
+  côtés : relief interpolé sur les triangles du Landscape, cases percées, volumes tournés (pavés et
+  cylindres) élargis du rayon du joueur, rangés dans une grille de 16 m.
 - Réglages provisoires dans `sim::MovementTuning` (vitesses de docs/GAMEPLAY.md), à ajuster en jouant.
 - **Preuve du déterminisme (T030, `tests/test_determinism.cpp`)** : une partie scriptée de 2000 ticks
   (collines, falaises, course jusqu'à l'épuisement, sauts) produit une **empreinte de référence** figée.
