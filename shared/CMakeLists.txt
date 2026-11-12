@@ -6,6 +6,7 @@ add_library(odyssee_shared STATIC
     src/client/Interpolation.cpp
     src/client/Prediction.cpp
     src/client/ServerLink.cpp
+    src/client/TrafficMeter.cpp
     src/net/Acknowledgements.cpp
     src/net/Address.cpp
     src/net/ClientConnection.cpp

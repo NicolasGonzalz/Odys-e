@@ -25,6 +25,16 @@ std::string positionText(const HudInfo& info) {
     return text;
 }
 
+std::string networkText(const HudInfo& info) {
+    char text[120];
+    std::snprintf(text, sizeof text,
+                  "Ping : %s  -  pertes : %.0f %%  -  %.1f ko/s en haut, %.1f en bas",
+                  info.pingMs ? (std::to_string(*info.pingMs) + " ms").c_str() : "-",
+                  static_cast<double>(info.lossPercent), static_cast<double>(info.uploadKbps),
+                  static_cast<double>(info.downloadKbps));
+    return text;
+}
+
 std::string correctionText(const HudInfo& info) {
     if (info.corrections == 0) {
         return "Corrections : aucune";
@@ -47,7 +57,7 @@ void drawStamina(int row, float stamina, bool exhausted) {
 void drawHud(const HudInfo& info) {
     line(0, "Odyssée - client de debug - " + info.connection);
     line(1, info.playerId ? "Joueur n° " + std::to_string(*info.playerId) : "Joueur : -");
-    line(2, info.pingMs ? "Ping : " + std::to_string(*info.pingMs) + " ms" : "Ping : -");
+    line(2, networkText(info), info.lossPercent > 5.0f ? ORANGE : RAYWHITE);
     line(3, positionText(info));
     line(4, "Autres joueurs visibles : " + std::to_string(info.playersInView));
     line(5, correctionText(info));

@@ -36,7 +36,7 @@
 | M0 — Conception & fondations | 8 / 11 | 22 / 31 h | — |
 | M0.5 — Spike Unreal | 2 / 8 | 8 / 27 h | — |
 | M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
-| M2 — Mouvement fluide | 5 / 9 | 22 / 39 h | — |
+| M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 2 / 8 | 8 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 0 / 9 | 0 / 58 h | — |
@@ -140,7 +140,7 @@
 |---|---|---|---|---|---|
 | ☑ | T032 | Nicolas | Réconciliation | 5 | Correction + rejeu des inputs, lissage des petites erreurs. |
 | ☑ | T033 | Nicolas | Interpolation des entités distantes | 5 | Les autres joueurs bougent sans saccades à 150 ms + 5 % de perte. |
-| ☐ | T034 | Nicolas | HUD de debug réseau | 2 | RTT, perte, ko/s, corrections affichés à l'écran. |
+| ☑ | T034 | Nicolas | HUD de debug réseau | 2 | RTT, perte, ko/s, corrections affichés à l'écran. |
 | ☐ | T064 | Coéquipier | Kit de végétation low-poly | 6 | Arbres, buissons, herbe, lierre, mousse ; herbe animée par le vent dans Unreal. |
 
 ### Semaine 12 — du 1 févr. 2027 · M2 · Nicolas 4 h · Coéquipier 4 h
