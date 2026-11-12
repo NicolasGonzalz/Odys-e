@@ -47,6 +47,10 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
 - **On explore, puis on reporte** : en marchant, le joueur *mémorise* les régions qu'il traverse et les lieux qu'il
   voit. La carte **ne se met à jour qu'à une table de cartographie** (fabriquée à l'établi, posée dans sa base) :
   rentrer au camp devient un moment fort. Une notification rappelle qu'il y a du nouveau à reporter.
+- **Les fragments de carte** : chaque biome a son fragment (plaine, ville, marais, montagne, forêt du Cœur), à
+  trouver ou à gagner dans ce biome. Posé sur la table de cartographie, il dessine d'un coup les grandes lignes du
+  biome (relief, eau, lieux principaux) ; l'exploration ajoute ensuite les détails. La grande carte s'assemble
+  ainsi fragment par fragment, et les emplacements encore vides se voient sur la table.
 - **Ce qui se dévoile** : le biome de chaque région (plaine, ville, marais, montagne…), les chemins, les points
   d'intérêt aperçus (ruines, villages, lieux nommés). Ce qu'on n'a pas vu reste blanc.
 - **En coop, la carte est commune** : ce qu'un joueur reporte à la table apparaît pour tous. Chacun garde ses
