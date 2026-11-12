@@ -41,6 +41,14 @@ TEST_CASE("Ligne de commande : arguments invalides refusés") {
     }
 }
 
+TEST_CASE("Ligne de commande : carte à charger") {
+    CHECK(parse({}).value().worldPath.empty());
+    CHECK(parse({"--world", "cartes/odyssee.world", "27016"}).value().worldPath ==
+          "cartes/odyssee.world");
+    CHECK_FALSE(parse({"--world"}).has_value());
+    CHECK_FALSE(parse({"--world", ""}).has_value());
+}
+
 TEST_CASE("Ligne de commande : simulation réseau") {
     using namespace std::chrono_literals;
     const auto options = parse({"--lag", "120", "27016", "--jitter", "30", "--loss", "5", "--dup",

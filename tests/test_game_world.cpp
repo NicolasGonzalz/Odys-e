@@ -1,4 +1,5 @@
 #include "GameWorld.hpp"
+#include "WorldLoading.hpp"
 
 #include "odyssee/client/Prediction.hpp"
 #include "odyssee/net/Quantize.hpp"
@@ -9,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <vector>
 
 using namespace odyssee;
@@ -349,4 +351,44 @@ TEST_CASE("GameWorld : après une coupure, le serveur rattrape le retard des inp
     // Le client a joué 200 inputs. Sans rattrapage, le serveur restait à 196 (4 d'écart) ; avec,
     // il redescend sous kCatchUpBacklog : au plus 2 d'avance gardés contre la gigue.
     CHECK(processed >= 198);
+}
+
+TEST_CASE("GameWorld : sur une carte, les joueurs apparaissent à son point d'apparition") {
+    const server::SpawnPoint spawn{{100 * 256, 200 * 256, 3 * 256}, net::quantizeYaw(90.0f)};
+    GameWorld world(std::make_unique<sim::FlatTerrain>(3 * 256), spawn);
+    const std::vector<ConnectedPlayer> four{{0, 1}, {1, 1}, {2, 1}, {3, 1}};
+    world.syncPlayers(four);
+
+    for (net::PlayerId id = 0; id < 4; ++id) {
+        const auto motion = world.motionOf(id).value();
+        CHECK(motion.position[1] == spawn.position[1]);
+        CHECK(motion.position[2] == spawn.position[2]);
+        CHECK(motion.yaw == spawn.yaw);
+        // Côte à côte, centrés sur le point : -3, -1, +1, +3 m.
+        CHECK(motion.position[0] == spawn.position[0] + (2 * id - 3) * 256);
+    }
+}
+
+TEST_CASE("GameWorld : la vraie carte, les joueurs tiennent debout dans la salle des capsules") {
+    // Fichier en Git LFS : absent des machines (et de la CI) qui ne l'ont pas téléchargé.
+    auto world = server::loadGameWorld(ODYSSEE_SOURCE_DIR "/tools/worldgen/output/odyssee.world");
+    if (!world) {
+        MESSAGE("carte réelle absente (git lfs pull) : test sauté");
+        return;
+    }
+    const std::vector<ConnectedPlayer> four{{0, 1}, {1, 1}, {2, 1}, {3, 1}};
+    world->syncPlayers(four);
+    std::array<sim::PlayerState, 4> start{};
+    for (net::PlayerId id = 0; id < 4; ++id) {
+        start[id] = world->motionOf(id).value();
+    }
+
+    for (int tick = 0; tick < 40; ++tick) { // 2 s sans input
+        world->step();
+    }
+    for (net::PlayerId id = 0; id < 4; ++id) {
+        const auto motion = world->motionOf(id).value();
+        CHECK(motion.has(sim::kGrounded));
+        CHECK(motion.position == start[id].position); // ni chute, ni poussé dans un mur
+    }
 }

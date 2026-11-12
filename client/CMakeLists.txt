@@ -3,6 +3,7 @@ add_executable(odyssee_client
     src/main.cpp
     src/Options.cpp
     src/InputSampler.cpp
+    src/MapView.cpp
     src/Scene.cpp
     src/Hud.cpp
     src/DebugClient.cpp

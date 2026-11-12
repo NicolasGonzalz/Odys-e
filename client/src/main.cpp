@@ -5,10 +5,14 @@
 
 #include "odyssee/client/ServerLink.hpp"
 #include "odyssee/net/Address.hpp"
+#include "odyssee/world/WorldFileLoader.hpp"
+#include "odyssee/world/WorldTerrain.hpp"
 
 #include <raylib.h>
 
 #include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -22,6 +26,20 @@ void openWindow() {
     InitWindow(1280, 720, "Odyssée - client de debug");
     SetExitKey(KEY_NULL); // Échap libère la souris ; on quitte en fermant la fenêtre
     DisableCursor();
+}
+
+/// La carte demandée (nul si aucune). std::nullopt si elle n'a pas pu être chargée.
+std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(const std::string& path) {
+    if (path.empty()) {
+        return std::unique_ptr<const world::WorldTerrain>{};
+    }
+    auto decoded = world::loadWorldFile(path);
+    if (!decoded.world) {
+        std::cerr << "Carte « " << path << " » non chargée : " << world::describe(decoded.error)
+                  << "\n";
+        return std::nullopt;
+    }
+    return std::make_unique<const world::WorldTerrain>(std::move(*decoded.world));
 }
 
 } // namespace
@@ -39,6 +57,10 @@ int main(int argc, char** argv) {
         std::cerr << "Adresse invalide : " << options->host << " (IPv4 attendue)\n";
         return 1;
     }
+    auto map = loadMap(options->worldPath);
+    if (!map) {
+        return 1;
+    }
     auto link = client::ServerLink::open(options->name, *server);
     if (!link) {
         std::cerr << "Impossible d'ouvrir un socket UDP\n";
@@ -47,7 +69,7 @@ int main(int argc, char** argv) {
 
     openWindow();
     {
-        debugclient::DebugClient game(std::move(*link));
+        debugclient::DebugClient game(std::move(*link), std::move(*map));
         game.run();
     }
     CloseWindow();

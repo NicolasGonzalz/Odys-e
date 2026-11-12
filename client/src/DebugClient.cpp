@@ -35,8 +35,13 @@ const char* describe(net::ConnectionState state) {
 
 } // namespace
 
-DebugClient::DebugClient(client::ServerLink link)
-    : _link(std::move(link)), _ground(sim::provisionalGroundHeight()), _prediction(_ground) {}
+DebugClient::DebugClient(client::ServerLink link, std::unique_ptr<const world::WorldTerrain> map)
+    : _link(std::move(link)), _map(std::move(map)), _flat(sim::provisionalGroundHeight()),
+      _prediction(_map ? static_cast<const sim::Terrain&>(*_map) : _flat) {
+    if (_map) {
+        _mapView.emplace(_map->world());
+    }
+}
 
 void DebugClient::run() {
     _link.connect(Clock::now());
@@ -56,6 +61,9 @@ void DebugClient::run() {
         }
 
         _remote.advance(GetFrameTime() * static_cast<float>(kTickRate));
+        if (_mapView && _prediction.started()) {
+            _mapView->update(toWorld(_prediction.displayPosition()));
+        }
         draw(accumulated / kTickSeconds);
     }
     leave();
@@ -129,7 +137,11 @@ void DebugClient::drawWorld(float betweenTicks) const {
     const Vector3 feet = _previousDisplay ? lerp(toWorld(*_previousDisplay), now, betweenTicks) : now;
 
     BeginMode3D(cameraFor(feet, _input.yawDegrees(), _input.pitchDegrees(), _thirdPerson));
-    drawGround(feet, net::dequantizePosition(_ground.groundHeight(0, 0)));
+    if (_mapView) {
+        _mapView->draw(feet);
+    } else {
+        drawGround(feet, net::dequantizePosition(_flat.groundHeight(0, 0)));
+    }
     for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
         drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),
                    playerColor(entity.id));

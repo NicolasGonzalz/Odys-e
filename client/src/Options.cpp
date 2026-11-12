@@ -34,11 +34,12 @@ std::optional<Options> parseOptions(std::span<const std::string_view> args) {
     Options options;
     int positional = 0;
     for (std::size_t i = 0; i < args.size(); ++i) {
-        if (args[i] == "--name") {
+        if (args[i] == "--name" || args[i] == "--world") {
             if (i + 1 >= args.size() || args[i + 1].empty()) {
                 return std::nullopt;
             }
-            options.name = std::string(args[++i]);
+            (args[i] == "--name" ? options.name : options.worldPath) = std::string(args[i + 1]);
+            ++i;
         } else if (args[i].starts_with("-") || !acceptPositional(options, args[i], positional)) {
             return std::nullopt;
         }
@@ -48,7 +49,8 @@ std::optional<Options> parseOptions(std::span<const std::string_view> args) {
 
 std::string usage(std::string_view programName) {
     return "Usage : " + std::string(programName) +
-           " [--name Nom] [adresse IPv4] [port]\n"
+           " [--name Nom] [--world fichier] [adresse IPv4] [port]\n"
+           "  --world : la carte, la même que celle du serveur (sinon : sol plat)\n"
            "  par défaut : 127.0.0.1 et le port " +
            std::to_string(kDefaultPort) + "\n";
 }
