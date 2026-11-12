@@ -20,7 +20,8 @@ public class Odysse : ModuleRules
 			"UMG",
 			"Slate",
 			"SlateCore", // interface (UI/) : polices et dessin des jauges
-			"Landscape" // pinceau qui perce les entrées de grotte (World/OdysseeHoleBrush.h)
+			"Landscape", // pinceau qui perce les entrées de grotte (World/OdysseeHoleBrush.h)
+			"OdysseeNet" // simulation et réseau partagés avec le serveur (mouvement : T016)
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

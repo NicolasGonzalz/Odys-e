@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "OdysseeMovementComponent.h"
 #include "Odysse.h"
 
 AOdysseCharacter::AOdysseCharacter()
@@ -42,6 +43,20 @@ AOdysseCharacter::AOdysseCharacter()
 	// Configure character movement
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
+
+	// Le vrai mouvement : la simulation partagée avec le serveur (T016).
+	SimMovement = CreateDefaultSubobject<UOdysseeMovementComponent>(TEXT("Sim Movement"));
+	SimMovement->FeetToActorOffset = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+}
+
+void AOdysseCharacter::BeginPlay()
+{
+	// Avant Super::BeginPlay (qui démarre les composants) : la capsule ne doit plus être poussée
+	// ni par la physique ni par le CharacterMovementComponent, seulement par SimMovement.
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Super::BeginPlay();
 }
 
 void AOdysseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -59,6 +74,18 @@ void AOdysseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOdysseCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AOdysseCharacter::LookInput);
+
+		// Courir et s'accroupir (actions facultatives, tenues)
+		if (SprintAction)
+		{
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AOdysseCharacter::SprintStart);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AOdysseCharacter::SprintEnd);
+		}
+		if (CrouchAction)
+		{
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AOdysseCharacter::CrouchStart);
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AOdysseCharacter::CrouchEnd);
+		}
 	}
 	else
 	{
@@ -101,20 +128,37 @@ void AOdysseCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController())
 	{
-		// pass the move inputs
-		AddMovementInput(GetActorRightVector(), Right);
-		AddMovementInput(GetActorForwardVector(), Forward);
+		// La direction (selon le cap de la caméra) est calculée par la simulation.
+		SimMovement->AddMoveInput(Forward, Right);
 	}
 }
 
 void AOdysseCharacter::DoJumpStart()
 {
-	// pass Jump to the character
-	Jump();
+	SimMovement->SetJumpHeld(true);
 }
 
 void AOdysseCharacter::DoJumpEnd()
 {
-	// pass StopJumping to the character
-	StopJumping();
+	SimMovement->SetJumpHeld(false);
+}
+
+void AOdysseCharacter::SprintStart()
+{
+	SimMovement->SetSprintHeld(true);
+}
+
+void AOdysseCharacter::SprintEnd()
+{
+	SimMovement->SetSprintHeld(false);
+}
+
+void AOdysseCharacter::CrouchStart()
+{
+	SimMovement->SetCrouchHeld(true);
+}
+
+void AOdysseCharacter::CrouchEnd()
+{
+	SimMovement->SetCrouchHeld(false);
 }
