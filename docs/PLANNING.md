@@ -35,7 +35,7 @@
 |---|---|---|---|
 | M0 — Conception & fondations | 8 / 11 | 22 / 31 h | — |
 | M0.5 — Spike Unreal | 2 / 8 | 8 / 27 h | — |
-| M1 — Premier contact réseau | 9 / 16 | 39 / 70 h | — |
+| M1 — Premier contact réseau | 10 / 16 | 44 / 70 h | — |
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
@@ -123,7 +123,7 @@
 | ☑ | T026 | Nicolas | Sessions et diffusion de l'état | 5 | Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick. |
 | ☐ | T027 | Nicolas | Client Unreal connecté au serveur | 5 | Connexion via OdysseeNet, affichage des autres joueurs. |
 | ☐ | T028 | Nicolas | Déploiement du serveur sur le homelab | 2 | Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma. |
-| ☐ | T062 | Coéquipier | Maquettes d'UI (Figma) | 5 | HUD, inventaire, artisanat, journal d'indices, menu principal. |
+| ☑ | T062 | Coéquipier | HUD et menus dans Unreal | 5 | HUD, menu principal, menu pause et options faits directement dans Unreal (UMG/C++, sans Figma), branchés ensuite par T027 et T051. |
 
 ### Semaine 10 — du 18 janv. 2027 · M2 · Nicolas 12 h · Coéquipier 5 h
 

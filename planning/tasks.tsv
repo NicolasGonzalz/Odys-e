@@ -31,7 +31,7 @@ T061	8	M1	ami	art,blender	5	Survivant 3 (Teo) : modèle et rig	Corps + bras FPS 
 T026	9	M1	nicolas	server	5	Sessions et diffusion de l'état	Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick.	fait
 T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.	a_faire
 T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.	a_faire
-T062	9	M1	ami	design,figma	5	Maquettes d'UI (Figma)	HUD, inventaire, artisanat, journal d'indices, menu principal.	a_faire
+T062	9	M1	ami	design,ui	5	HUD et menus dans Unreal	HUD, menu principal, menu pause et options faits directement dans Unreal (UMG/C++, sans Figma), branchés ensuite par T027 et T051.	fait
 T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.	fait
 T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.	fait
 T031	10	M2	nicolas	client,net	4	Prédiction côté client	Le joueur local bouge sans attendre le serveur.	fait
