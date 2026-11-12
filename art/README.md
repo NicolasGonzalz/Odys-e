@@ -95,6 +95,7 @@ d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLI
 | `outils/marteau` | 🟡 marteau de charpentier, pour la construction (bac à sable, plus tard) |
 | `postes/etabli`, `postes/forge`, `postes/table_cartographie` | 🟡 postes d'artisanat (docs/GAMEPLAY.md § 2 et 3) : établi d'après le concept, forge et table dans le même style |
 | `postes/coffre`, `postes/feu_de_camp` | 🟡 d'après le concept des objets interactifs ; animations (couvercle, flammes) plus tard |
+| `postes/coffre_metal`, `postes/terminal`, `postes/sac_couchage`, `objets/journal` | 🟡 d'après le concept des objets interactifs ; lianes : `lowpoly/vines.py` |
 | `ressources/planches`, `ressources/baton`, `ressources/lingot` | 🟡 matériaux transformés : pile de 3 planches, branche, lingot fondu main |
 | `munitions/munitions_pistolet`, `munitions/munitions_fusil` | 🟡 petits tas de 3 cartouches (`lowpoly/cartridge.py`), contour plus fin |
 | `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |

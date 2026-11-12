@@ -192,5 +192,41 @@
       1260,
       940
     ]
+  },
+  "coffre_metal": {
+    "source": "art/concepts/objets/objets-interactifs.jpg",
+    "box": [
+      1090,
+      70,
+      1730,
+      590
+    ]
+  },
+  "terminal": {
+    "source": "art/concepts/objets/objets-interactifs.jpg",
+    "box": [
+      140,
+      760,
+      760,
+      1480
+    ]
+  },
+  "journal": {
+    "source": "art/concepts/objets/objets-interactifs.jpg",
+    "box": [
+      1870,
+      640,
+      2400,
+      1030
+    ]
+  },
+  "sac_couchage": {
+    "source": "art/concepts/objets/objets-interactifs.jpg",
+    "box": [
+      1860,
+      1050,
+      2680,
+      1420
+    ]
   }
 }
