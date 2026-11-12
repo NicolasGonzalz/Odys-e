@@ -19,6 +19,7 @@ public class Odysse : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
+			"SlateCore", // interface (UI/) : polices et dessin des jauges
 			"Landscape" // pinceau qui perce les entrées de grotte (World/OdysseeHoleBrush.h)
 		});
 
