@@ -61,6 +61,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
 	void SetPrimaryHeld(bool bHeld) { bPrimaryHeld = bHeld; }
 
+	/** Utiliser (touche E, T047) : mange ou boit le consommable tenu. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
+	void SetUseHeld(bool bHeld) { bUseHeld = bHeld; }
+
+	/** Case tenue de la barre d'outils (0 à 4) : l'outil qui récolte, l'objet qu'on mange. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
+	void SetHeldSlot(int32 Slot);
+
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Mouvement")
+	int32 GetHeldSlot() const { return HeldSlot; }
+
 	/** Place les pieds du joueur à cet endroit (apparition, réapparition), vitesse nulle. */
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
 	void TeleportFeetTo(FVector Feet);
@@ -128,4 +139,6 @@ private:
 	bool bSprintHeld = false;
 	bool bCrouchHeld = false;
 	bool bPrimaryHeld = false;
+	bool bUseHeld = false;
+	int32 HeldSlot = 0;
 };

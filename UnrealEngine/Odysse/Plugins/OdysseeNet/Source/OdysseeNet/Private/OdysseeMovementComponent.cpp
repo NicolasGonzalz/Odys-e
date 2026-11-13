@@ -103,12 +103,15 @@ odyssee::net::InputCommand UOdysseeMovementComponent::BuildCommand() const
 	Command.pitch = OdysseeUnits::PitchFromDegrees(static_cast<float>(Look.Pitch));
 
 	// Menu ouvert : pas de frappe, même si le relâchement du clic s'est perdu dans l'interface.
-	const bool bPrimary = bPrimaryHeld && !(Pawn && Pawn->IsMoveInputIgnored());
+	const bool bInMenu = Pawn && Pawn->IsMoveInputIgnored(); // pas de geste derrière un menu
+	const bool bPrimary = bPrimaryHeld && !bInMenu;
 	Command.buttons = static_cast<std::uint16_t>(
 		ButtonIf(bJumpHeld, odyssee::net::InputButton::Jump) |
 		ButtonIf(bSprintHeld, odyssee::net::InputButton::Sprint) |
 		ButtonIf(bCrouchHeld, odyssee::net::InputButton::Crouch) |
-		ButtonIf(bPrimary, odyssee::net::InputButton::Primary));
+		ButtonIf(bPrimary, odyssee::net::InputButton::Primary) |
+		ButtonIf(bUseHeld && !bInMenu, odyssee::net::InputButton::Use));
+	Command.heldSlot = static_cast<std::uint8_t>(HeldSlot);
 	return Command;
 }
 
@@ -242,4 +245,9 @@ float UOdysseeMovementComponent::GetStamina() const
 bool UOdysseeMovementComponent::IsExhausted() const
 {
 	return State.has(odyssee::sim::kExhausted);
+}
+
+void UOdysseeMovementComponent::SetHeldSlot(int32 Slot)
+{
+	HeldSlot = FMath::Clamp(Slot, 0, static_cast<int32>(odyssee::kHotbarSlots) - 1);
 }

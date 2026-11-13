@@ -93,6 +93,14 @@ void AOdysseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 			EnhancedInputComponent->BindAction(PrimaryAction, ETriggerEvent::Started, this, &AOdysseCharacter::PrimaryStart);
 			EnhancedInputComponent->BindAction(PrimaryAction, ETriggerEvent::Completed, this, &AOdysseCharacter::PrimaryEnd);
 		}
+
+		// Utiliser (facultative, tenue) : manger ou boire l'objet tenu (T047)
+		if (UseAction)
+		{
+			EnhancedInputComponent->BindAction(UseAction, ETriggerEvent::Started, this, &AOdysseCharacter::UseStart);
+			EnhancedInputComponent->BindAction(UseAction, ETriggerEvent::Completed, this, &AOdysseCharacter::UseEnd);
+		}
+		BindHotbarKeys(PlayerInputComponent);
 	}
 	else
 	{
@@ -186,4 +194,32 @@ void AOdysseCharacter::PrimaryStart()
 void AOdysseCharacter::PrimaryEnd()
 {
 	SimMovement->SetPrimaryHeld(false);
+}
+
+void AOdysseCharacter::UseStart()
+{
+	if (GetController() && !GetController()->IsMoveInputIgnored())
+	{
+		SimMovement->SetUseHeld(true);
+	}
+}
+
+void AOdysseCharacter::UseEnd()
+{
+	SimMovement->SetUseHeld(false);
+}
+
+void AOdysseCharacter::BindHotbarKeys(UInputComponent* PlayerInputComponent)
+{
+	// Touches fixes plutôt que cinq actions d'entrée : rien à créer dans l'éditeur.
+	const FKey Keys[] = {EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four, EKeys::Five};
+	for (int32 Index = 0; Index < static_cast<int32>(UE_ARRAY_COUNT(Keys)); ++Index)
+	{
+		FInputKeyBinding Binding(FInputChord(Keys[Index]), IE_Pressed);
+		Binding.KeyDelegate.GetDelegateForManualSet().BindLambda([this, Index]()
+		{
+			SimMovement->SetHeldSlot(Index);
+		});
+		PlayerInputComponent->KeyBindings.Add(Binding);
+	}
 }

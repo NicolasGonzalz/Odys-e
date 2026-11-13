@@ -7,6 +7,7 @@
 
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/ServerLink.hpp"
+#include "odyssee/data/Catalog.hpp"
 #include "odyssee/net/GameEvents.hpp"
 #include "odyssee/net/GameMessages.hpp"
 
@@ -29,6 +30,46 @@ enum class EOdysseeConnection : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOdysseeConnectionChanged, EOdysseeConnection, State,
 	const FText&, Status);
+
+/** Issue d'une fabrication (mêmes valeurs que net::CraftOutcome). */
+UENUM(BlueprintType)
+enum class EOdysseeCraftOutcome : uint8
+{
+	Started = 1,
+	Done = 2,
+	Busy = 3,
+	NeedStation = 4,
+	MissingIngredients = 5,
+	UnknownRecipe = 6,
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOdysseeCraftChanged, FName, RecipeKey,
+	EOdysseeCraftOutcome, Outcome, float, Seconds);
+
+/** Une recette (data/recipes.txt), prête à afficher dans l'interface d'artisanat (T048). */
+USTRUCT(BlueprintType)
+struct FOdysseeRecipe
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FName Key;
+
+	/** Nom de l'objet fabriqué. */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FText Name;
+
+	/** « hand », « workbench » ou « forge ». */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FName Station;
+
+	/** « 1 Bâton, 2 Pierre… » */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FText Ingredients;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	float Seconds = 0.0f;
+};
 
 /** Une case de l'inventaire du joueur local (T045), prête à afficher. */
 USTRUCT(BlueprintType)
@@ -116,6 +157,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Inventaire")
 	void RequestMoveItem(int32 From, int32 To);
 
+	/** Toutes les recettes du jeu (T047), dans l'ordre de data/recipes.txt. */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Artisanat")
+	TArray<FOdysseeRecipe> GetRecipes() const;
+
+	/** Demande au serveur de fabriquer une recette : la réponse arrive par OnCraftChanged. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Artisanat")
+	void RequestCraft(FName RecipeKey);
+
+	/** Réponse du serveur : fabrication commencée (durée), finie, ou refusée (pourquoi). */
+	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Artisanat")
+	FOdysseeCraftChanged OnCraftChanged;
+
 	// --- Pour la prédiction (C++) ---------------------------------------------------------------
 
 	bool IsConnected() const { return Connection == EOdysseeConnection::Connected; }
@@ -139,6 +192,8 @@ public:
 private:
 	void KeepSnapshots();
 	void KeepEvents();
+	const odyssee::data::Catalog* FindCatalog() const;
+	FName RecipeKeyOf(std::uint16_t Recipe) const;
 	void UpdateConnectionState();
 	/** Vrai si le serveur annonce la même carte que celle chargée ici (UOdysseeWorldSubsystem). */
 	bool HasServerMap() const;
