@@ -17,8 +17,8 @@
 [resource tree]
 name = Arbre
 shape = tree
-item = wood_log 1
-hits = 6
+item = wood_log 2
+hits = 5
 hit_ticks = 15
 tool = stone_axe
 tool = metal_axe
@@ -28,7 +28,7 @@ abundance = 45
 [resource rock]
 name = Rocher
 shape = rock
-item = stone 2
+item = stone 3
 hits = 5
 hit_ticks = 15
 tool = stone_pickaxe
@@ -39,7 +39,7 @@ abundance = 25
 [resource fiber_bush]
 name = Buisson de fibres
 shape = bush
-item = fiber 2
+item = fiber 3
 hits = 3
 hit_ticks = 10
 regrow = 3600
@@ -48,8 +48,8 @@ abundance = 20
 [resource ore_vein]
 name = Filon de minerai
 shape = vein
-item = ore 1
-hits = 4
+item = ore 2
+hits = 5
 hit_ticks = 20
 tool = stone_pickaxe
 tool = metal_pickaxe
