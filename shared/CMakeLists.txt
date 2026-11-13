@@ -7,6 +7,14 @@ add_library(odyssee_shared STATIC
     src/client/Prediction.cpp
     src/client/ServerLink.cpp
     src/client/TrafficMeter.cpp
+    src/data/Catalog.cpp
+    src/data/DataText.cpp
+    src/data/DataValues.cpp
+    src/data/ItemDef.cpp
+    src/data/ItemReader.cpp
+    src/data/RecipeDef.cpp
+    src/data/RecipeReader.cpp
+    src/data/TextFile.cpp
     src/net/Acknowledgements.cpp
     src/net/Address.cpp
     src/net/ClientConnection.cpp

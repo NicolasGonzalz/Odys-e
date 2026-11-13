@@ -1,0 +1,273 @@
+# Objets du jeu (format : docs/DATA_FORMAT.md).
+#
+# Un bloc par objet : [item identifiant], puis ses lignes « clé = valeur ».
+#   name     : nom affiché (français)
+#   stack    : taille de pile maximale (1 à 9999)
+#   category : resource, tool, weapon, ammo, station, consumable ou equipment
+#   model    : modèle 3D dans art/exports, sans extension (facultatif)
+#
+# L'identifiant ne doit plus changer une fois utilisé (sauvegardes, recettes, client Unreal).
+# Valeurs provisoires, à équilibrer en jeu.
+
+# --- Ressources --------------------------------------------------------------
+
+[item wood_log]
+name = Bûche
+stack = 20
+category = resource
+model = ressources/buche
+
+[item plank]
+name = Planches
+stack = 40
+category = resource
+model = ressources/planches
+
+[item stick]
+name = Bâton
+stack = 40
+category = resource
+model = ressources/baton
+
+[item stone]
+name = Pierre
+stack = 40
+category = resource
+model = ressources/pierre
+
+[item fiber]
+name = Fibres
+stack = 60
+category = resource
+model = ressources/fibres
+
+[item rope]
+name = Corde
+stack = 20
+category = resource
+model = ressources/corde
+
+[item cloth]
+name = Tissu
+stack = 20
+category = resource
+model = ressources/tissu
+
+[item ore]
+name = Minerai
+stack = 30
+category = resource
+model = ressources/minerai
+
+[item ingot]
+name = Lingot
+stack = 30
+category = resource
+model = ressources/lingot
+
+# Pièces des armes à feu (forge) : pas encore de modèle.
+[item gun_part]
+name = Pièces d'arme
+stack = 10
+category = resource
+
+# --- Outils ------------------------------------------------------------------
+
+[item stone_axe]
+name = Hache de pierre
+stack = 1
+category = tool
+model = outils/hache_pierre
+
+[item metal_axe]
+name = Hache de métal
+stack = 1
+category = tool
+model = outils/hache_metal
+
+[item stone_pickaxe]
+name = Pioche de pierre
+stack = 1
+category = tool
+model = outils/pioche_pierre
+
+[item metal_pickaxe]
+name = Pioche de métal
+stack = 1
+category = tool
+model = outils/pioche_metal
+
+[item hammer]
+name = Marteau
+stack = 1
+category = tool
+model = outils/marteau
+
+[item torch]
+name = Torche
+stack = 5
+category = tool
+model = outils/torche
+
+[item lamp]
+name = Lampe
+stack = 1
+category = tool
+model = outils/lampe
+
+[item binoculars]
+name = Jumelles
+stack = 1
+category = tool
+model = outils/jumelles
+
+[item gps]
+name = GPS
+stack = 1
+category = tool
+model = outils/gps
+
+[item crowbar]
+name = Pied-de-biche
+stack = 1
+category = tool
+model = outils/pied_de_biche
+
+# --- Armes et munitions ------------------------------------------------------
+
+[item spear]
+name = Lance
+stack = 1
+category = weapon
+model = armes/lance
+
+[item knife]
+name = Couteau
+stack = 1
+category = weapon
+model = armes/couteau
+
+[item bow]
+name = Arc
+stack = 1
+category = weapon
+model = armes/arc
+
+[item crossbow]
+name = Arbalète
+stack = 1
+category = weapon
+model = armes/arbalete
+
+[item pistol]
+name = Pistolet
+stack = 1
+category = weapon
+model = armes/pistolet
+
+[item shotgun]
+name = Fusil à pompe
+stack = 1
+category = weapon
+model = armes/fusil_pompe
+
+[item arrow]
+name = Flèche
+stack = 30
+category = ammo
+model = armes/fleche
+
+[item pistol_ammo]
+name = Munitions de pistolet
+stack = 50
+category = ammo
+model = munitions/munitions_pistolet
+
+[item shotgun_ammo]
+name = Cartouches de fusil
+stack = 30
+category = ammo
+model = munitions/munitions_fusil
+
+# --- Postes et objets posés --------------------------------------------------
+
+[item workbench]
+name = Établi
+stack = 1
+category = station
+model = postes/etabli
+
+[item forge]
+name = Forge
+stack = 1
+category = station
+model = postes/forge
+
+[item cartography_table]
+name = Table de cartographie
+stack = 1
+category = station
+model = postes/table_cartographie
+
+[item campfire]
+name = Feu de camp
+stack = 1
+category = station
+model = postes/feu_de_camp
+
+[item chest]
+name = Coffre
+stack = 1
+category = station
+model = postes/coffre
+
+[item metal_chest]
+name = Coffre de métal
+stack = 1
+category = station
+model = postes/coffre_metal
+
+[item sleeping_bag]
+name = Sac de couchage
+stack = 1
+category = station
+model = postes/sac_couchage
+
+# Trouvé dans les ruines, pas fabricable.
+[item terminal]
+name = Terminal
+stack = 1
+category = station
+model = postes/terminal
+
+# --- Équipement et consommables ----------------------------------------------
+
+[item backpack]
+name = Sac à dos
+stack = 1
+category = equipment
+model = objets/sac_a_dos
+
+[item map]
+name = Carte
+stack = 1
+category = equipment
+model = objets/carte
+
+[item journal]
+name = Journal
+stack = 1
+category = equipment
+model = objets/journal
+
+[item canteen]
+name = Gourde
+stack = 1
+category = equipment
+model = objets/gourde
+
+[item battery]
+name = Pile
+stack = 10
+category = consumable
+model = objets/pile

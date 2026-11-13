@@ -30,6 +30,7 @@ add_executable(odyssee_tests
     test_prediction.cpp
     test_interpolation.cpp
     test_traffic_meter.cpp
+    test_catalog.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 # Pour retrouver les fichiers du dépôt (la vraie carte) d'où que les tests soient lancés.
