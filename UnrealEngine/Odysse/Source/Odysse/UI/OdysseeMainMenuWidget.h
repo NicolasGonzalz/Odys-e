@@ -30,7 +30,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UScrollBox> WorldList;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> NewWorldButton;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> LoadWorldButton;
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> AddressInput;
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> NameInput;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> JoinCodeInput;
+	/** Où en est la connexion : « Connexion… », refus, serveur muet… */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UTextBlock> JoinStatusText;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> JoinButton;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UScrollBox> FavoritesList;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> HostButton;
@@ -55,6 +59,7 @@ private:
 	UWidget* BuildMultiplayerPage();
 	UWidget* BuildOptionsPage();
 	UWidget* BuildJoinRow();
+	UEditableTextBox* MakeField(FName Name, const FText& Hint);
 	/** Un bouton Retour qui ramène à `Page` (une des fonctions Show…). */
 	UButton* MakeBackButton(FName Target);
 };
