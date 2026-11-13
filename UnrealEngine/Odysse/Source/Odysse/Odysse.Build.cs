@@ -14,9 +14,6 @@ public class Odysse : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"AIModule",
-			"StateTreeModule",
-			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
 			"SlateCore", // interface (UI/) : polices et dessin des jauges
@@ -27,13 +24,7 @@ public class Odysse : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
-			"Odysse",
-			"Odysse/Variant_Horror",
-			"Odysse/Variant_Horror/UI",
-			"Odysse/Variant_Shooter",
-			"Odysse/Variant_Shooter/AI",
-			"Odysse/Variant_Shooter/UI",
-			"Odysse/Variant_Shooter/Weapons"
+			"Odysse"
 		});
 
 		// Uncomment if you are using Slate UI
