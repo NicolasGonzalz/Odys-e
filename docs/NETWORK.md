@@ -95,6 +95,20 @@ jeton = SipHash-2-4(secret du serveur, IP | port | sel | période | pseudo)
 - Il n'y a plus de table de poignées de main à saturer : un flot de fausses demandes ne consomme pas de
   mémoire et ne bloque pas les vrais joueurs.
 
+### Événements fiables (T045, protocole v8)
+
+Le canal fiable ordonné transporte des **événements de jeu** (`net::GameEvent`, `GameEvents.hpp`) :
+un octet de type, puis le contenu ; un événement illisible est ignoré.
+
+| Type | Sens | Contenu |
+|---|---|---|
+| `InventoryContents` = 1 | serveur → client | 25 cases × (`item` u16, `count` u16) ; case vide = `0, 0`. Envoyé à l'apparition puis à chaque changement |
+| `MoveItem` = 2 | client → serveur | `from` (u8), `to` (u8), cases < 25 |
+
+Le client ne modifie jamais son inventaire lui-même : il demande, le serveur vérifie et renvoie l'état
+réel (même après un refus). Les numéros d'objet sont les indices du catalogue (`data/items.txt`) : client
+et serveur doivent avoir les mêmes fichiers `data/`.
+
 ### Jeton de session
 
 Le jeton du défi accepté devient le **jeton de session**, connu des deux côtés (`Accepted` le répète :

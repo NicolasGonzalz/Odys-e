@@ -8,6 +8,8 @@
 #include "odyssee/client/InputHistory.hpp"
 #include "odyssee/client/ServerLink.hpp"
 #include "odyssee/core/Config.hpp"
+#include "odyssee/data/Catalog.hpp"
+#include "odyssee/net/GameEvents.hpp"
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/net/Session.hpp"
 #include "odyssee/net/UdpSocket.hpp"
@@ -22,6 +24,8 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
+#include <variant>
 #include <vector>
 
 using namespace odyssee;
@@ -223,4 +227,38 @@ TEST_CASE("Partie : un serveur à code d'invitation refuse le mauvais code, acce
     GameClient friendly("Nadia", port, "ody-7kq2");
     match.connect(friendly);
     CHECK(match.service.playerCount() == 1);
+}
+
+TEST_CASE("Partie : l'inventaire arrive par le canal fiable, et le client peut le réorganiser") {
+    Match match;
+    auto loaded =
+        data::Catalog::fromText("[item stick]\nname = Bâton\nstack = 40\ncategory = resource\n", "");
+    REQUIRE(loaded.catalog);
+    match.world.useCatalog(std::move(*loaded.catalog));
+
+    GameClient nadia("Nadia", match.service.port());
+    match.connect(nadia);
+    std::vector<GameEvent> received;
+    const auto collect = [&] {
+        for (auto& event : nadia.link.takeEvents()) {
+            received.push_back(std::move(event));
+        }
+        return !received.empty();
+    };
+    match.runUntil({&nadia}, collect);
+    REQUIRE(!received.empty()); // inventaire vide envoyé à l'apparition
+    CHECK(std::holds_alternative<InventoryContents>(received.back()));
+
+    received.clear();
+    CHECK(match.world.giveItem(0, data::ItemId{0}, 7) == 0);
+    match.runUntil({&nadia}, collect);
+    REQUIRE(!received.empty());
+    CHECK(std::get<InventoryContents>(received.back()).slots[0] == InventorySlot{0, 7});
+
+    received.clear();
+    REQUIRE(nadia.link.sendEvent(MoveItem{0, 3}));
+    match.runUntil({&nadia}, collect);
+    REQUIRE(!received.empty());
+    CHECK(std::get<InventoryContents>(received.back()).slots[3] == InventorySlot{0, 7});
+    CHECK(match.world.inventoryOf(0)->slots[3].count == 7);
 }

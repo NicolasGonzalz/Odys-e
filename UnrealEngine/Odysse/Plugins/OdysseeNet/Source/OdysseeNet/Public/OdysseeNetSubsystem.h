@@ -7,6 +7,7 @@
 
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/ServerLink.hpp"
+#include "odyssee/net/GameEvents.hpp"
 #include "odyssee/net/GameMessages.hpp"
 
 #include <cstdint>
@@ -27,6 +28,27 @@ enum class EOdysseeConnection : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOdysseeConnectionChanged, EOdysseeConnection, State,
 	const FText&, Status);
+
+/** Une case de l'inventaire du joueur local (T045), prête à afficher. */
+USTRUCT(BlueprintType)
+struct FOdysseeInventorySlot
+{
+	GENERATED_BODY()
+
+	/** Identifiant stable de l'objet (`stone_axe`), vide si la case est vide. */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Inventaire")
+	FName ItemKey;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Inventaire")
+	FText Name;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Inventaire")
+	int32 Count = 0;
+
+	/** Nom de base du modèle et de l'icône (`hache_pierre`, d'après data/items.txt). */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Inventaire")
+	FString IconName;
+};
 
 /**
  * Le lien avec le serveur, pour toute la durée du jeu (il survit aux changements de carte).
@@ -81,6 +103,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Reseau")
 	FOdysseeConnectionChanged OnConnectionChanged;
 
+	/** L'inventaire du joueur (25 cases, les 5 premières = barre d'outils), tel que le serveur
+	 *  l'a envoyé. Vide avant la première réception. */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Inventaire")
+	TArray<FOdysseeInventorySlot> GetInventory() const;
+
+	/** Demande au serveur de déplacer une case vers une autre (échange ou regroupement). Le
+	 *  serveur vérifie, puis renvoie l'inventaire. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Inventaire")
+	void RequestMoveItem(int32 From, int32 To);
+
 	// --- Pour la prédiction (C++) ---------------------------------------------------------------
 
 	bool IsConnected() const { return Connection == EOdysseeConnection::Connected; }
@@ -102,6 +134,7 @@ public:
 
 private:
 	void KeepSnapshots();
+	void KeepEvents();
 	void UpdateConnectionState();
 	/** Vrai si le serveur annonce la même carte que celle chargée ici (UOdysseeWorldSubsystem). */
 	bool HasServerMap() const;
@@ -112,6 +145,7 @@ private:
 
 	std::optional<odyssee::client::ServerLink> Link;
 	std::optional<odyssee::net::Snapshot> Latest;
+	std::optional<odyssee::net::InventoryContents> Inventory;
 	odyssee::client::Interpolation Remote;
 	uint64 SnapshotVersion = 0;
 	uint32 SessionId = 0;

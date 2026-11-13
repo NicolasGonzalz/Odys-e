@@ -20,6 +20,8 @@ struct Options {
     /// Fichier monde : le même que celui du serveur. Vide : `odyssee.world` à côté de
     /// l'exécutable s'il y en a un, sinon sol plat provisoire.
     std::string worldPath;
+    /// Dossier des objets et recettes (data/). Vide : à côté de l'exécutable, ou ./data.
+    std::string dataDir;
 };
 
 /// Lit `[--name Nom] [--invite code] [--world fichier] [adresse] [port]` (sans le nom du

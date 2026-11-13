@@ -6,6 +6,7 @@
 #include "odyssee/net/ByteBuffer.hpp"
 #include "odyssee/net/ClientConnection.hpp"
 #include "odyssee/net/ControlMessages.hpp"
+#include "odyssee/net/GameEvents.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/net/GamePacket.hpp"
 #include "odyssee/net/PacketFraming.hpp"
@@ -134,6 +135,27 @@ TEST_CASE("Décodeurs : messages de jeu sur des octets aléatoires") {
         CHECK(static_cast<std::uint8_t>(typeOf(*message)) == type);
         checkBounds(*message);
         CHECK(decodeGameMessage(type, encodeGameMessage(*message)) == message);
+    }
+}
+
+TEST_CASE("Décodeurs : événements fiables (inventaire) aléatoires ou abîmés") {
+    Noise noise(0x1A7E4708);
+    InventoryContents full;
+    full.slots[0] = {3, 12};
+    const std::vector<std::vector<std::byte>> originals{encodeGameEvent(full),
+                                                        encodeGameEvent(MoveItem{1, 2})};
+    for (int i = 0; i < 20'000; ++i) {
+        const auto bytes = i % 2 == 0 ? noise.bytes(120)
+                                      : noise.mutate(originals[noise.below(originals.size())]);
+        const auto event = decodeGameEvent(bytes);
+        if (!event) {
+            continue;
+        }
+        if (const auto* move = std::get_if<MoveItem>(&*event)) {
+            CHECK(move->from < kInventorySlots);
+            CHECK(move->to < kInventorySlots);
+        }
+        CHECK(decodeGameEvent(encodeGameEvent(*event)) == event); // relu = réécrit
     }
 }
 

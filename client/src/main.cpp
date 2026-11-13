@@ -43,21 +43,19 @@ debugclient::ConnectSettings initialSettings(const debugclient::Options& options
 
 /// Une partie avec ces réglages. Le message dit pourquoi elle s'est arrêtée, s'il y a lieu.
 debugclient::SessionEnd playOnce(const debugclient::ConnectTarget& target,
-                                 const world::WorldTerrain* map,
-                                 const data::ResourceCatalog* resourceTypes) {
+                                 debugclient::GameData data) {
     auto link =
         client::ServerLink::open(target.settings.name, target.server, target.settings.inviteCode);
     if (!link) {
         return {false, "Impossible d'ouvrir un socket UDP"};
     }
-    debugclient::DebugClient game(std::move(*link), map, resourceTypes);
+    debugclient::DebugClient game(std::move(*link), data);
     return game.run();
 }
 
 /// Écran de connexion, partie, et retour à l'écran, jusqu'à ce que le joueur quitte. Avec une
 /// adresse en ligne de commande, la première partie part sans passer par l'écran.
-void play(const debugclient::Options& options, const world::WorldTerrain* map,
-          const data::ResourceCatalog* resourceTypes) {
+void play(const debugclient::Options& options, debugclient::GameData data) {
     auto settings = initialSettings(options);
     bool skipScreen = options.host.has_value();
     std::string message;
@@ -71,7 +69,7 @@ void play(const debugclient::Options& options, const world::WorldTerrain* map,
         }
         settings = target->settings;
         debugclient::saveSettings(settings, debugclient::settingsPath());
-        const auto end = playOnce(*target, map, resourceTypes);
+        const auto end = playOnce(*target, data);
         if (end.quit) {
             return;
         }
@@ -125,6 +123,25 @@ std::optional<data::ResourceCatalog> loadResourceTypes() {
     return std::nullopt;
 }
 
+/// Objets et recettes (noms de l'inventaire) : --data, sinon data/ à côté de l'exécutable ou
+/// du dossier courant. Absents : l'inventaire montre des numéros.
+std::optional<data::Catalog> loadCatalog(std::string dir) {
+    for (const std::string& candidate :
+         {dir, std::string(GetApplicationDirectory()) + "data", std::string("data")}) {
+        if (!candidate.empty() && FileExists((candidate + "/items.txt").c_str())) {
+            dir = candidate;
+            break;
+        }
+    }
+    auto result = data::Catalog::fromDirectory(dir);
+    if (!result.catalog) {
+        const std::string why =
+            result.error ? result.error->describe() : "dossier data/ introuvable";
+        std::cerr << "Objets non chargés : " << why << "\n";
+    }
+    return std::move(result.catalog);
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -140,9 +157,11 @@ int main(int argc, char** argv) {
     }
 
     const auto resourceTypes = loadResourceTypes();
+    const auto catalog = loadCatalog(options->dataDir);
 
     openWindow();
-    play(*options, map->get(), resourceTypes ? &*resourceTypes : nullptr);
+    play(*options, {map->get(), catalog ? &*catalog : nullptr,
+                    resourceTypes ? &*resourceTypes : nullptr});
     CloseWindow();
     return 0;
 }

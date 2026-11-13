@@ -117,9 +117,10 @@ void GameWorld::harvestWith(const PlayerControl& control, const Motion& motion,
         return;
     }
     harvester.cooldownTicks = strike->cooldownTicks;
-    // T045 : ajouter à l'inventaire
-    kLog.debug("joueur {} : +{} objet n°{} (ressource {})", control.id, strike->harvest.count,
-               strike->harvest.item.value, strike->node);
+    // Le gain va dans l'inventaire (T045) ; plein, le reste est perdu.
+    const std::uint16_t lost = giveItem(control.id, strike->harvest.item, strike->harvest.count);
+    kLog.debug("joueur {} : +{} objet n°{} (ressource {}, {} perdus)", control.id,
+               strike->harvest.count, strike->harvest.item.value, strike->node, lost);
 }
 
 std::size_t GameWorld::addResources(data::ResourceCatalog types, const ScatterSettings& settings) {
@@ -207,6 +208,42 @@ std::optional<sim::PlayerState> GameWorld::motionOf(net::PlayerId player) const 
     return motion ? std::optional<sim::PlayerState>(motion->state) : std::nullopt;
 }
 
+void GameWorld::receiveRequest(net::PlayerId player, const net::GameEvent& request) {
+    Inventory* inventory = mutableInventoryOf(player);
+    const auto* move = std::get_if<net::MoveItem>(&request);
+    if (inventory && move && !moveItem(*inventory, move->from, move->to, _catalog)) {
+        inventory->changed = true; // refusé : on renvoie l'état réel, le client se recale
+    }
+}
+
+std::uint16_t GameWorld::giveItem(net::PlayerId player, data::ItemId item, std::uint16_t count) {
+    Inventory* inventory = mutableInventoryOf(player);
+    return inventory ? addItem(*inventory, item, count, _catalog) : count;
+}
+
+std::optional<net::InventoryContents> GameWorld::takeInventoryUpdate(net::PlayerId player) {
+    Inventory* inventory = mutableInventoryOf(player);
+    if (!inventory || !inventory->changed) {
+        return std::nullopt;
+    }
+    inventory->changed = false;
+    return toContents(*inventory);
+}
+
+const Inventory* GameWorld::inventoryOf(net::PlayerId player) const {
+    if (player >= kMaxPlayers || !_players[player]) {
+        return nullptr;
+    }
+    return _registry.get<Inventory>(*_players[player]);
+}
+
+Inventory* GameWorld::mutableInventoryOf(net::PlayerId player) {
+    if (player >= kMaxPlayers || !_players[player]) {
+        return nullptr;
+    }
+    return _registry.get<Inventory>(*_players[player]);
+}
+
 std::optional<Vitals> GameWorld::vitalsOf(net::PlayerId player) const {
     if (player >= kMaxPlayers || !_players[player]) {
         return std::nullopt;
@@ -236,6 +273,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     _registry.add<Motion>(entity, Motion{state});
     _registry.add<Vitals>(entity); // plein de vie, rassasié, désaltéré
     _registry.add<Harvester>(entity);
+    _registry.add<Inventory>(entity); // vide ; envoyé au joueur dès le premier tick
     PlayerControl control;
     control.id = player.id;
     control.generation = player.generation;

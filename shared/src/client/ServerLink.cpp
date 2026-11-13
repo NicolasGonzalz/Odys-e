@@ -29,6 +29,7 @@ void ServerLink::poll(Clock::time_point now) {
     openSessionOnceConnected();
     receiveAll(now);
     collectSnapshots();
+    collectEvents();
     _connection.update(now);
 }
 
@@ -44,6 +45,14 @@ void ServerLink::sendInputs(const net::InputBatch& batch, Clock::time_point now)
 
 std::vector<net::Snapshot> ServerLink::takeSnapshots() {
     return std::exchange(_snapshots, {});
+}
+
+std::vector<net::GameEvent> ServerLink::takeEvents() {
+    return std::exchange(_events, {});
+}
+
+bool ServerLink::sendEvent(const net::GameEvent& event) {
+    return connected() && _session && _session->queueReliable(net::encodeGameEvent(event));
 }
 
 void ServerLink::sendControlMessages(Clock::time_point now) {
@@ -109,6 +118,17 @@ void ServerLink::collectSnapshots() {
     for (auto& message : _session->takeMessages()) {
         if (auto* snapshot = std::get_if<net::Snapshot>(&message)) {
             _snapshots.push_back(std::move(*snapshot));
+        }
+    }
+}
+
+void ServerLink::collectEvents() {
+    if (!_session) {
+        return;
+    }
+    for (const auto& payload : _session->takeReliable()) {
+        if (auto event = net::decodeGameEvent(payload)) {
+            _events.push_back(std::move(*event)); // illisible : ignoré (donnée réseau hostile)
         }
     }
 }

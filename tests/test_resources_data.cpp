@@ -206,8 +206,8 @@ TEST_CASE("Snapshot : les entités ressources passent le réseau") {
     CHECK_FALSE(net::decodeGameMessage(type, bytes).has_value());
 }
 
-TEST_CASE("Protocole : version 7 depuis les ressources") {
-    CHECK(kProtocolVersion == 7);
+TEST_CASE("Protocole : version 7 au moins depuis les ressources") {
+    CHECK(kProtocolVersion >= 7);
     CHECK(net::kFirstResourceEntity == kMaxPlayers);
 }
 

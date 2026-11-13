@@ -47,9 +47,9 @@ int otherPlayersIn(const net::Snapshot& snapshot) {
 
 } // namespace
 
-DebugClient::DebugClient(client::ServerLink link, const world::WorldTerrain* map,
-                         const data::ResourceCatalog* resourceTypes)
-    : _link(std::move(link)), _map(map), _resourceTypes(resourceTypes),
+DebugClient::DebugClient(client::ServerLink link, GameData data)
+    : _link(std::move(link)), _map(data.map), _resourceTypes(data.resourceTypes),
+      _catalog(data.catalog),
       _flat(sim::provisionalGroundHeight()),
       _prediction(_map != nullptr ? static_cast<const sim::Terrain&>(*_map) : _flat) {
     if (_map != nullptr) {
@@ -159,6 +159,7 @@ void DebugClient::setPaused(bool paused) {
 void DebugClient::tick(Clock::time_point now) {
     _link.poll(now);
     keepLatestSnapshot();
+    keepEvents();
     startPredictionWhenPossible();
 
     const auto before = _prediction.displayPosition();
@@ -176,6 +177,30 @@ void DebugClient::keepLatestSnapshot() {
             reconcileWithLatest();
         }
     }
+}
+
+void DebugClient::keepEvents() {
+    for (auto& event : _link.takeEvents()) {
+        if (auto* contents = std::get_if<net::InventoryContents>(&event)) {
+            _inventory = std::move(*contents); // le serveur renvoie tout à chaque changement
+        }
+    }
+}
+
+std::string DebugClient::hotbarText() const {
+    if (!_inventory) {
+        return "Inventaire : en attente du serveur";
+    }
+    std::string text = "Outils :";
+    for (std::size_t i = 0; i < net::kHotbarSlots; ++i) {
+        const net::InventorySlot& slot = _inventory->slots[i];
+        const data::ItemDef* def = _catalog ? _catalog->item(data::ItemId{slot.item}) : nullptr;
+        const std::string name =
+            slot.count == 0 ? "-" : (def ? def->name : "objet " + std::to_string(slot.item));
+        text += "  " + std::to_string(i + 1) + ":" + name;
+        text += slot.count > 1 ? " x" + std::to_string(slot.count) : "";
+    }
+    return text;
 }
 
 void DebugClient::reconcileWithLatest() {
@@ -257,6 +282,7 @@ HudInfo DebugClient::hudInfo() const {
     info.uploadKbps = static_cast<float>(traffic.sentKilobytesPerSecond);
     info.downloadKbps = static_cast<float>(traffic.receivedKilobytesPerSecond);
     info.playersInView = _latest ? otherPlayersIn(*_latest) : 0;
+    info.hotbar = hotbarText();
     if (_latest) {
         info.health = _latest->vitals.health;
         info.hunger = _latest->vitals.hunger;

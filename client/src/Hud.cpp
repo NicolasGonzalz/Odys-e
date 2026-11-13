@@ -72,6 +72,7 @@ void drawHud(const HudInfo& info) {
     drawStamina(6, info.stamina, info.exhausted);
     const bool low = info.health && (*info.health < 30 || *info.hunger == 0 || *info.thirst == 0);
     line(8, vitalsText(info), low ? ORANGE : RAYWHITE);
+    line(9, info.hotbar);
     DrawFPS(16, 16 + 7 * kLine);
 
     const int bottom = GetScreenHeight() - 30;

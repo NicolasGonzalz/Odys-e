@@ -17,8 +17,8 @@ struct Options {
     bool verbose = false;
     /// Fichier monde à charger (tools/worldgen/output/odyssee.world). Vide : sol plat provisoire.
     std::string worldPath;
-    /// Dossier des fichiers de données (items.txt, resources.txt…). Vide : `data` du dossier
-    /// courant, s'il existe (sinon le monde n'a pas de ressources).
+    /// Dossier des données du jeu (items.txt, recipes.txt, resources.txt). Vide : `data/` à côté
+    /// de l'exécutable, sinon `data/` du dossier courant (sinon : ni objets ni ressources).
     std::string dataDir;
     /// Code d'invitation exigé (T056), normalisé. Vide : serveur ouvert à tous.
     std::string inviteCode;

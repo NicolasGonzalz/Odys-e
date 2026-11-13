@@ -19,6 +19,8 @@
 #include "OdysseeMovementComponent.h"
 #include "UI/OdysseeGaugeWidget.h"
 #include "UI/OdysseeHudWidget.h"
+#include "UI/OdysseeToolSlotWidget.h"
+#include "UI/OdysseeUiStyle.h"
 #include "UI/OdysseeMainMenuWidget.h"
 #include "UI/OdysseePauseMenuWidget.h"
 
@@ -252,6 +254,7 @@ void AOdyssePlayerController::UpdateHud()
 
 	const UOdysseeNetSubsystem* Net = GetNet();
 	const bool bOnline = Net && Net->IsConnected();
+	UpdateToolbar(bOnline ? Net->GetInventory() : TArray<FOdysseeInventorySlot>());
 	// Besoins vitaux (T051) : calculés par le serveur ; pleins hors ligne.
 	Hud->HealthBar->SetPercent(bOnline ? Net->GetHealth() : 1.0f);
 	Hud->HungerGauge->SetProgress(bOnline ? Net->GetHunger() : 1.0f);
@@ -270,6 +273,44 @@ void AOdyssePlayerController::UpdateHud()
 	Hud->ConnectionText->SetText(Loss >= 1.0f
 		? FText::Format(LOCTEXT("Loss", "Connecté · pertes {0} %"), FText::AsNumber(FMath::RoundToInt(Loss)))
 		: LOCTEXT("Connected", "Connecté"));
+}
+
+void AOdyssePlayerController::UpdateToolbar(const TArray<FOdysseeInventorySlot>& Inventory)
+{
+	for (int32 Index = 0; Index < Hud->ToolSlots.Num(); ++Index)
+	{
+		const FOdysseeInventorySlot* Cell = Inventory.IsValidIndex(Index) ? &Inventory[Index] : nullptr;
+		const FString Key = Cell && Cell->Count > 0
+			? FString::Printf(TEXT("%s#%d"), *Cell->IconName, Cell->Count) : FString();
+		if (ShownToolbar.IsValidIndex(Index) && ShownToolbar[Index] == Key)
+		{
+			continue; // inchangée : rien à redessiner
+		}
+		ShownToolbar.SetNum(Hud->ToolSlots.Num());
+		ShownToolbar[Index] = Key;
+		const FString Icon = Key.IsEmpty() ? FString() : IconFor(Cell->IconName);
+		const int32 Count = Key.IsEmpty() ? 0 : Cell->Count;
+		Hud->ToolSlots[Index]->ShowItem(Icon.IsEmpty() ? nullptr : *Icon, Count, -1.f);
+	}
+}
+
+FString AOdyssePlayerController::IconFor(const FString& BaseName)
+{
+	// Icône : T_Ui_objet_<nom> (art/exports/icones/<nom>.png importée), sinon T_Ui_outil_<nom>,
+	// sinon aucune (la case montre seulement la quantité). Cherchée une fois par objet.
+	if (const FString* Known = IconCache.Find(BaseName))
+	{
+		return *Known;
+	}
+	FString Found;
+	for (const TCHAR* Prefix : {TEXT("objet_"), TEXT("outil_")})
+	{
+		if (Found.IsEmpty() && !BaseName.IsEmpty() && OdysseeUi::Texture(*(Prefix + BaseName)))
+		{
+			Found = Prefix + BaseName;
+		}
+	}
+	return IconCache.Add(BaseName, Found);
 }
 
 UOdysseeNetSubsystem* AOdyssePlayerController::GetNet() const

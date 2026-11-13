@@ -61,6 +61,8 @@ private:
 	void ShowMenu(const FText& Status);
 	void ShowGame();
 	void UpdateHud();
+	void UpdateToolbar(const TArray<FOdysseeInventorySlot>& Inventory);
+	FString IconFor(const FString& BaseName);
 	void SetMenuInput(UUserWidget* Focus);
 	void SetGameInput();
 	UOdysseeNetSubsystem* GetNet() const;
@@ -77,5 +79,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UOdysseeMainMenuWidget> MainMenu;
 	UPROPERTY(Transient) TObjectPtr<UOdysseePauseMenuWidget> PauseMenu;
 	bool bInGame = false;
+	TArray<FString> ShownToolbar;     ///< contenu affiché de chaque case (redessin si changement)
+	TMap<FString, FString> IconCache; ///< nom de base → texture trouvée (vide : aucune)
 
 };

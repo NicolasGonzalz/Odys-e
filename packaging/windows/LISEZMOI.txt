@@ -16,8 +16,8 @@ journal, utile si quelque chose ne marche pas.
   - Code d'invitation : celui donné par l'hôte
 Ces réglages sont retenus dans odyssee_client.cfg, à côté de l'exécutable.
 
-Garder odyssee.world à côté de odyssee_client.exe : c'est la carte, la même que celle du
-serveur.
+Garder odyssee.world et le dossier data à côté de odyssee_client.exe : la carte et les
+objets, les mêmes que ceux du serveur.
 
 Touches
 -------

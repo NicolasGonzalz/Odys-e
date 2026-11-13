@@ -17,6 +17,7 @@ add_executable(odyssee_tests
     test_client_connection.cpp
     test_quantize.cpp
     test_game_messages.cpp
+    test_game_events.cpp
     test_game_packet.cpp
     test_session.cpp
     test_fixed_math.cpp
@@ -49,6 +50,7 @@ if(ODYSSEE_BUILD_SERVER)
         test_game_world.cpp
         test_ecs.cpp
         test_vitals.cpp
+        test_inventory.cpp
         test_game_session.cpp
         test_resources.cpp
     )
