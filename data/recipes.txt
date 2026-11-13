@@ -20,53 +20,54 @@ ticks = 40
 
 [recipe rope]
 station = hand
-input = fiber 3
+input = fiber 5
 output = rope 1
 ticks = 60
 
 [recipe stone_axe]
 station = hand
 input = stick 1
-input = stone 2
-input = fiber 2
+input = stone 4
+input = fiber 3
 output = stone_axe 1
 ticks = 100
 
 [recipe stone_pickaxe]
 station = hand
 input = stick 1
-input = stone 3
-input = fiber 2
+input = stone 5
+input = fiber 3
 output = stone_pickaxe 1
 ticks = 100
 
 [recipe spear]
 station = hand
 input = stick 2
-input = stone 1
-input = fiber 2
+input = stone 3
+input = fiber 4
 output = spear 1
 ticks = 80
 
 [recipe torch]
 station = hand
 input = stick 1
-input = fiber 2
+input = fiber 3
+input = cloth 1
 output = torch 1
 ticks = 40
 
 [recipe campfire]
 station = hand
-input = wood_log 3
-input = stone 5
+input = wood_log 5
+input = stone 10
 output = campfire 1
 ticks = 100
 
 # L'établi se fait à la main, avec des bûches (les planches demandent déjà l'établi).
 [recipe workbench]
 station = hand
-input = wood_log 4
-input = stone 4
+input = wood_log 8
+input = stone 6
 output = workbench 1
 ticks = 200
 
@@ -74,8 +75,8 @@ ticks = 200
 
 [recipe plank]
 station = workbench
-input = wood_log 1
-output = plank 4
+input = wood_log 2
+output = plank 3
 ticks = 40
 
 [recipe cloth]
@@ -109,7 +110,7 @@ ticks = 300
 
 [recipe chest]
 station = workbench
-input = plank 10
+input = plank 15
 output = chest 1
 ticks = 200
 
@@ -129,8 +130,8 @@ ticks = 400
 
 [recipe backpack]
 station = workbench
-input = cloth 4
-input = rope 2
+input = cloth 8
+input = rope 4
 output = backpack 1
 ticks = 300
 
@@ -145,10 +146,10 @@ ticks = 300
 
 [recipe ingot]
 station = forge
-input = ore 2
-input = wood_log 1
+input = ore 4
+input = wood_log 3
 output = ingot 1
-ticks = 200
+ticks = 300
 
 [recipe metal_axe]
 station = forge
