@@ -7,6 +7,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 
 #include "odyssee/core/Config.hpp"

@@ -27,9 +27,7 @@ class ODYSSE_API AHorrorCharacter : public AOdysseCharacter
 	
 protected:
 
-	/** Fire weapon input action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	UInputAction* SprintAction;
+	// SprintAction : héritée d'AOdysseCharacter (même action, même nom).
 
 	/** If true, we're sprinting */
 	bool bSprinting = false;
