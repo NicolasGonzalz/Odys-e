@@ -16,6 +16,7 @@ struct HudInfo {
     std::optional<float> x, y, z;     ///< position prédite, en mètres
     float stamina = 0.0f;             ///< 0 à 1
     bool exhausted = false;
+    std::optional<int> health, hunger, thirst; ///< besoins vitaux en % (T051), venus du serveur
     int playersInView = 0;
     int corrections = 0;              ///< recalages sur le serveur (T032)
     float lastCorrectionCm = 0.0f;

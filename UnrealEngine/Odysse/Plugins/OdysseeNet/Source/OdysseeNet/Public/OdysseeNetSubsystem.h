@@ -68,6 +68,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Odyssee|Reseau")
 	float GetLossPercent() const;
 
+	/** Besoins vitaux du joueur local, de 0 à 1, calculés par le serveur (T051). Pleins hors ligne. */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survie")
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survie")
+	float GetHunger() const;
+
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survie")
+	float GetThirst() const;
+
 	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Reseau")
 	FOdysseeConnectionChanged OnConnectionChanged;
 

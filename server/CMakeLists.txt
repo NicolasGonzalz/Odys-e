@@ -4,6 +4,7 @@ add_library(odyssee_server_core STATIC
     src/ChallengeTokens.cpp
     src/ClientRegistry.cpp
     src/CommandLine.cpp
+    src/ecs/EntityPool.cpp
     src/ConnectionService.cpp
     src/GameStep.cpp
     src/GameWorld.cpp
@@ -12,6 +13,7 @@ add_library(odyssee_server_core STATIC
     src/ShutdownSignals.cpp
     src/SipHash.cpp
     src/TokenBucket.cpp
+    src/Vitals.cpp
     src/WorldLoading.cpp
 )
 target_include_directories(odyssee_server_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

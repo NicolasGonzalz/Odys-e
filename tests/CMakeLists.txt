@@ -46,6 +46,8 @@ if(ODYSSEE_BUILD_SERVER)
         test_handshake.cpp
         test_input_queue.cpp
         test_game_world.cpp
+        test_ecs.cpp
+        test_vitals.cpp
         test_game_session.cpp
     )
     target_link_libraries(odyssee_tests PRIVATE odyssee_server_core)

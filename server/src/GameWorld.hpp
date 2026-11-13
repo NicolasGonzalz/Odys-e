@@ -2,6 +2,9 @@
 
 #include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
+#include "PlayerComponents.hpp"
+#include "Vitals.hpp"
+#include "ecs/Registry.hpp"
 
 #include "odyssee/core/Config.hpp"
 #include "odyssee/net/ControlMessages.hpp"
@@ -25,8 +28,9 @@ struct SpawnPoint {
     std::uint16_t yaw = 0;
 };
 
-/// Pour l'instant : les joueurs connectés, déplacés par la simulation partagée (sim::step, la
-/// même que la prédiction du client) sur le sol et les murs de la carte (T041).
+/// Les entités du monde vivent dans un ECS (ecs::Registry, T043) ; pour l'instant, ce sont les
+/// joueurs connectés (composants PlayerControl et Motion), déplacés par la simulation partagée
+/// (sim::step, la même que la prédiction du client) sur le sol et les murs de la carte (T041).
 class GameWorld {
   public:
     /// Sans carte : sol plat provisoire (sim/ProvisionalGround.hpp), apparition dans la salle des
@@ -65,33 +69,33 @@ class GameWorld {
     ///   (aucune touche, même orientation), sans avancer les ticks du client.
     void step();
 
-    /// Ce que voit `player` : tous les joueurs, et son dernier input appliqué.
+    /// Ce que voit `player` : tous les joueurs, son dernier input appliqué et ses besoins vitaux.
     [[nodiscard]] net::Snapshot snapshotFor(net::PlayerId player, net::Tick serverTick) const;
 
     /// État de mouvement complet d'un joueur (tests, outils), s'il est dans le monde.
     [[nodiscard]] std::optional<sim::PlayerState> motionOf(net::PlayerId player) const;
 
+    /// Besoins vitaux d'un joueur (T051), s'il est dans le monde.
+    [[nodiscard]] std::optional<Vitals> vitalsOf(net::PlayerId player) const;
+
     [[nodiscard]] bool hasPlayer(net::PlayerId player) const;
     [[nodiscard]] std::size_t playerCount() const;
 
   private:
-    struct PlayerState {
-        ConnectionGeneration generation = 0;
-        sim::PlayerState motion;
-        net::Tick lastProcessedInput = 0;
-        InputQueue inputs;
-        net::InputCommand lastCommand;     ///< dernier input appliqué (reçu ou deviné)
-        std::uint32_t guessedInARow = 0;   ///< inputs devinés depuis le dernier input reçu
-    };
-
-    void stepPlayer(PlayerState& player) const;
-    void catchUp(PlayerState& player) const;
-    void apply(PlayerState& player, const net::InputCommand& command, net::Tick tick) const;
-    [[nodiscard]] PlayerState spawn(const ConnectedPlayer& player) const;
+    void stepPlayer(PlayerControl& control, Motion& motion) const;
+    void catchUp(PlayerControl& control, Motion& motion) const;
+    void apply(PlayerControl& control, Motion& motion, const net::InputCommand& command,
+               net::Tick tick) const;
+    void spawn(const ConnectedPlayer& player);
+    void despawn(net::PlayerId player);
+    [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
+    [[nodiscard]] const Motion* motionComponentOf(net::PlayerId player) const;
 
     std::unique_ptr<const sim::Terrain> _terrain;
     SpawnPoint _spawn;
-    std::array<std::optional<PlayerState>, kMaxPlayers> _players;
+    ecs::Registry _registry;
+    /// L'entité de chaque joueur connecté, par numéro de joueur.
+    std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;
 };
 
 } // namespace odyssee::server

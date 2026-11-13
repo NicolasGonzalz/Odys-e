@@ -116,6 +116,29 @@ float UOdysseeNetSubsystem::GetLossPercent() const
 	return Link ? static_cast<float>(Link->traffic(Clock::now()).incomingLossPercent) : 0.0f;
 }
 
+namespace
+{
+	float VitalFraction(std::uint8_t Percent)
+	{
+		return static_cast<float>(Percent) / static_cast<float>(odyssee::net::kMaxVital);
+	}
+}
+
+float UOdysseeNetSubsystem::GetHealth() const
+{
+	return Latest ? VitalFraction(Latest->vitals.health) : 1.0f;
+}
+
+float UOdysseeNetSubsystem::GetHunger() const
+{
+	return Latest ? VitalFraction(Latest->vitals.hunger) : 1.0f;
+}
+
+float UOdysseeNetSubsystem::GetThirst() const
+{
+	return Latest ? VitalFraction(Latest->vitals.thirst) : 1.0f;
+}
+
 std::optional<odyssee::net::PlayerId> UOdysseeNetSubsystem::GetPlayerId() const
 {
 	return Link ? Link->playerId() : std::nullopt;

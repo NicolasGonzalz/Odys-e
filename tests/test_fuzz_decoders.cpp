@@ -82,7 +82,7 @@ void checkBounds(const GameMessage& message) {
 std::vector<std::vector<std::byte>> validPackets() {
     Session session(0x1122334455667788ULL);
     session.queueUnreliable(InputBatch{7, {InputCommand{10, -10, 500, -200, 3}, InputCommand{}}});
-    Snapshot snapshot{12, 7, {EntityState{1, EntityKind::Player, {1, 2, 3}, 4, 5}}, {}};
+    Snapshot snapshot{12, 7, {EntityState{1, EntityKind::Player, {1, 2, 3}, 4, 5}}, {}, {}};
     session.queueUnreliable(snapshot);
     (void)session.queueReliable(std::vector<std::byte>(20, std::byte{0xAB}));
 

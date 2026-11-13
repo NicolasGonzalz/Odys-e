@@ -49,7 +49,7 @@ T040	14	M3	nicolas	doc,shared	2	Format du fichier monde	Format documenté et ver
 T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	Le serveur charge la carte par chunks et applique les collisions du terrain.	fait
 T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.	a_faire
 T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.	a_faire
-T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	a_faire
+T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	fait
 T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	a_faire
 T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	fait
 T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	a_faire
@@ -58,7 +58,7 @@ T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à
 T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.	a_faire
 T049	19	M4	both	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal (commun + personnel).	a_faire
 T050	19	M4	both	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.	a_faire
-T051	20	M5	both	gameplay	6	Santé, faim, soif, endurance	Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier).	a_faire
+T051	20	M5	both	gameplay	6	Santé, faim, soif, endurance	Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier).	fait
 T052	20	M5	nicolas	gameplay	6	Mort, sac au sol et réapparition	Inventaire laissé sur place, récupérable ; réapparition au point de repos.	a_faire
 T053	21	M5	nicolas	server,data	10	Persistance SQLite	Joueurs, inventaires et modifications du monde sauvegardés et rechargés.	a_faire
 T054	21	M5	nicolas	tests	2	Test de redémarrage du serveur	Arrêt/redémarrage sans perte, automatisé.	a_faire

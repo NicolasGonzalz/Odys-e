@@ -123,7 +123,7 @@ TEST_CASE("Session : les non fiables qui ne tiennent pas dans le paquet sont aba
     Session server;
     const auto now = Clock::now();
 
-    Snapshot big{1, 0, {}};
+    Snapshot big{1, 0, {}, {}, {}};
     for (EntityId id = 0; id < odyssee::kMaxSnapshotEntities; ++id) {
         big.entities.push_back(EntityState{id, EntityKind::Player, {1, 2, 3}, 0, 0});
     }
