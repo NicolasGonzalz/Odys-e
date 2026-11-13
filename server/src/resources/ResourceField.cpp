@@ -43,14 +43,18 @@ std::optional<ResourceField::Strike> ResourceField::strike(ecs::Registry& regist
     if (!target) {
         return std::nullopt;
     }
-    ResourceNode& node = *registry.get<ResourceNode>(*target);
-    const data::ResourceDef& type = *_types->type(node.type);
-    const auto harvest = tryHarvest(node, type, tool);
-    const auto interval = hitInterval(type, tool);
+    ResourceNode* node = registry.get<ResourceNode>(*target);
+    const NetworkEntity* network = registry.get<NetworkEntity>(*target);
+    const data::ResourceDef* type = node ? _types->type(node->type) : nullptr;
+    if (!node || !network || !type) {
+        return std::nullopt; // findTarget ne renvoie que des ressources complètes : par prudence
+    }
+    const auto harvest = tryHarvest(*node, *type, tool);
+    const auto interval = hitInterval(*type, tool);
     if (!harvest || !interval) {
         return std::nullopt; // exclu par findTarget : par prudence
     }
-    return Strike{*harvest, *interval, registry.get<NetworkEntity>(*target)->id};
+    return Strike{*harvest, *interval, network->id};
 }
 
 void ResourceField::appendNearby(const ecs::Registry& registry,

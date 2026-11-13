@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -78,9 +79,16 @@ class Registry {
                 continue; // plusieurs entités retirées par fn
             }
             const Entity entity = firsts.entities()[i];
-            if ((pool<Rest>().contains(entity) && ...)) {
-                fn(entity, firsts.components()[i], *pool<Rest>().find(entity)...);
-            }
+            // Chaque composant demandé, cherché une fois ; on n'appelle fn que s'ils y sont tous
+            // (le test explicite évite aussi tout déréférencement d'un pointeur nul).
+            const std::tuple<Rest*...> others{pool<Rest>().find(entity)...};
+            std::apply(
+                [&](Rest*... other) {
+                    if (((other != nullptr) && ...)) {
+                        fn(entity, firsts.components()[i], *other...);
+                    }
+                },
+                others);
         }
     }
 
