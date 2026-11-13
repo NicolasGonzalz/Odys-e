@@ -141,6 +141,15 @@ le client pour prédire (puis réconcilier) : **le résultat doit être identiqu
   (`AOdysseeRemotePlayer`, interpolés ; le Blueprint utilisé se choisit dans Paramètres du projet →
   Odyssee → Réseau). Connecté, le composant de mouvement **prédit** avec `client::Prediction` (comme le
   client de debug) : il apparaît où le serveur le dit, envoie ses inputs et se recale sur les snapshots.
+- **Ressources (T044)** : `UOdysseeCatalogSubsystem` charge aussi `resources.txt` (même dossier que
+  `items.txt`, même fichier que le serveur : le type circule par son rang). `UOdysseeResourceSync`
+  (tenu par `UOdysseeNetSubsystem`) crée, met à jour et détruit un `AOdysseeResourceActor` par entité
+  `Resource` du **dernier** snapshot, sans interpolation (elles sont fixes) ; tout est retiré à la
+  déconnexion. Forme provisoire selon `shape` (formes de base de l'Engine, plus petite et pâle une fois
+  épuisée) ; un Blueprint enfant, choisi dans Paramètres du projet → Odyssee → Réseau → Ressources, lit
+  `ResourceKey` / `bDepleted` et réagit à `OnResourceStateChanged` pour montrer de vrais modèles.
+- **Récolte** : `PrimaryAction` (clic gauche tenu, facultative) envoie `InputButton::Primary` ; le
+  serveur décide de tout (ressource visée, cadence, gain), l'inventaire revient par le canal fiable.
 - **Écrans** : `AOdyssePlayerController` affiche le menu principal au lancement (Multijoueur : adresse,
   pseudo, code ; Solo → Nouvelle partie : hors ligne), le HUD en partie (endurance, ping, pertes) et le
   menu pause sur Échap (Quitter = se déconnecter et revenir au menu).

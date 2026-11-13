@@ -102,10 +102,13 @@ odyssee::net::InputCommand UOdysseeMovementComponent::BuildCommand() const
 	Command.yaw = OdysseeUnits::YawFromDegrees(static_cast<float>(Look.Yaw));
 	Command.pitch = OdysseeUnits::PitchFromDegrees(static_cast<float>(Look.Pitch));
 
+	// Menu ouvert : pas de frappe, même si le relâchement du clic s'est perdu dans l'interface.
+	const bool bPrimary = bPrimaryHeld && !(Pawn && Pawn->IsMoveInputIgnored());
 	Command.buttons = static_cast<std::uint16_t>(
 		ButtonIf(bJumpHeld, odyssee::net::InputButton::Jump) |
 		ButtonIf(bSprintHeld, odyssee::net::InputButton::Sprint) |
-		ButtonIf(bCrouchHeld, odyssee::net::InputButton::Crouch));
+		ButtonIf(bCrouchHeld, odyssee::net::InputButton::Crouch) |
+		ButtonIf(bPrimary, odyssee::net::InputButton::Primary));
 	return Command;
 }
 

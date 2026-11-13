@@ -22,7 +22,8 @@ class UOdysseeNetSubsystem;
  *
  * - La simulation avance à pas fixe, 20 fois par seconde comme le serveur. Entre deux pas,
  *   l'affichage interpole : la caméra reste fluide à 60 images/s et plus.
- * - Les entrées (déplacement, saut, course, accroupi) sont données par le personnage ; le cap et
+ * - Les entrées (déplacement, saut, course, accroupi, action principale) sont données par le
+ *   personnage ; le cap et
  *   l'inclinaison viennent de la rotation du contrôleur (la souris).
  * - La position de simulation est celle des **pieds** ; l'acteur (une capsule, centrée) est
  *   placé `FeetToActorOffset` plus haut.
@@ -55,6 +56,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
 	void SetCrouchHeld(bool bHeld) { bCrouchHeld = bHeld; }
+
+	/** Action principale tenue (clic gauche : récolter, frapper) : InputButton::Primary. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
+	void SetPrimaryHeld(bool bHeld) { bPrimaryHeld = bHeld; }
 
 	/** Place les pieds du joueur à cet endroit (apparition, réapparition), vitesse nulle. */
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Mouvement")
@@ -122,4 +127,5 @@ private:
 	bool bJumpHeld = false;
 	bool bSprintHeld = false;
 	bool bCrouchHeld = false;
+	bool bPrimaryHeld = false;
 };
