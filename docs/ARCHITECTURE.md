@@ -41,7 +41,9 @@
 ### `server/`
 - **Boucle de jeu** : `recevoir → appliquer inputs → simuler → construire snapshots → envoyer`, à chaque tick.
 - **Gestion des sessions** : handshake, version du protocole, timeouts, déconnexion.
-- **ECS** : entités (joueurs, ressources, créatures, objets au sol) stockées en composants contigus.
+- **ECS** (maison, `server/src/ecs/`, [ADR 0004](adr/0004-ecs-maison.md)) : entités (joueurs, ressources,
+  créatures, objets au sol) stockées en composants contigus ; les systèmes sont des fonctions appelées
+  dans un ordre fixe à chaque tick. Les joueurs ont `PlayerControl` et `Motion` (T043).
 - **Area of Interest** : chaque joueur ne reçoit que les entités des chunks proches de lui.
 - **Persistance** : sauvegarde périodique et à l'arrêt (SQLite), chunks modifiés uniquement.
 
