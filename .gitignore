@@ -53,3 +53,6 @@ __pycache__/
 __pycache__/
 *.pyc
 .carte-lfs/
+
+# Journal de mise à niveau de Visual Studio
+UpgradeLog*.htm
