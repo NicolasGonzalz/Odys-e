@@ -1,0 +1,198 @@
+# Recettes d'artisanat (format : docs/DATA_FORMAT.md, règles : docs/GAMEPLAY.md §2).
+#
+# Un bloc par recette : [recipe identifiant], puis :
+#   station : où la fabriquer : hand (partout), workbench (établi) ou forge
+#   input   : un ingrédient « identifiant quantité » ; une ligne par ingrédient
+#   output  : le résultat « identifiant quantité » (une seule ligne)
+#   ticks   : durée de fabrication, 20 ticks = 1 seconde
+#
+# Les identifiants d'objets viennent de items.txt. Pas fabricables (trouvés dans le monde) :
+# lampe, jumelles, GPS, armes à feu, munitions, carte, journal, gourde, piles, terminal.
+# Quantités et durées provisoires, à équilibrer en jeu.
+
+# --- À la main : survivre la première nuit -----------------------------------
+
+[recipe stick]
+station = hand
+input = wood_log 1
+output = stick 4
+ticks = 40
+
+[recipe rope]
+station = hand
+input = fiber 3
+output = rope 1
+ticks = 60
+
+[recipe stone_axe]
+station = hand
+input = stick 1
+input = stone 2
+input = fiber 2
+output = stone_axe 1
+ticks = 100
+
+[recipe stone_pickaxe]
+station = hand
+input = stick 1
+input = stone 3
+input = fiber 2
+output = stone_pickaxe 1
+ticks = 100
+
+[recipe spear]
+station = hand
+input = stick 2
+input = stone 1
+input = fiber 2
+output = spear 1
+ticks = 80
+
+[recipe torch]
+station = hand
+input = stick 1
+input = fiber 2
+output = torch 1
+ticks = 40
+
+[recipe campfire]
+station = hand
+input = wood_log 3
+input = stone 5
+output = campfire 1
+ticks = 100
+
+# L'établi se fait à la main, avec des bûches (les planches demandent déjà l'établi).
+[recipe workbench]
+station = hand
+input = wood_log 4
+input = stone 4
+output = workbench 1
+ticks = 200
+
+# --- Établi : travailler le bois et assembler --------------------------------
+
+[recipe plank]
+station = workbench
+input = wood_log 1
+output = plank 4
+ticks = 40
+
+[recipe cloth]
+station = workbench
+input = fiber 6
+output = cloth 1
+ticks = 100
+
+[recipe bow]
+station = workbench
+input = stick 3
+input = rope 2
+output = bow 1
+ticks = 160
+
+[recipe arrow]
+station = workbench
+input = stick 1
+input = stone 1
+input = fiber 1
+output = arrow 5
+ticks = 60
+
+[recipe crossbow]
+station = workbench
+input = plank 4
+input = rope 2
+input = ingot 1
+output = crossbow 1
+ticks = 300
+
+[recipe chest]
+station = workbench
+input = plank 10
+output = chest 1
+ticks = 200
+
+[recipe cartography_table]
+station = workbench
+input = plank 8
+input = rope 2
+output = cartography_table 1
+ticks = 300
+
+[recipe forge]
+station = workbench
+input = stone 20
+input = plank 6
+output = forge 1
+ticks = 400
+
+[recipe backpack]
+station = workbench
+input = cloth 4
+input = rope 2
+output = backpack 1
+ticks = 300
+
+[recipe sleeping_bag]
+station = workbench
+input = cloth 6
+input = fiber 4
+output = sleeping_bag 1
+ticks = 300
+
+# --- Forge : fondre et travailler le métal -----------------------------------
+
+[recipe ingot]
+station = forge
+input = ore 2
+input = wood_log 1
+output = ingot 1
+ticks = 200
+
+[recipe metal_axe]
+station = forge
+input = ingot 3
+input = stick 1
+output = metal_axe 1
+ticks = 300
+
+[recipe metal_pickaxe]
+station = forge
+input = ingot 3
+input = stick 1
+output = metal_pickaxe 1
+ticks = 300
+
+[recipe hammer]
+station = forge
+input = ingot 2
+input = stick 1
+output = hammer 1
+ticks = 200
+
+[recipe knife]
+station = forge
+input = ingot 1
+input = plank 1
+output = knife 1
+ticks = 200
+
+[recipe crowbar]
+station = forge
+input = ingot 3
+output = crowbar 1
+ticks = 240
+
+[recipe metal_chest]
+station = forge
+input = ingot 6
+input = plank 4
+output = metal_chest 1
+ticks = 400
+
+[recipe gun_part]
+station = forge
+input = ingot 2
+output = gun_part 1
+ticks = 300

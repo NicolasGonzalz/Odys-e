@@ -38,7 +38,7 @@
 | M1 — Premier contact réseau | 10 / 16 | 44 / 70 h | — |
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
-| M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
+| M4 — Récolter, fabriquer, enquêter | 5 / 16 | 23 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 1 / 9 | 4 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
@@ -188,7 +188,7 @@
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T045 | Nicolas | Inventaire synchronisé | 6 | Inventaire serveur, mis à jour via le canal fiable. |
-| ☐ | T046 | Nicolas | Objets et recettes data-driven | 6 | Objets et recettes décrits dans des fichiers de données. |
+| ☑ | T046 | Nicolas | Objets et recettes data-driven | 6 | Objets et recettes décrits dans des fichiers de données. |
 | ☐ | T072 | Coéquipier | Animations de combat | 8 | Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal. |
 
 ### Semaine 18 — du 15 mars 2027 · M4 · Nicolas 10 h · Coéquipier 8 h
