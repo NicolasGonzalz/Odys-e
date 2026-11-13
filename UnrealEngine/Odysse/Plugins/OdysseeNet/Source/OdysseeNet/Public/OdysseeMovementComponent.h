@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 
 #include "odyssee/client/Prediction.hpp"
+#include "odyssee/net/ControlMessages.hpp" // PlayerId
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Movement.hpp"
 

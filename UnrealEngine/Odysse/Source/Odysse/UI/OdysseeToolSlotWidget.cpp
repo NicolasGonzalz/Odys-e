@@ -35,7 +35,9 @@ UWidget* UOdysseeToolSlotWidget::BuildTree()
 	Place(Root->AddChildToOverlay(CountText), HAlign_Right, VAlign_Bottom, FMargin(11.f, 0.f, 12.f, 14.f));
 	Place(Root->AddChildToOverlay(MakeSized(DurabilityBar, FVector2D(SlotSize - 30.f, 7.f))), HAlign_Center,
 		VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 8.f));
-	return MakeSized(Root, FVector2D(SlotSize));
+	USizeBox* Box = MakeSized(Root, FVector2D(SlotSize));
+	ShowItem(nullptr, 0, -1.f); // case vide tant que le jeu n'y met rien
+	return Box;
 }
 
 void UOdysseeToolSlotWidget::SetKey(int32 InKey)
