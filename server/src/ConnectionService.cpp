@@ -83,6 +83,28 @@ void ConnectionService::queueSnapshot(net::PlayerId player, const net::Snapshot&
     }
 }
 
+std::vector<net::GameEvent> ConnectionService::takeEvents(net::PlayerId player) {
+    std::vector<net::GameEvent> events;
+    if (player >= kMaxPlayers || !_links[player]) {
+        return events;
+    }
+    for (const auto& payload : _links[player]->session.takeReliable()) {
+        if (auto event = net::decodeGameEvent(payload)) {
+            events.push_back(std::move(*event));
+        } else {
+            ++_stats.invalid; // donnée réseau hostile : ignorée
+        }
+    }
+    return events;
+}
+
+void ConnectionService::queueEvent(net::PlayerId player, const net::GameEvent& event) {
+    if (player < kMaxPlayers && _links[player] &&
+        !_links[player]->session.queueReliable(net::encodeGameEvent(event))) {
+        kLog.warn("joueur {} : trop de messages fiables en attente, événement perdu", player);
+    }
+}
+
 void ConnectionService::flushGame(Clock::time_point now) {
     for (auto& link : _links) {
         if (!link) {

@@ -3,6 +3,7 @@
 #include "odyssee/client/TrafficMeter.hpp"
 #include "odyssee/net/Address.hpp"
 #include "odyssee/net/ClientConnection.hpp"
+#include "odyssee/net/GameEvents.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/net/PacketFraming.hpp"
 #include "odyssee/net/Session.hpp"
@@ -45,6 +46,13 @@ class ServerLink {
     /// Les snapshots reçus depuis le dernier appel, dans l'ordre d'arrivée.
     [[nodiscard]] std::vector<net::Snapshot> takeSnapshots();
 
+    /// Les événements fiables reçus depuis le dernier appel (inventaire…), dans l'ordre d'envoi.
+    [[nodiscard]] std::vector<net::GameEvent> takeEvents();
+
+    /// Envoie un événement fiable (demande de déplacement d'objet…) avec le prochain paquet ;
+    /// il est renvoyé jusqu'à son acquittement. Faux si pas connecté ou file pleine.
+    bool sendEvent(const net::GameEvent& event);
+
     [[nodiscard]] net::ConnectionState state() const { return _connection.state(); }
     [[nodiscard]] bool connected() const { return state() == net::ConnectionState::Connected; }
     [[nodiscard]] std::optional<net::PlayerId> playerId() const { return _connection.playerId(); }
@@ -73,12 +81,14 @@ class ServerLink {
     void handle(std::span<const std::byte> datagram, Clock::time_point now);
     void handleGamePacket(const net::IncomingPacket& packet, Clock::time_point now);
     void collectSnapshots();
+    void collectEvents();
 
     net::ClientConnection _connection;
     std::optional<net::Session> _session; ///< créée une fois connecté (il faut le jeton)
     net::UdpSocket _socket;
     net::Address _server;
     std::vector<net::Snapshot> _snapshots;
+    std::vector<net::GameEvent> _events;
     TrafficMeter _traffic;
 };
 

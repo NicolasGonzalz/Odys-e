@@ -1,5 +1,6 @@
 #include "OdysseeNetSubsystem.h"
 
+#include "OdysseeCatalogSubsystem.h"
 #include "OdysseeNetSettings.h"
 #include "OdysseeRemotePlayer.h"
 #include "OdysseeUnits.h"
@@ -7,6 +8,7 @@
 
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "Misc/Paths.h"
 
 #include "odyssee/core/Config.hpp"
 #include "odyssee/net/Address.hpp"
@@ -90,6 +92,7 @@ void UOdysseeNetSubsystem::Disconnect()
 		Link.reset();
 	}
 	Latest.reset();
+	Inventory.reset();
 	RemoveRemotePlayers();
 	if (Connection == EOdysseeConnection::Connecting || Connection == EOdysseeConnection::Connected)
 	{
@@ -162,6 +165,7 @@ void UOdysseeNetSubsystem::Tick(float DeltaTime)
 	}
 	Link->poll(Clock::now());
 	KeepSnapshots();
+	KeepEvents();
 	UpdateConnectionState();
 	if (Link) // une connexion perdue vient peut-être d'être fermée
 	{
@@ -180,6 +184,57 @@ void UOdysseeNetSubsystem::KeepSnapshots()
 			Latest = std::move(Snapshot);
 			++SnapshotVersion;
 		}
+	}
+}
+
+void UOdysseeNetSubsystem::KeepEvents()
+{
+	for (auto& Event : Link->takeEvents())
+	{
+		if (auto* Contents = std::get_if<odyssee::net::InventoryContents>(&Event))
+		{
+			Inventory = std::move(*Contents); // le serveur renvoie tout à chaque changement
+		}
+	}
+}
+
+TArray<FOdysseeInventorySlot> UOdysseeNetSubsystem::GetInventory() const
+{
+	TArray<FOdysseeInventorySlot> Slots;
+	if (!Inventory)
+	{
+		return Slots;
+	}
+	const UOdysseeCatalogSubsystem* Data = GetGameInstance()->GetSubsystem<UOdysseeCatalogSubsystem>();
+	const odyssee::data::Catalog* Catalog = Data ? Data->GetCatalog() : nullptr;
+	for (const odyssee::net::InventorySlot& Cell : Inventory->slots)
+	{
+		FOdysseeInventorySlot& Shown = Slots.AddDefaulted_GetRef();
+		Shown.Count = Cell.count;
+		const odyssee::data::ItemDef* Def =
+			Catalog && Cell.count > 0 ? Catalog->item(odyssee::data::ItemId{Cell.item}) : nullptr;
+		if (Def)
+		{
+			Shown.ItemKey = FName(UTF8_TO_TCHAR(Def->key.c_str()));
+			Shown.Name = FText::FromString(UTF8_TO_TCHAR(Def->name.c_str()));
+			Shown.IconName = FPaths::GetBaseFilename(UTF8_TO_TCHAR(Def->model.c_str()));
+		}
+		else if (Cell.count > 0)
+		{
+			Shown.Name = FText::Format(LOCTEXT("UnknownItem", "Objet {0}"), FText::AsNumber(Cell.item));
+		}
+	}
+	return Slots;
+}
+
+void UOdysseeNetSubsystem::RequestMoveItem(int32 From, int32 To)
+{
+	const int32 SlotCount = static_cast<int32>(odyssee::net::kInventorySlots);
+	const bool bValid = From >= 0 && To >= 0 && From < SlotCount && To < SlotCount;
+	if (Link && bValid)
+	{
+		Link->sendEvent(
+			odyssee::net::MoveItem{static_cast<std::uint8_t>(From), static_cast<std::uint8_t>(To)});
 	}
 }
 

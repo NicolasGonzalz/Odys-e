@@ -52,7 +52,7 @@ T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, vil
 T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	fait
 T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	fait
 T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	fait
-T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	a_faire
+T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	fait
 T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.	fait
 T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.	a_faire
 T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.	a_faire

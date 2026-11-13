@@ -2,6 +2,7 @@
 
 #include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
+#include "Inventory.hpp"
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
 #include "ecs/Registry.hpp"
@@ -19,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <utility>
 
 namespace odyssee::server {
 
@@ -54,6 +56,22 @@ class GameWorld {
 
     /// Inputs reçus d'un joueur (ignorés s'il n'est pas dans le monde).
     void receiveInputs(net::PlayerId player, const net::InputBatch& batch);
+
+    /// Objets et recettes du jeu (data/, T046). Sans catalogue, aucun objet n'existe.
+    void useCatalog(data::Catalog catalog) { _catalog = std::move(catalog); }
+    [[nodiscard]] const data::Catalog& catalog() const { return _catalog; }
+
+    /// Demande fiable d'un joueur (déplacer un objet de l'inventaire…), vérifiée par le serveur.
+    void receiveRequest(net::PlayerId player, const net::GameEvent& request);
+
+    /// Donne des objets à un joueur (récolte, artisanat…). Renvoie ce qui n'a pas trouvé de place.
+    std::uint16_t giveItem(net::PlayerId player, data::ItemId item, std::uint16_t count);
+
+    /// L'inventaire d'un joueur s'il a changé depuis le dernier appel (à lui renvoyer), sinon rien.
+    [[nodiscard]] std::optional<net::InventoryContents> takeInventoryUpdate(net::PlayerId player);
+
+    /// Inventaire d'un joueur (tests, outils), s'il est dans le monde.
+    [[nodiscard]] const Inventory* inventoryOf(net::PlayerId player) const;
 
     /// Inputs manquants devinés d'affilée, au plus (200 ms). Voir step().
     static constexpr std::uint32_t kMaxGuessedInputs = 4;
@@ -109,10 +127,12 @@ class GameWorld {
     void despawn(net::PlayerId player);
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
     [[nodiscard]] const Motion* motionComponentOf(net::PlayerId player) const;
+    [[nodiscard]] Inventory* mutableInventoryOf(net::PlayerId player);
 
     std::unique_ptr<const sim::Terrain> _terrain;
     SpawnPoint _spawn;
     std::uint64_t _worldFingerprint = 0;
+    data::Catalog _catalog;
     ecs::Registry _registry;
     /// L'entité de chaque joueur connecté, par numéro de joueur.
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;

@@ -187,7 +187,7 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T045 | Nicolas | Inventaire synchronisé | 6 | Inventaire serveur, mis à jour via le canal fiable. |
+| ☑ | T045 | Nicolas | Inventaire synchronisé | 6 | Inventaire serveur, mis à jour via le canal fiable. |
 | ☑ | T046 | Nicolas | Objets et recettes data-driven | 6 | Objets et recettes décrits dans des fichiers de données. |
 | ☐ | T072 | Coéquipier | Animations de combat | 8 | Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal. |
 

@@ -409,3 +409,16 @@ TEST_CASE("Snapshot : un joueur absent du monde ne reçoit pas de ressources") {
     world.addResources(resourceTypes(), one);
     CHECK(world.snapshotFor(2, 1).entities.empty());
 }
+
+TEST_CASE("Monde : le bois récolté arrive dans l'inventaire du joueur (T045)") {
+    GameWorld world = worldWithTreeAhead();
+    world.useCatalog(items());
+    (void)world.takeInventoryUpdate(0); // inventaire vide de l'apparition
+
+    tickHolding(world, 1); // premier coup tout de suite
+    const auto woodLog = items().findItem("wood_log");
+    REQUIRE(woodLog);
+    REQUIRE(world.inventoryOf(0) != nullptr);
+    CHECK(server::countItem(*world.inventoryOf(0), *woodLog) > 0);
+    CHECK(world.takeInventoryUpdate(0)); // le joueur en est prévenu
+}

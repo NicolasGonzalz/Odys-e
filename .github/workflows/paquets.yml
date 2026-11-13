@@ -13,6 +13,7 @@ on:
       - .github/workflows/paquets.yml
       - .github/actions/carte-lfs/**
       - packaging/**
+      - data/**
 
 jobs:
   windows-client:
@@ -39,6 +40,7 @@ jobs:
           Copy-Item build/client/Release/odyssee_client.exe odyssee-windows/
           Copy-Item build/server/Release/odyssee_server.exe odyssee-windows/
           Copy-Item tools/worldgen/output/odyssee.world odyssee-windows/
+          Copy-Item -Recurse data odyssee-windows/data
           Copy-Item packaging/windows/LISEZMOI.txt odyssee-windows/
 
       - uses: actions/upload-artifact@v4
@@ -70,6 +72,7 @@ jobs:
           mkdir -p odyssee-server-linux
           strip -o odyssee-server-linux/odyssee_server build/server/odyssee_server
           cp tools/worldgen/output/odyssee.world odyssee-server-linux/
+          cp -r data odyssee-server-linux/data
           ./odyssee-server-linux/odyssee_server --help 2>&1 | head -1 || true
 
       - uses: actions/upload-artifact@v4

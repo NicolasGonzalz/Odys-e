@@ -11,7 +11,8 @@ namespace odyssee {
 /// 2 : paquets de jeu (T024). 3 : poignée de main sans état, jeton de session.
 /// 4 : code d'invitation dans la réponse au défi (T056). 5 : besoins vitaux dans le snapshot (T051).
 /// 6 : empreinte de la carte dans l'acceptation. 7 : entités ressources dans le snapshot (T044).
-inline constexpr std::uint16_t kProtocolVersion = 7;
+/// 8 : événements fiables (inventaire, T045).
+inline constexpr std::uint16_t kProtocolVersion = 8;
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;

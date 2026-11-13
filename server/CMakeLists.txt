@@ -1,6 +1,7 @@
 # Cœur du serveur, en bibliothèque pour pouvoir le tester.
 add_library(odyssee_server_core STATIC
     src/Server.cpp
+    src/CatalogLoading.cpp
     src/ChallengeTokens.cpp
     src/ClientRegistry.cpp
     src/CommandLine.cpp
@@ -9,6 +10,7 @@ add_library(odyssee_server_core STATIC
     src/GameStep.cpp
     src/GameWorld.cpp
     src/InputQueue.cpp
+    src/Inventory.cpp
     src/IpRateLimiter.cpp
     src/ShutdownSignals.cpp
     src/SipHash.cpp

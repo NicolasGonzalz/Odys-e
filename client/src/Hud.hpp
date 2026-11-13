@@ -17,6 +17,7 @@ struct HudInfo {
     float stamina = 0.0f;             ///< 0 à 1
     bool exhausted = false;
     std::optional<int> health, hunger, thirst; ///< besoins vitaux en % (T051), venus du serveur
+    std::string hotbar; ///< barre d'outils de l'inventaire (T045)
     int playersInView = 0;
     int corrections = 0;              ///< recalages sur le serveur (T032)
     float lastCorrectionCm = 0.0f;

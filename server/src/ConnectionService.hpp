@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ClientRegistry.hpp"
+
+#include "odyssee/net/GameEvents.hpp"
 #include "IpRateLimiter.hpp"
 #include "TokenBucket.hpp"
 
@@ -71,6 +73,12 @@ class ConnectionService {
 
     /// Snapshot à envoyer à un joueur dans son prochain paquet.
     void queueSnapshot(net::PlayerId player, const net::Snapshot& snapshot);
+
+    /// Événements fiables reçus d'un joueur depuis le dernier appel (illisibles : ignorés).
+    [[nodiscard]] std::vector<net::GameEvent> takeEvents(net::PlayerId player);
+
+    /// Événement à envoyer à un joueur sur le canal fiable (renvoyé jusqu'à son acquittement).
+    void queueEvent(net::PlayerId player, const net::GameEvent& event);
 
     /// Envoie un paquet de jeu à chaque joueur connecté (snapshot, messages fiables dus,
     /// acquittements).

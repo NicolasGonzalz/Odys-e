@@ -32,6 +32,7 @@ add_library(odyssee_shared STATIC
     src/net/PacketHeader.cpp
     src/net/ReceivedPackets.cpp
     src/net/ReliableCodec.cpp
+    src/net/GameEvents.cpp
     src/net/ReliableReceiver.cpp
     src/net/ReliableSender.cpp
     src/net/Session.cpp

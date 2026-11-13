@@ -1,4 +1,5 @@
 // Point d'entrée du serveur : lit les options, prépare le serveur, puis le lance.
+#include "CatalogLoading.hpp"
 #include "CommandLine.hpp"
 #include "ResourceLoading.hpp"
 #include "Server.hpp"
@@ -45,10 +46,17 @@ int main(int argc, char** argv) {
     if (!world) {
         return EXIT_FAILURE;
     }
+    const std::string dataDir = server::findDataDir(options->dataDir, argv[0]);
+    auto catalog = server::loadCatalog(dataDir);
+    if (!catalog) {
+        return EXIT_FAILURE;
+    }
+    world->useCatalog(std::move(*catalog));
+
     // Sans carte, une douzaine de ressources sur le sol plat, autour du point d'apparition.
     const auto& scatter =
         options->worldPath.empty() ? server::kProvisionalScatter : server::kMapScatter;
-    if (!server::populateResources(*world, options->dataDir, scatter)) {
+    if (!server::populateResources(*world, dataDir, scatter)) {
         return EXIT_FAILURE;
     }
 

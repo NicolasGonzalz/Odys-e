@@ -30,7 +30,7 @@ bool acceptPositional(Options& options, std::string_view arg, int& positional) {
 }
 
 bool isTextOption(std::string_view arg) {
-    return arg == "--name" || arg == "--invite" || arg == "--world";
+    return arg == "--name" || arg == "--invite" || arg == "--world" || arg == "--data";
 }
 
 void applyTextOption(Options& options, std::string_view name, std::string value) {
@@ -38,6 +38,8 @@ void applyTextOption(Options& options, std::string_view name, std::string value)
         options.name = std::move(value);
     } else if (name == "--invite") {
         options.inviteCode = std::move(value);
+    } else if (name == "--data") {
+        options.dataDir = std::move(value);
     } else {
         options.worldPath = std::move(value);
     }

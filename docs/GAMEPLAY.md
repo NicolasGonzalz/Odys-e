@@ -57,13 +57,19 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
   le rocher), **deux fois plus lent à la main**. Certaines ressources (filon) ne se récoltent pas à la main.
 - Après son dernier coup, la ressource est **épuisée** (affichée pâle) et **repousse** entière au bout de
   `regrow` ticks (5 min pour un arbre). Pas de repousse partielle : entamée, elle le reste.
-- Le serveur décide de tout (portée, cadence, gain) ; le client ne fait que montrer. Le gain ira dans
-  l'inventaire avec T045 (pour l'instant, journal du serveur en `--verbose`). L'outil tenu viendra avec
-  l'inventaire : en attendant, tout le monde récolte à la main.
+- Le serveur décide de tout (portée, cadence, gain) ; le client ne fait que montrer. Le gain va dans
+  l'**inventaire** (T045) ; plein, le reste est perdu. L'outil tenu (case active de la barre d'outils)
+  viendra ensuite : en attendant, tout le monde récolte à la main.
 - **Placement provisoire** : tant que la carte n'a pas de marqueurs de ressources (T038), le serveur les tire
   au hasard **avec une graine fixe** (toujours les mêmes) : ~160 entre 15 et 130 m du point d'apparition, sur
   le relief à découvert (ni trou, ni mur, ni toit, pente douce), 4 m d'écart au moins ; sans carte, une
   douzaine autour du point d'apparition.
+### Inventaire (T045)
+
+- 25 cases ; les 5 premières sont la **barre d'outils** (touches 1 à 5 du HUD). Piles limitées par objet
+  (`stack` dans `data/items.txt`).
+- Tenu par le serveur seul : récolte et artisanat y ajoutent, le joueur ne fait que réorganiser
+  (déplacer une case : échange, ou regroupement d'une même pile).
 
 ## 3. Carte et exploration
 
