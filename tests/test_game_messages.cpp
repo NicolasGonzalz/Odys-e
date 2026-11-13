@@ -67,17 +67,29 @@ TEST_CASE("GameMessages : un lot trop long ne garde que les inputs les plus réc
 }
 
 TEST_CASE("GameMessages : aller-retour d'un snapshot") {
-    const Snapshot snapshot{4242, 1004, {player(0), player(1), player(7)}, {{-45, 12, -6}, 731}};
+    const Snapshot snapshot{
+        4242, 1004, {player(0), player(1), player(7)}, {{-45, 12, -6}, 731}, {87, 40, 0}};
     const auto decoded = roundTrip(snapshot);
     REQUIRE(decoded.has_value());
     CHECK(std::get<Snapshot>(*decoded) == snapshot);
 
-    const Snapshot empty{1, 0, {}};
+    const Snapshot empty{1, 0, {}, {}, {}};
     CHECK(roundTrip(empty) == GameMessage{empty});
 }
 
+TEST_CASE("GameMessages : besoins vitaux au-delà de 100 % refusés") {
+    for (std::size_t field = 0; field < 3; ++field) {
+        Snapshot snapshot{1, 0, {}, {}, {}};
+        auto bytes = encodeGameMessage(snapshot);
+        // Après serverTick, lastProcessedInput (4 + 4), vitesse (3 × 2) et endurance (2).
+        bytes[4 + 4 + 6 + 2 + field] = std::byte{101};
+        CHECK_FALSE(
+            decodeGameMessage(static_cast<std::uint8_t>(GameMessageType::Snapshot), bytes));
+    }
+}
+
 TEST_CASE("GameMessages : un snapshot plein tient dans un paquet") {
-    Snapshot snapshot{1, 1, {}};
+    Snapshot snapshot{1, 1, {}, {}, {}};
     for (EntityId id = 0; id < odyssee::kMaxSnapshotEntities + 5; ++id) {
         snapshot.entities.push_back(player(id));
     }
@@ -133,11 +145,11 @@ TEST_CASE("GameMessages : snapshots invalides refusés") {
     const auto type = static_cast<std::uint8_t>(GameMessageType::Snapshot);
 
     SUBCASE("entité en double") {
-        const Snapshot twice{1, 1, {player(3), player(3)}};
+        const Snapshot twice{1, 1, {player(3), player(3)}, {}, {}};
         CHECK_FALSE(decodeGameMessage(type, encodeGameMessage(twice)).has_value());
     }
     SUBCASE("sorte d'entité inconnue") {
-        auto bytes = encodeGameMessage(Snapshot{1, 1, {player(3)}});
+        auto bytes = encodeGameMessage(Snapshot{1, 1, {player(3)}, {}, {}});
         bytes[19] = std::byte{99}; // kind : après ticks (8), self (8), compteur (1) et id (2)
         CHECK_FALSE(decodeGameMessage(type, bytes).has_value());
     }
@@ -154,7 +166,7 @@ TEST_CASE("GameMessages : snapshots invalides refusés") {
 }
 
 TEST_CASE("GameMessages : type de message inconnu refusé") {
-    const auto bytes = encodeGameMessage(Snapshot{1, 1, {}});
+    const auto bytes = encodeGameMessage(Snapshot{1, 1, {}, {}, {}});
     CHECK_FALSE(decodeGameMessage(0, bytes).has_value());
     CHECK_FALSE(decodeGameMessage(200, bytes).has_value());
 }

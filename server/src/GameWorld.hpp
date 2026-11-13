@@ -3,6 +3,7 @@
 #include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
 #include "PlayerComponents.hpp"
+#include "Vitals.hpp"
 #include "ecs/Registry.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -68,11 +69,14 @@ class GameWorld {
     ///   (aucune touche, même orientation), sans avancer les ticks du client.
     void step();
 
-    /// Ce que voit `player` : tous les joueurs, et son dernier input appliqué.
+    /// Ce que voit `player` : tous les joueurs, son dernier input appliqué et ses besoins vitaux.
     [[nodiscard]] net::Snapshot snapshotFor(net::PlayerId player, net::Tick serverTick) const;
 
     /// État de mouvement complet d'un joueur (tests, outils), s'il est dans le monde.
     [[nodiscard]] std::optional<sim::PlayerState> motionOf(net::PlayerId player) const;
+
+    /// Besoins vitaux d'un joueur (T051), s'il est dans le monde.
+    [[nodiscard]] std::optional<Vitals> vitalsOf(net::PlayerId player) const;
 
     [[nodiscard]] bool hasPlayer(net::PlayerId player) const;
     [[nodiscard]] std::size_t playerCount() const;

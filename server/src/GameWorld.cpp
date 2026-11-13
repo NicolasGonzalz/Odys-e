@@ -77,6 +77,11 @@ void GameWorld::step() {
     // Système « joueurs » : chaque entité pilotée par un joueur avance d'un tick.
     _registry.each<PlayerControl, Motion>([this](ecs::Entity, PlayerControl& control,
                                                  Motion& motion) { stepPlayer(control, motion); });
+
+    // Système « besoins vitaux » (T051) : faim et soif baissent, la vie suit. Courir coûte plus.
+    _registry.each<Vitals, Motion>([](ecs::Entity, Vitals& vitals, const Motion& motion) {
+        vitals = stepVitals(vitals, motion.state.has(sim::kSprinting));
+    });
 }
 
 void GameWorld::stepPlayer(PlayerControl& control, Motion& motion) const {
@@ -116,10 +121,13 @@ void GameWorld::apply(PlayerControl& control, Motion& motion, const net::InputCo
 }
 
 net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick) const {
-    net::Snapshot snapshot{serverTick, 0, {}, {}};
+    net::Snapshot snapshot{serverTick, 0, {}, {}, {}};
     if (const PlayerControl* own = controlOf(player)) {
         snapshot.lastProcessedInput = own->lastProcessedInput;
         snapshot.self = sim::toOwnMotion(motionComponentOf(player)->state);
+        if (const auto vitals = vitalsOf(player)) {
+            snapshot.vitals = toOwnVitals(*vitals);
+        }
     }
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         if (const Motion* motion = motionComponentOf(id)) {
@@ -133,6 +141,14 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
 std::optional<sim::PlayerState> GameWorld::motionOf(net::PlayerId player) const {
     const Motion* motion = motionComponentOf(player);
     return motion ? std::optional<sim::PlayerState>(motion->state) : std::nullopt;
+}
+
+std::optional<Vitals> GameWorld::vitalsOf(net::PlayerId player) const {
+    if (player >= kMaxPlayers || !_players[player]) {
+        return std::nullopt;
+    }
+    const Vitals* vitals = _registry.get<Vitals>(*_players[player]);
+    return vitals ? std::optional<Vitals>(*vitals) : std::nullopt;
 }
 
 bool GameWorld::hasPlayer(net::PlayerId player) const {
@@ -154,6 +170,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
 
     const ecs::Entity entity = _registry.create();
     _registry.add<Motion>(entity, Motion{state});
+    _registry.add<Vitals>(entity); // plein de vie, rassasié, désaltéré
     PlayerControl control;
     control.id = player.id;
     control.generation = player.generation;

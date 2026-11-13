@@ -21,7 +21,7 @@ std::vector<std::byte> bytesOf(std::initializer_list<int> values) {
 }
 
 GamePacketBody sampleBody() {
-    const Snapshot snapshot{77, 12, {EntityState{2, EntityKind::Player, {1, 2, 3}, 4, 0}}};
+    const Snapshot snapshot{77, 12, {EntityState{2, EntityKind::Player, {1, 2, 3}, 4, 0}}, {}, {}};
     return GamePacketBody{
         {ReliableMessage{5, bytesOf({1, 2, 3})}, ReliableMessage{6, {}}},
         {UnreliableMessage{static_cast<std::uint8_t>(GameMessageType::Snapshot),

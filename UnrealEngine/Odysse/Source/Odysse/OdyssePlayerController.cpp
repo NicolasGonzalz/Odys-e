@@ -17,6 +17,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "OdysseCharacter.h"
 #include "OdysseeMovementComponent.h"
+#include "UI/OdysseeGaugeWidget.h"
 #include "UI/OdysseeHudWidget.h"
 #include "UI/OdysseeMainMenuWidget.h"
 #include "UI/OdysseePauseMenuWidget.h"
@@ -250,7 +251,13 @@ void AOdyssePlayerController::UpdateHud()
 	}
 
 	const UOdysseeNetSubsystem* Net = GetNet();
-	if (!Net || !Net->IsConnected())
+	const bool bOnline = Net && Net->IsConnected();
+	// Besoins vitaux (T051) : calculés par le serveur ; pleins hors ligne.
+	Hud->HealthBar->SetPercent(bOnline ? Net->GetHealth() : 1.0f);
+	Hud->HungerGauge->SetProgress(bOnline ? Net->GetHunger() : 1.0f);
+	Hud->ThirstGauge->SetProgress(bOnline ? Net->GetThirst() : 1.0f);
+
+	if (!bOnline)
 	{
 		Hud->PingText->SetText(FText::GetEmpty());
 		Hud->ConnectionText->SetText(LOCTEXT("Offline", "Hors ligne"));
