@@ -422,3 +422,21 @@ TEST_CASE("Monde : le bois récolté arrive dans l'inventaire du joueur (T045)")
     CHECK(server::countItem(*world.inventoryOf(0), *woodLog) > 0);
     CHECK(world.takeInventoryUpdate(0)); // le joueur en est prévenu
 }
+
+TEST_CASE("Monde : la hache tenue (case active) récolte deux fois plus vite (T047)") {
+    GameWorld world = worldWithTreeAhead();
+    world.useCatalog(items());
+    const auto axe = items().findItem("stone_axe");
+    REQUIRE(axe);
+    CHECK(world.giveItem(0, *axe, 1) == 0); // case 0, tenue par défaut
+    const net::EntityId tree = net::kFirstResourceEntity;
+
+    tickHolding(world, 1); // premier coup tout de suite
+    CHECK(hitsLeftOf(world, tree) == 2);
+    for (net::Tick tick = 2; tick <= 10; ++tick) {
+        tickHolding(world, tick);
+    }
+    CHECK(hitsLeftOf(world, tree) == 2);
+    tickHolding(world, 11); // avec l'outil : un coup tous les 10 ticks (20 à mains nues)
+    CHECK(hitsLeftOf(world, tree) == 1);
+}

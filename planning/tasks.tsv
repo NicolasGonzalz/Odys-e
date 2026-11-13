@@ -54,7 +54,7 @@ T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et ro
 T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	fait
 T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	fait
 T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.	fait
-T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.	a_faire
+T047	18	M4	nicolas	gameplay	4	Artisanat	Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur.	fait
 T048	18	M4	ami	client,ui,unreal	8	UI d'inventaire et d'artisanat	Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet.	a_faire
 T049	19	M4	both	gameplay,lore	8	Indices lisibles et journal du joueur	Lire un journal ou une inscription l'ajoute au journal (commun + personnel).	a_faire
 T050	19	M4	both	devlog	4	Tampon + post d'avancement M3/M4	Retard rattrapé, post publié.	a_faire

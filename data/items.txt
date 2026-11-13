@@ -5,6 +5,8 @@
 #   stack    : taille de pile maximale (1 à 9999)
 #   category : resource, tool, weapon, ammo, station, consumable ou equipment
 #   model    : modèle 3D dans art/exports, sans extension (facultatif)
+#   eat      : consommable seulement : faim rendue, en points de % (0 à 100, facultatif)
+#   drink    : consommable seulement : soif rendue, en points de % (0 à 100, facultatif)
 #
 # L'identifiant ne doit plus changer une fois utilisé (sauvegardes, recettes, client Unreal).
 # Valeurs provisoires, à équilibrer en jeu.
@@ -271,3 +273,13 @@ name = Pile
 stack = 10
 category = consumable
 model = objets/pile
+
+# --- Nourriture (T047) : se mange touche E, tenue dans la barre d'outils ------
+# Ajoutée en fin de fichier : le rang d'un objet est son numéro sur le réseau.
+
+[item berries]
+name = Baies
+stack = 30
+category = consumable
+eat = 6
+drink = 4

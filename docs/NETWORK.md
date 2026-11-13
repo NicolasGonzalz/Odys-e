@@ -95,7 +95,7 @@ jeton = SipHash-2-4(secret du serveur, IP | port | sel | période | pseudo)
 - Il n'y a plus de table de poignées de main à saturer : un flot de fausses demandes ne consomme pas de
   mémoire et ne bloque pas les vrais joueurs.
 
-### Événements fiables (T045, protocole v8)
+### Événements fiables (T045, T047 ; protocole v9)
 
 Le canal fiable ordonné transporte des **événements de jeu** (`net::GameEvent`, `GameEvents.hpp`) :
 un octet de type, puis le contenu ; un événement illisible est ignoré.
@@ -104,6 +104,8 @@ un octet de type, puis le contenu ; un événement illisible est ignoré.
 |---|---|---|
 | `InventoryContents` = 1 | serveur → client | 25 cases × (`item` u16, `count` u16) ; case vide = `0, 0`. Envoyé à l'apparition puis à chaque changement |
 | `MoveItem` = 2 | client → serveur | `from` (u8), `to` (u8), cases < 25 |
+| `CraftRequest` = 3 | client → serveur | `recipe` (u16, rang dans `data/recipes.txt`) |
+| `CraftStatus` = 4 | serveur → client | `recipe` (u16), issue (u8 : 1 commencée, 2 finie, 3 occupé, 4 poste requis, 5 ingrédients manquants, 6 inconnue), durée en ticks (u16) |
 
 Le client ne modifie jamais son inventaire lui-même : il demande, le serveur vérifie et renvoie l'état
 réel (même après un refus). Les numéros d'objet sont les indices du catalogue (`data/items.txt`) : client

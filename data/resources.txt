@@ -56,3 +56,12 @@ tool = metal_pickaxe
 hand = no
 regrow = 12000
 abundance = 10
+
+[resource berry_bush]
+name = Buisson de baies
+shape = bush
+item = berries 2
+hits = 3
+hit_ticks = 10
+regrow = 4800
+abundance = 15

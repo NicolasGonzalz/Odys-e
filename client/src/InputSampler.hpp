@@ -2,6 +2,8 @@
 
 #include "odyssee/net/GameMessages.hpp"
 
+#include <cstdint>
+
 namespace odyssee::debugclient {
 
 /// Lit le clavier et la souris (raylib) et en fait l'input du tick.
@@ -25,9 +27,13 @@ class InputSampler {
     /// Reprend le cap donné par le serveur (au démarrage de la prédiction).
     void lookTowards(float yawDegrees) { _yaw = yawDegrees; }
 
+    /// Case tenue de la barre d'outils (touches 1 à 5), de 0 à 4.
+    [[nodiscard]] std::uint8_t heldSlot() const { return _heldSlot; }
+
   private:
     float _yaw = 0.0f;
     float _pitch = 0.0f;
+    std::uint8_t _heldSlot = 0;
 };
 
 } // namespace odyssee::debugclient

@@ -4,6 +4,7 @@ add_executable(odyssee_client
     src/Options.cpp
     src/InputSampler.cpp
     src/ConnectScreen.cpp
+    src/CraftMenu.cpp
     src/ConnectSettings.cpp
     src/MapView.cpp
     src/PauseMenu.cpp

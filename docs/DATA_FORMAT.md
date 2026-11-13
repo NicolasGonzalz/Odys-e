@@ -35,6 +35,8 @@ category = tool
 | `stack` | oui | taille de pile maximale, 1 à 9999 |
 | `category` | oui | `resource`, `tool`, `weapon`, `ammo`, `station`, `consumable`, `equipment` |
 | `model` | non | modèle 3D, relatif à `art/exports/`, sans extension : `outils/hache_pierre` |
+| `eat` | non | consommable seulement : faim rendue, en points de % (0 à 100) |
+| `drink` | non | consommable seulement : soif rendue, en points de % (0 à 100) |
 
 Chaque objet reçoit au chargement un indice compact (`ItemId`) dans l'ordre du fichier : c'est cet
 indice qui circule dans la simulation, jamais d'une partie à l'autre (utiliser l'identifiant texte

@@ -39,6 +39,9 @@ struct ItemDef {
     std::uint16_t maxStack = 1; ///< taille de pile maximale (≥ 1)
     ItemCategory category = ItemCategory::Resource;
     std::string model; ///< modèle 3D, relatif à art/exports, sans extension (vide si aucun)
+    /// Consommable : ce qu'il rend de faim et de soif, en points de % (0 à 100 ; T047).
+    std::uint8_t eat = 0;
+    std::uint8_t drink = 0;
 };
 
 } // namespace odyssee::data

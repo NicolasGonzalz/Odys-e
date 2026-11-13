@@ -22,6 +22,7 @@ void writeCommand(ByteWriter& w, const InputCommand& c) {
     w.writeU16(c.yaw);
     w.writeI16(c.pitch);
     w.writeU16(c.buttons);
+    w.writeU8(c.heldSlot);
 }
 
 /// Au-delà de kMaxInputsPerBatch, seuls les inputs les plus récents partent.
@@ -81,12 +82,14 @@ std::optional<InputCommand> readCommand(ByteReader& r) {
     const auto yaw = r.readU16();
     const auto pitch = r.readI16();
     const auto buttons = r.readU16();
+    const auto heldSlot = r.readU8();
     const bool valid = forward && right && yaw && pitch && *pitch >= -kMaxPitchUnits &&
-                       buttons && (*buttons & ~kKnownInputButtons) == 0;
+                       buttons && (*buttons & ~kKnownInputButtons) == 0 && heldSlot &&
+                       *heldSlot < kHotbarSlots;
     if (!valid) {
         return std::nullopt;
     }
-    return InputCommand{*forward, *right, *yaw, *pitch, *buttons};
+    return InputCommand{*forward, *right, *yaw, *pitch, *buttons, *heldSlot};
 }
 
 std::optional<GameMessage> readInputs(ByteReader& r) {

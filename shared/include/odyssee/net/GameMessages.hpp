@@ -39,6 +39,7 @@ struct InputCommand {
     std::uint16_t yaw = 0;       ///< cap de la caméra (quantizeYaw)
     std::int16_t pitch = 0;      ///< inclinaison de la caméra (quantizePitch)
     std::uint16_t buttons = 0;   ///< InputButton combinés
+    std::uint8_t heldSlot = 0;   ///< case tenue en main : 0 à kHotbarSlots - 1 (barre d'outils)
 
     [[nodiscard]] bool isPressed(InputButton button) const {
         return (buttons & static_cast<std::uint16_t>(button)) != 0;

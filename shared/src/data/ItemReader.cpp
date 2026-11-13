@@ -14,7 +14,8 @@ namespace {
 static_assert(kMaxBlocks <= std::numeric_limits<std::uint16_t>::max(),
               "chaque objet doit tenir dans un ItemId sur 16 bits");
 
-constexpr std::array<std::string_view, 4> kAllowedKeys{"name", "stack", "category", "model"};
+constexpr std::array<std::string_view, 6> kAllowedKeys{"name",  "stack", "category",
+                                                       "model", "eat",   "drink"};
 constexpr std::array<std::string_view, 3> kRequiredKeys{"name", "stack", "category"};
 
 /// Lit un bloc dont les clés sont déjà vérifiées. Erreur, ou nullopt si `item` est rempli.
@@ -30,6 +31,9 @@ class ItemBlockReader {
             return error;
         }
         if (auto error = readCategory(item)) {
+            return error;
+        }
+        if (auto error = readNourishment(item)) {
             return error;
         }
         return readModel(item);
@@ -66,6 +70,26 @@ class ItemBlockReader {
                                    "equipment)");
         }
         item.category = *category;
+        return std::nullopt;
+    }
+
+    /// `eat` et `drink` : de 0 à 100, réservés aux consommables.
+    std::optional<DataError> readNourishment(ItemDef& item) const {
+        for (const auto& [key, target] : {std::pair{"eat", &item.eat}, std::pair{"drink", &item.drink}}) {
+            const DataField* field = findField(_block, key);
+            if (field == nullptr) {
+                continue;
+            }
+            const auto value = parseNumber(field->value, 0, 100);
+            if (!value) {
+                return fail(*field, std::string(key) + " " + quoted(field->value) +
+                                        " invalide : entier de 0 à 100 attendu");
+            }
+            if (item.category != ItemCategory::Consumable) {
+                return fail(*field, std::string(key) + " réservé aux objets « consumable »");
+            }
+            *target = static_cast<std::uint8_t>(*value);
+        }
         return std::nullopt;
     }
 
