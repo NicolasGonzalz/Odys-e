@@ -133,6 +133,14 @@ le client pour prédire (puis réconcilier) : **le résultat doit être identiqu
 - Le personnage transmet ses entrées (déplacement, saut, et `SprintAction` / `CrouchAction` si elles sont
   renseignées) ; le cap vient de la rotation du contrôleur. Les animations et le HUD lisent l'état par
   `GetVelocity`, `IsGrounded`, `IsCrouched`, `GetStamina`…
+- **En ligne (T027)** : `UOdysseeNetSubsystem` (sous-système du GameInstance, il survit aux changements
+  de carte) tient le `client::ServerLink`. À chaque image, il envoie et reçoit, et place les autres joueurs
+  (`AOdysseeRemotePlayer`, interpolés ; le Blueprint utilisé se choisit dans Paramètres du projet →
+  Odyssee → Réseau). Connecté, le composant de mouvement **prédit** avec `client::Prediction` (comme le
+  client de debug) : il apparaît où le serveur le dit, envoie ses inputs et se recale sur les snapshots.
+- **Écrans** : `AOdyssePlayerController` affiche le menu principal au lancement (Multijoueur : adresse,
+  pseudo, code ; Solo → Nouvelle partie : hors ligne), le HUD en partie (endurance, ping, pertes) et le
+  menu pause sur Échap (Quitter = se déconnecter et revenir au menu).
 
 ## Modèle de threads (cible)
 

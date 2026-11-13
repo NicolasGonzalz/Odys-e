@@ -4,10 +4,16 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
+#include "odyssee/client/Prediction.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Movement.hpp"
 
+#include <array>
+#include <cstdint>
+
 #include "OdysseeMovementComponent.generated.h"
+
+class UOdysseeNetSubsystem;
 
 /**
  * Déplace son acteur avec `odyssee::sim::step`, la même fonction que le serveur, sur le sol et
@@ -20,8 +26,9 @@
  * - La position de simulation est celle des **pieds** ; l'acteur (une capsule, centrée) est
  *   placé `FeetToActorOffset` plus haut.
  *
- * Hors ligne pour l'instant ; le client connecté (T027) enverra au serveur les commandes de ce
- * composant et le recalera sur ses snapshots.
+ * Connecté à un serveur (UOdysseeNetSubsystem, T027), il **prédit** : chaque pas est joué tout
+ * de suite et envoyé au serveur, puis recalé sur ses snapshots (client::Prediction, la même que le
+ * client de debug). Le joueur apparaît au point que donne le serveur. Hors ligne, il simule seul.
  */
 UCLASS(ClassGroup = (Odyssee), meta = (BlueprintSpawnableComponent))
 class ODYSSEENET_API UOdysseeMovementComponent : public UActorComponent
@@ -73,6 +80,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Odyssee|Mouvement")
 	bool IsExhausted() const;
 
+	/** Recalages sur le serveur depuis la connexion (HUD de debug). */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Mouvement")
+	int32 GetCorrections() const;
+
 	/** État complet de la simulation (C++ : client connecté, outils). */
 	const odyssee::sim::PlayerState& GetSimState() const { return State; }
 
@@ -85,12 +96,24 @@ public:
 
 private:
 	void StepSimulation();
+	void StepOffline();
+	void StepOnline(UOdysseeNetSubsystem& Net);
+	void FollowServer(UOdysseeNetSubsystem& Net);
+	void StartPrediction(const odyssee::net::Snapshot& Snapshot, odyssee::net::PlayerId Self);
 	void ShowBetweenSteps(float Alpha);
-	FVector ToFeetLocation(const odyssee::sim::PlayerState& Of) const;
+	UOdysseeNetSubsystem* FindNet() const;
 
 	odyssee::sim::PlayerState State;
-	odyssee::sim::PlayerState Previous; ///< état du pas d'avant : l'affichage interpole entre les deux
 	const odyssee::sim::Terrain* Terrain = nullptr;
+
+	/** Positions des pieds affichées au pas d'avant et à celui-ci (1/256 m) : on interpole. */
+	std::array<std::int32_t, 3> PreviousShown{};
+	std::array<std::int32_t, 3> CurrentShown{};
+
+	/** Prédiction de la partie en ligne en cours (absente hors ligne). */
+	TUniquePtr<odyssee::client::Prediction> Prediction;
+	uint32 PredictionSession = 0;  ///< connexion pour laquelle elle a été créée
+	uint64 SeenSnapshot = 0;       ///< dernier snapshot pris en compte
 	float Accumulated = 0.0f;
 
 	FVector2D PendingMove = FVector2D::ZeroVector; ///< remis à zéro à chaque image

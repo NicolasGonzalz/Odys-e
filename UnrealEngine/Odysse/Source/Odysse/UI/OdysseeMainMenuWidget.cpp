@@ -130,7 +130,13 @@ UWidget* UOdysseeMainMenuWidget::BuildMultiplayerPage()
 	UBorder* Panel = MakeMenuPanel(NAME_None, LOCTEXT("MultiTitle", "Multijoueur"), Column);
 	AddTo(Column, MakeText(NAME_None, LOCTEXT("JoinLabel", "Rejoindre avec un code"), 14, true), FMargin(0.f, 0.f,
 		0.f, 6.f), HAlign_Left);
-	AddTo(Column, BuildJoinRow(), FMargin(0.f, 0.f, 0.f, 16.f));
+	AddressInput = MakeField(TEXT("AddressInput"), LOCTEXT("AddressHint", "Adresse (89.92.152.61:58121)"));
+	NameInput = MakeField(TEXT("NameInput"), LOCTEXT("NameHint", "Pseudo"));
+	AddTo(Column, MakeSized(AddressInput, FVector2D(410.f, 48.f)), FMargin(0.f, 0.f, 0.f, 6.f), HAlign_Left);
+	AddTo(Column, MakeSized(NameInput, FVector2D(410.f, 48.f)), FMargin(0.f, 0.f, 0.f, 6.f), HAlign_Left);
+	AddTo(Column, BuildJoinRow(), FMargin(0.f, 0.f, 0.f, 4.f));
+	JoinStatusText = MakeText(TEXT("JoinStatusText"), FText::GetEmpty(), 12, false, OdysseeUi::BoneDim);
+	AddTo(Column, JoinStatusText, FMargin(0.f, 0.f, 0.f, 12.f), HAlign_Left);
 	AddTo(Column, MakeText(NAME_None, LOCTEXT("Favorites", "Serveurs favoris"), 14, true), FMargin(0.f, 0.f, 0.f,
 		6.f), HAlign_Left);
 	FavoritesList = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("FavoritesList"));
@@ -143,15 +149,20 @@ UWidget* UOdysseeMainMenuWidget::BuildMultiplayerPage()
 	return Panel;
 }
 
-UWidget* UOdysseeMainMenuWidget::BuildJoinRow()
+UEditableTextBox* UOdysseeMainMenuWidget::MakeField(FName Name, const FText& Hint)
 {
-	JoinCodeInput = WidgetTree->ConstructWidget<UEditableTextBox>(UEditableTextBox::StaticClass(),
-		TEXT("JoinCodeInput"));
+	UEditableTextBox* Input = WidgetTree->ConstructWidget<UEditableTextBox>(UEditableTextBox::StaticClass(), Name);
 	const FSlateBrush Field = OdysseeUi::BoxBrush(TEXT("champ"), FMargin(12.f / 256.f, 12.f / 48.f));
-	JoinCodeInput->WidgetStyle.SetBackgroundImageNormal(Field).SetBackgroundImageHovered(Field)
+	Input->WidgetStyle.SetBackgroundImageNormal(Field).SetBackgroundImageHovered(Field)
 		.SetBackgroundImageFocused(Field).SetFont(OdysseeUi::Font(16, true, 200))
 		.SetForegroundColor(FSlateColor(OdysseeUi::Bone)).SetPadding(FMargin(14.f, 10.f));
-	JoinCodeInput->SetHintText(LOCTEXT("CodeHint", "ODY-XXXX"));
+	Input->SetHintText(Hint);
+	return Input;
+}
+
+UWidget* UOdysseeMainMenuWidget::BuildJoinRow()
+{
+	JoinCodeInput = MakeField(TEXT("JoinCodeInput"), LOCTEXT("CodeHint", "ODY-XXXX"));
 	JoinButton = MakeButton(TEXT("JoinButton"), LOCTEXT("Join", "Rejoindre"), 150.f);
 	UHorizontalBox* Row = MakeRow();
 	AddTo(Row, MakeSized(JoinCodeInput, FVector2D(250.f, 48.f)), FMargin(0.f, 0.f, 10.f, 0.f));

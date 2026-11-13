@@ -126,7 +126,8 @@ void AOdysseCharacter::DoAim(float Yaw, float Pitch)
 
 void AOdysseCharacter::DoMove(float Right, float Forward)
 {
-	if (GetController())
+	// Menu ouvert : le contrôleur ignore les déplacements (AOdyssePlayerController::SetMenuInput).
+	if (GetController() && !GetController()->IsMoveInputIgnored())
 	{
 		// La direction (selon le cap de la caméra) est calculée par la simulation.
 		SimMovement->AddMoveInput(Forward, Right);
@@ -135,7 +136,10 @@ void AOdysseCharacter::DoMove(float Right, float Forward)
 
 void AOdysseCharacter::DoJumpStart()
 {
-	SimMovement->SetJumpHeld(true);
+	if (GetController() && !GetController()->IsMoveInputIgnored())
+	{
+		SimMovement->SetJumpHeld(true);
+	}
 }
 
 void AOdysseCharacter::DoJumpEnd()

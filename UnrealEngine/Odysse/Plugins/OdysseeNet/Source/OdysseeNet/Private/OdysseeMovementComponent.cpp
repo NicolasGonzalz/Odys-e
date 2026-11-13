@@ -1,5 +1,6 @@
 #include "OdysseeMovementComponent.h"
 
+#include "OdysseeNetSubsystem.h"
 #include "OdysseeUnits.h"
 #include "OdysseeWorldSubsystem.h"
 
@@ -52,7 +53,8 @@ void UOdysseeMovementComponent::TeleportFeetTo(FVector Feet)
 {
 	State.position = OdysseeUnits::FromUnreal(Feet);
 	State.velocity = {0, 0, 0};
-	Previous = State;
+	PreviousShown = State.position;
+	CurrentShown = State.position;
 	Accumulated = 0.0f;
 	ShowBetweenSteps(1.0f);
 }
@@ -108,20 +110,101 @@ odyssee::net::InputCommand UOdysseeMovementComponent::BuildCommand() const
 
 void UOdysseeMovementComponent::StepSimulation()
 {
-	Previous = State;
+	PreviousShown = CurrentShown;
+	UOdysseeNetSubsystem* Net = FindNet();
+	if (Net && Net->IsConnected())
+	{
+		StepOnline(*Net);
+	}
+	else
+	{
+		Prediction.Reset();
+		StepOffline();
+	}
+}
+
+void UOdysseeMovementComponent::StepOffline()
+{
 	State = odyssee::sim::step(State, BuildCommand(), *Terrain);
+	CurrentShown = State.position;
+}
+
+void UOdysseeMovementComponent::StepOnline(UOdysseeNetSubsystem& Net)
+{
+	if (!Prediction || PredictionSession != Net.GetSessionId())
+	{
+		Prediction = MakeUnique<odyssee::client::Prediction>(*Terrain); // nouvelle partie
+		PredictionSession = Net.GetSessionId();
+		SeenSnapshot = 0;
+	}
+	FollowServer(Net);
+	if (!Prediction->started())
+	{
+		return; // on attend le premier snapshot : le serveur dit où on apparaît
+	}
+	if (Prediction->advance(BuildCommand()))
+	{
+		Net.SendInputs(Prediction->history().recentBatch());
+	}
+	State = *Prediction->state();
+	CurrentShown = Prediction->displayPosition(); // les corrections fondent en quelques pas
+}
+
+void UOdysseeMovementComponent::FollowServer(UOdysseeNetSubsystem& Net)
+{
+	const auto Self = Net.GetPlayerId();
+	const auto& Snapshot = Net.GetLatestSnapshot();
+	if (!Self || !Snapshot || Net.GetSnapshotVersion() == SeenSnapshot)
+	{
+		return;
+	}
+	SeenSnapshot = Net.GetSnapshotVersion();
+	if (Prediction->started())
+	{
+		Prediction->reconcile(*Snapshot, *Self); // T032 : recalage sur la vérité du serveur
+	}
+	else
+	{
+		StartPrediction(*Snapshot, *Self);
+	}
+}
+
+void UOdysseeMovementComponent::StartPrediction(const odyssee::net::Snapshot& Snapshot,
+	odyssee::net::PlayerId Self)
+{
+	if (!Prediction->start(Snapshot, Self))
+	{
+		return;
+	}
+	State = *Prediction->state();
+	PreviousShown = State.position;
+	CurrentShown = State.position;
+
+	// Le serveur donne aussi le cap d'apparition : la caméra le prend.
+	if (APawn* Pawn = Cast<APawn>(GetOwner()); Pawn && Pawn->GetController())
+	{
+		Pawn->GetController()->SetControlRotation(
+			FRotator(0.0, OdysseeUnits::YawToDegrees(State.yaw), 0.0));
+	}
 }
 
 void UOdysseeMovementComponent::ShowBetweenSteps(float Alpha)
 {
-	const FVector Feet = FMath::Lerp(ToFeetLocation(Previous), ToFeetLocation(State), Alpha);
+	const FVector Feet = FMath::Lerp(OdysseeUnits::ToUnreal(PreviousShown),
+		OdysseeUnits::ToUnreal(CurrentShown), static_cast<double>(Alpha));
 	GetOwner()->SetActorLocation(Feet + FVector(0.0, 0.0, FeetToActorOffset), false, nullptr,
 		ETeleportType::TeleportPhysics);
 }
 
-FVector UOdysseeMovementComponent::ToFeetLocation(const odyssee::sim::PlayerState& Of) const
+UOdysseeNetSubsystem* UOdysseeMovementComponent::FindNet() const
 {
-	return OdysseeUnits::ToUnreal(Of.position);
+	const UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+	return GameInstance ? GameInstance->GetSubsystem<UOdysseeNetSubsystem>() : nullptr;
+}
+
+int32 UOdysseeMovementComponent::GetCorrections() const
+{
+	return Prediction ? static_cast<int32>(Prediction->corrections()) : 0;
 }
 
 FVector UOdysseeMovementComponent::GetVelocity() const
