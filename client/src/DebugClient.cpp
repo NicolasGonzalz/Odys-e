@@ -8,6 +8,7 @@
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/sim/Movement.hpp"
 #include "odyssee/sim/ProvisionalGround.hpp"
+#include "odyssee/world/WorldFingerprint.hpp"
 
 #include <raylib.h>
 
@@ -94,6 +95,11 @@ std::optional<SessionEnd> DebugClient::endAfter(PauseChoice choice) {
 }
 
 std::optional<SessionEnd> DebugClient::connectionLost() const {
+    if (const auto serverMap = _link.serverWorldFingerprint(); serverMap && *serverMap != ownMap()) {
+        return SessionEnd{false, *serverMap == world::kNoMapFingerprint
+                                     ? "Le serveur tourne sans carte : relancez sans --world"
+                                     : "Carte différente de celle du serveur (mettez à jour le jeu)"};
+    }
     switch (_link.state()) {
     case net::ConnectionState::Refused: {
         const auto reason = _link.refuseReason();
@@ -111,6 +117,10 @@ std::optional<SessionEnd> DebugClient::connectionLost() const {
         return std::nullopt;
     }
     return std::nullopt;
+}
+
+std::uint64_t DebugClient::ownMap() const {
+    return _map != nullptr ? _map->world().fingerprint : world::kNoMapFingerprint;
 }
 
 void DebugClient::handleWindowKeys() {

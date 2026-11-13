@@ -48,6 +48,10 @@ class ServerLink {
     [[nodiscard]] net::ConnectionState state() const { return _connection.state(); }
     [[nodiscard]] bool connected() const { return state() == net::ConnectionState::Connected; }
     [[nodiscard]] std::optional<net::PlayerId> playerId() const { return _connection.playerId(); }
+    /// Empreinte de la carte du serveur (world::fingerprintOf), une fois accepté.
+    [[nodiscard]] std::optional<std::uint64_t> serverWorldFingerprint() const {
+        return _connection.serverWorldFingerprint();
+    }
     [[nodiscard]] std::optional<net::RefuseReason> refuseReason() const {
         return _connection.refuseReason();
     }

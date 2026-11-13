@@ -36,6 +36,7 @@ bool Server::run() {
 
     ConnectionLimits limits;
     limits.registry.inviteCode = _inviteCode;
+    limits.registry.worldFingerprint = _world.worldFingerprint();
     // Secret des défis de connexion : imprévisible, tiré une fois au démarrage.
     ConnectionService connections(std::move(*socket), SipKey::random(), _network, limits);
     kLog.info("Odyssée v{} — port {}, {} ticks/s, {} joueurs max, {}", ODYSSEE_VERSION_STRING,

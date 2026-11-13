@@ -27,7 +27,7 @@ TEST_CASE("ControlMessages : aller-retour de chaque message") {
                                                Challenge{0x0123456789ABCDEFULL, 7},
                                                ChallengeResponse{42, 7, "Nadia", ""},
                                                ChallengeResponse{42, 7, "Nadia", "ody-7kq2"},
-                                               Accepted{3, 42},
+                                               Accepted{3, 42, 0x0123456789ABCDEFULL},
                                                Refused{RefuseReason::ServerFull},
                                                Refused{RefuseReason::TooManyFromAddress},
                                                Refused{RefuseReason::WrongInviteCode},

@@ -58,6 +58,10 @@ class ClientConnection {
 
     [[nodiscard]] ConnectionState state() const { return _state; }
     [[nodiscard]] std::optional<PlayerId> playerId() const { return _playerId; }
+    /// Empreinte de la carte annoncée par le serveur à l'acceptation (absente avant).
+    [[nodiscard]] std::optional<std::uint64_t> serverWorldFingerprint() const {
+        return _serverWorld;
+    }
     [[nodiscard]] std::optional<RefuseReason> refuseReason() const { return _refuseReason; }
 
     /// Jeton à mettre dans chaque paquet de jeu (voir Session), une fois connecté.
@@ -83,6 +87,7 @@ class ClientConnection {
     std::uint64_t _salt = 0;  ///< sel de la tentative en cours
     std::uint64_t _token = 0; ///< jeton du défi, puis jeton de session
     std::optional<PlayerId> _playerId;
+    std::optional<std::uint64_t> _serverWorld;
     std::optional<RefuseReason> _refuseReason;
 
     Clock::time_point _stateSince{};  ///< début de l'étape en cours (délais de poignée de main)

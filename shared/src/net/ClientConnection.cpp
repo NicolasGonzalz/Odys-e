@@ -40,6 +40,7 @@ void ClientConnection::connect(Clock::time_point now) {
     _salt = nextSalt(_salt);
     _token = 0;
     _playerId.reset();
+    _serverWorld.reset();
     _refuseReason.reset();
     _state = ConnectionState::Requesting;
     _stateSince = now;
@@ -88,6 +89,7 @@ void ClientConnection::onAccepted(const Accepted& accepted, Clock::time_point no
         return; // pas l'acceptation de notre réponse au défi
     }
     _playerId = accepted.playerId;
+    _serverWorld = accepted.worldFingerprint;
     _state = ConnectionState::Connected;
     _lastHeard = now;
 }

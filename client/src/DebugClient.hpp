@@ -52,6 +52,8 @@ class DebugClient {
     void advance(float& accumulated);
     [[nodiscard]] std::optional<SessionEnd> endAfter(PauseChoice choice);
     [[nodiscard]] std::optional<SessionEnd> connectionLost() const;
+    /// Empreinte de la carte chargée (world::kNoMapFingerprint sans carte).
+    [[nodiscard]] std::uint64_t ownMap() const;
     void handleWindowKeys();
     void setPaused(bool paused);
     void tick(Clock::time_point now);

@@ -3,6 +3,7 @@
 #include "OdysseeNetSettings.h"
 #include "OdysseeRemotePlayer.h"
 #include "OdysseeUnits.h"
+#include "OdysseeWorldSubsystem.h"
 
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -10,6 +11,7 @@
 #include "odyssee/core/Config.hpp"
 #include "odyssee/net/Address.hpp"
 #include "odyssee/net/ControlMessages.hpp"
+#include "odyssee/world/WorldFingerprint.hpp"
 
 #include <chrono>
 #include <string>
@@ -187,6 +189,13 @@ void UOdysseeNetSubsystem::UpdateConnectionState()
 	switch (Link->state())
 	{
 	case ConnectionState::Connected:
+		if (Connection != EOdysseeConnection::Connected && !HasServerMap())
+		{
+			Disconnect();
+			SetConnection(EOdysseeConnection::Failed,
+				LOCTEXT("OtherMap", "Carte différente de celle du serveur : mettez le jeu à jour"));
+			return;
+		}
 		if (Connection != EOdysseeConnection::Connected)
 		{
 			UE_LOG(LogOdysseeNet, Log, TEXT("Connecté : joueur %d"), static_cast<int32>(*Link->playerId()));
@@ -293,6 +302,16 @@ void UOdysseeNetSubsystem::RemoveRemotePlayers()
 		}
 	}
 	RemotePlayers.Reset();
+}
+
+bool UOdysseeNetSubsystem::HasServerMap() const
+{
+	const auto ServerMap = Link->serverWorldFingerprint();
+	const UOdysseeWorldSubsystem* WorldMap = GetGameInstance()->GetSubsystem<UOdysseeWorldSubsystem>();
+	const std::uint64_t OwnMap = WorldMap && WorldMap->GetMap()
+		? WorldMap->GetMap()->world().fingerprint
+		: odyssee::world::kNoMapFingerprint;
+	return ServerMap && *ServerMap == OwnMap;
 }
 
 TStatId UOdysseeNetSubsystem::GetStatId() const

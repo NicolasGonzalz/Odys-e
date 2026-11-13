@@ -1,4 +1,5 @@
 #include "odyssee/world/WorldFile.hpp"
+#include "odyssee/world/WorldFingerprint.hpp"
 
 #include "WorldSections.hpp"
 #include "odyssee/net/ByteBuffer.hpp"
@@ -300,6 +301,7 @@ DecodedWorld decodeWorldFile(std::span<const std::byte> bytes) {
     if (const WorldFileError error = readSections(sections, world); error != WorldFileError::None) {
         return {std::nullopt, error};
     }
+    world.fingerprint = fingerprintOf(bytes);
     return {std::move(world), WorldFileError::None};
 }
 

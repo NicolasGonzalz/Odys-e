@@ -67,7 +67,7 @@ std::optional<net::ControlMessage> ClientRegistry::onChallengeResponse(
     const auto current = _players.find(from);
     if (current != _players.end() && current->second.sessionToken == response.token) {
         // Notre acceptation s'était perdue : le client renvoie la même réponse.
-        return net::Accepted{current->second.id, response.token};
+        return net::Accepted{current->second.id, response.token, _limits.worldFingerprint};
     }
     if (isRetired(response.token)) {
         return std::nullopt; // réponse d'une session déjà terminée (rejouée ou en retard)
@@ -97,7 +97,7 @@ net::Accepted ClientRegistry::admit(const net::Address& from,
                                   now, now});
     kLog.info("joueur {} « {} » connecté depuis {} ({}/{})", id, response.playerName,
               from.toString(), _players.size(), kMaxPlayers);
-    return net::Accepted{id, response.token};
+    return net::Accepted{id, response.token, _limits.worldFingerprint};
 }
 
 bool ClientRegistry::hasInvitation(const net::ChallengeResponse& response) const {

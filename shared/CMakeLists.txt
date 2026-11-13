@@ -34,6 +34,7 @@ add_library(odyssee_shared STATIC
     src/world/WorldFileReader.cpp
     src/world/WorldFileLoader.cpp
     src/world/WorldFileWriter.cpp
+    src/world/WorldFingerprint.cpp
     src/world/WorldTerrain.cpp
 )
 add_library(odyssee::shared ALIAS odyssee_shared)
