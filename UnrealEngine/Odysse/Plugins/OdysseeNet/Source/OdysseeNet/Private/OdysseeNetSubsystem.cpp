@@ -3,6 +3,7 @@
 #include "OdysseeCatalogSubsystem.h"
 #include "OdysseeNetSettings.h"
 #include "OdysseeRemotePlayer.h"
+#include "OdysseeResourceSync.h"
 #include "OdysseeUnits.h"
 #include "OdysseeWorldSubsystem.h"
 
@@ -94,10 +95,20 @@ void UOdysseeNetSubsystem::Disconnect()
 	Latest.reset();
 	Inventory.reset();
 	RemoveRemotePlayers();
+	if (Resources)
+	{
+		Resources->RemoveAll();
+	}
 	if (Connection == EOdysseeConnection::Connecting || Connection == EOdysseeConnection::Connected)
 	{
 		SetConnection(EOdysseeConnection::Offline, LOCTEXT("Offline", "Hors ligne"));
 	}
+}
+
+void UOdysseeNetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	Resources = NewObject<UOdysseeResourceSync>(this);
 }
 
 void UOdysseeNetSubsystem::Deinitialize()
@@ -171,6 +182,7 @@ void UOdysseeNetSubsystem::Tick(float DeltaTime)
 	{
 		Remote.advance(static_cast<double>(DeltaTime) * odyssee::kTickRate);
 		ShowRemotePlayers(DeltaTime);
+		ShowResources();
 	}
 }
 
@@ -322,6 +334,19 @@ void UOdysseeNetSubsystem::ShowRemotePlayers(float DeltaTime)
 			It.RemoveCurrent();
 		}
 	}
+}
+
+void UOdysseeNetSubsystem::ShowResources()
+{
+	// Fixes : seul le dernier snapshot compte, et seulement quand il change.
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!Resources || !Latest || !World || ShownResources == SnapshotVersion)
+	{
+		return;
+	}
+	ShownResources = SnapshotVersion;
+	const UOdysseeCatalogSubsystem* Data = GetGameInstance()->GetSubsystem<UOdysseeCatalogSubsystem>();
+	Resources->Show(*Latest, *World, Data ? Data->GetResourceTypes() : nullptr);
 }
 
 AOdysseeRemotePlayer* UOdysseeNetSubsystem::SpawnRemotePlayer(int32 Id)

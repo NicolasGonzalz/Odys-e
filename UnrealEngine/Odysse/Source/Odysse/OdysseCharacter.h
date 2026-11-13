@@ -64,6 +64,11 @@ protected:
 	/** S'accroupir (tenir), facultatif : à renseigner dans le Blueprint du personnage. */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* CrouchAction;
+
+	/** Action principale (tenir le clic gauche : récolter, frapper), facultative : à renseigner
+	 *  dans le Blueprint du personnage. */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* PrimaryAction;
 	
 public:
 	AOdysseCharacter();
@@ -104,6 +109,8 @@ protected:
 	void SprintEnd();
 	void CrouchStart();
 	void CrouchEnd();
+	void PrimaryStart();
+	void PrimaryEnd();
 	
 
 public:

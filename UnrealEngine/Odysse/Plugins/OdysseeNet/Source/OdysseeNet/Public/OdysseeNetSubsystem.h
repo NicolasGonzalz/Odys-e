@@ -16,6 +16,7 @@
 #include "OdysseeNetSubsystem.generated.h"
 
 class AOdysseeRemotePlayer;
+class UOdysseeResourceSync;
 
 UENUM(BlueprintType)
 enum class EOdysseeConnection : uint8
@@ -57,6 +58,8 @@ struct FOdysseeInventorySlot
  * - Les snapshots reçus nourrissent la prédiction du joueur local (UOdysseeMovementComponent, qui
  *   envoie aussi ses inputs par SendInputs) et l'affichage des autres joueurs, interpolés avec un
  *   léger retard (T033) : un AOdysseeRemotePlayer par joueur.
+ * - Les ressources récoltables du dernier snapshot sont montrées telles quelles, sans interpolation
+ *   (T044) : un AOdysseeResourceActor par ressource (UOdysseeResourceSync).
  */
 UCLASS()
 class ODYSSEENET_API UOdysseeNetSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
@@ -71,7 +74,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Reseau")
 	bool Connect(const FString& Address, const FString& PlayerName, const FString& InviteCode);
 
-	/** Quitte la partie (le serveur est prévenu) et retire les autres joueurs. */
+	/** Quitte la partie (le serveur est prévenu) et retire les autres joueurs et les ressources. */
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|Reseau")
 	void Disconnect();
 
@@ -126,6 +129,7 @@ public:
 
 	// --- FTickableGameObject ---------------------------------------------------------------------
 
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
@@ -142,6 +146,7 @@ private:
 	void ShowRemotePlayers(float DeltaTime);
 	AOdysseeRemotePlayer* SpawnRemotePlayer(int32 Id);
 	void RemoveRemotePlayers();
+	void ShowResources();
 
 	std::optional<odyssee::client::ServerLink> Link;
 	std::optional<odyssee::net::Snapshot> Latest;
@@ -149,10 +154,14 @@ private:
 	odyssee::client::Interpolation Remote;
 	uint64 SnapshotVersion = 0;
 	uint32 SessionId = 0;
+	uint64 ShownResources = 0; ///< SnapshotVersion dont les ressources sont montrées
 
 	EOdysseeConnection Connection = EOdysseeConnection::Offline;
 	FText Status;
 
 	UPROPERTY(Transient)
 	TMap<int32, TObjectPtr<AOdysseeRemotePlayer>> RemotePlayers;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UOdysseeResourceSync> Resources;
 };

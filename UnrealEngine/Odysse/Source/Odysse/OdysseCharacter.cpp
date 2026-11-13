@@ -86,6 +86,13 @@ void AOdysseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AOdysseCharacter::CrouchStart);
 			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AOdysseCharacter::CrouchEnd);
 		}
+
+		// Action principale (facultative, tenue) : récolter
+		if (PrimaryAction)
+		{
+			EnhancedInputComponent->BindAction(PrimaryAction, ETriggerEvent::Started, this, &AOdysseCharacter::PrimaryStart);
+			EnhancedInputComponent->BindAction(PrimaryAction, ETriggerEvent::Completed, this, &AOdysseCharacter::PrimaryEnd);
+		}
 	}
 	else
 	{
@@ -165,4 +172,18 @@ void AOdysseCharacter::CrouchStart()
 void AOdysseCharacter::CrouchEnd()
 {
 	SimMovement->SetCrouchHeld(false);
+}
+
+void AOdysseCharacter::PrimaryStart()
+{
+	// Menu ouvert : un clic sert au menu, pas à frapper.
+	if (GetController() && !GetController()->IsMoveInputIgnored())
+	{
+		SimMovement->SetPrimaryHeld(true);
+	}
+}
+
+void AOdysseCharacter::PrimaryEnd()
+{
+	SimMovement->SetPrimaryHeld(false);
 }
