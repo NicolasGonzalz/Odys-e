@@ -1,5 +1,6 @@
 #include "odyssee/net/ByteBuffer.hpp"
 #include "odyssee/world/WorldFile.hpp"
+#include "odyssee/world/WorldFingerprint.hpp"
 
 #include <doctest/doctest.h>
 
@@ -185,4 +186,22 @@ TEST_CASE("Fichier monde : une section inconnue est ignorée, sans relief c'est 
         std::memcpy(&bytes[8 + 20], "TERR", 4);
         CHECK(decode(bytes).error == WorldFileError::BadDirectory);
     }
+}
+
+TEST_CASE("Fichier monde : empreinte stable, différente dès qu'un octet change") {
+    auto bytes = encodeWorldFile(smallWorld());
+    const auto first = decodeWorldFile(bytes);
+    const auto again = decodeWorldFile(bytes);
+    REQUIRE(first.world);
+    REQUIRE(again.world);
+    CHECK(first.world->fingerprint == again.world->fingerprint);
+    CHECK(first.world->fingerprint == fingerprintOf(bytes));
+    CHECK(first.world->fingerprint != kNoMapFingerprint);
+
+    bytes.back() ^= std::byte{1}; // dernier octet : un marqueur, toujours valide
+    const auto changed = decodeWorldFile(bytes);
+    if (changed.world) {
+        CHECK(changed.world->fingerprint != first.world->fingerprint);
+    }
+    CHECK(fingerprintOf(bytes) != first.world->fingerprint);
 }

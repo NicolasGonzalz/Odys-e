@@ -319,3 +319,13 @@ TEST_CASE("ClientRegistry : sans code exigé, le code envoyé est ignoré") {
     REQUIRE(reply);
     CHECK(std::holds_alternative<Accepted>(*reply));
 }
+
+TEST_CASE("ClientRegistry : l'acceptation annonce l'empreinte de la carte du serveur") {
+    ClientRegistry::Limits limits;
+    limits.worldFingerprint = 0xC0FFEE;
+    ClientRegistry registry(1, limits);
+    const auto reply = join(registry, client(5000));
+    REQUIRE(reply);
+    REQUIRE(std::holds_alternative<Accepted>(*reply));
+    CHECK(std::get<Accepted>(*reply).worldFingerprint == 0xC0FFEE);
+}

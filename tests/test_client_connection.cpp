@@ -37,10 +37,12 @@ TEST_CASE("ClientConnection : poignée de main complète") {
     CHECK(client.state() == State::Answering);
     CHECK(client.nextOutgoing(t0 + 10ms) == ControlMessage{ChallengeResponse{77, salt, "Teo", ""}});
 
-    client.onMessage(Accepted{2, 77}, t0 + 20ms);
+    CHECK_FALSE(client.serverWorldFingerprint());
+    client.onMessage(Accepted{2, 77, 0xC0FFEE}, t0 + 20ms);
     CHECK(client.state() == State::Connected);
     CHECK(client.playerId() == PlayerId{2});
     CHECK(client.sessionToken() == SessionToken{77});
+    CHECK(client.serverWorldFingerprint() == std::uint64_t{0xC0FFEE}); // carte du serveur
 }
 
 TEST_CASE("ClientConnection : la demande est renvoyée tant qu'il n'y a pas de réponse") {

@@ -58,7 +58,7 @@ de l'en-tête ne servent qu'après la connexion (valeurs à 0 pendant la poigné
 | `ConnectRequest` = 1 | client → serveur | sel (u64), pseudo (chaîne, 16 octets max), puis des zéros jusqu'à **64 octets** de contenu au moins |
 | `Challenge` = 2 | serveur → client | sel (u64, celui de la demande), jeton (u64) |
 | `ChallengeResponse` = 3 | client → serveur | sel (u64), jeton (u64), pseudo (chaîne), code d'invitation (chaîne, vide si aucun) |
-| `Accepted` = 4 | serveur → client | numéro de joueur (u8), jeton de session (u64) |
+| `Accepted` = 4 | serveur → client | numéro de joueur (u8), jeton de session (u64), empreinte de la carte (u64, 0 = sans carte ; protocole v6) |
 | `Refused` = 5 | serveur → client | raison (u8) : 1 mauvaise version, 2 serveur plein, 3 pseudo invalide, 4 trop de joueurs depuis cette adresse IP, 5 code d'invitation absent ou faux |
 | `Disconnect` = 6 | les deux | jeton de session (u64) — envoyé 3 fois par celui qui part (client qui quitte, serveur qui s'arrête) : il peut se perdre |
 | `KeepAlive` = 7 | les deux | jeton de session (u64) — chaque seconde sans autre trafic |
@@ -88,6 +88,10 @@ jeton = SipHash-2-4(secret du serveur, IP | port | sel | période | pseudo)
   (`Refused` 5) toute réponse au défi sans le bon code. Le code n'arrive qu'avec `ChallengeResponse`,
   donc d'une adresse prouvée, et les essais restent soumis à la limite de poignées de main par IP.
   Comparaison en temps constant ; majuscules/minuscules, tirets et espaces indifférents.
+- **Même carte des deux côtés (protocole v6)** : `Accepted` porte l'empreinte du fichier monde du serveur
+  (FNV-1a de ses octets, `world::fingerprintOf`). Le client la compare à celle de sa carte ; si elles
+  diffèrent, il se déconnecte et dit au joueur de mettre le jeu à jour (sinon sa prédiction serait
+  corrigée sans arrêt).
 - Il n'y a plus de table de poignées de main à saturer : un flot de fausses demandes ne consomme pas de
   mémoire et ne bloque pas les vrais joueurs.
 

@@ -101,6 +101,9 @@ struct WorldFile {
     std::vector<QuadCoord> holes;
     std::vector<CollisionBox> boxes;
     std::vector<Marker> markers;
+    /// Empreinte du fichier lu (fingerprintOf ; rempli par decodeWorldFile, pas écrit dans le
+    /// fichier). Le serveur l'annonce, le client vérifie qu'il a la même carte.
+    std::uint64_t fingerprint = 0;
 
     [[nodiscard]] bool isHole(QuadCoord quad) const;
 };

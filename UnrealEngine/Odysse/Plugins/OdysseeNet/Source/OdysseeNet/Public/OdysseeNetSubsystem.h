@@ -103,6 +103,8 @@ public:
 private:
 	void KeepSnapshots();
 	void UpdateConnectionState();
+	/** Vrai si le serveur annonce la même carte que celle chargée ici (UOdysseeWorldSubsystem). */
+	bool HasServerMap() const;
 	void SetConnection(EOdysseeConnection NewState, const FText& NewStatus);
 	void ShowRemotePlayers(float DeltaTime);
 	AOdysseeRemotePlayer* SpawnRemotePlayer(int32 Id);

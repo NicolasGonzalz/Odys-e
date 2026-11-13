@@ -36,6 +36,7 @@ void writeBody(ByteWriter& w, const ChallengeResponse& m) {
 void writeBody(ByteWriter& w, const Accepted& m) {
     w.writeU8(m.playerId);
     w.writeU64(m.sessionToken);
+    w.writeU64(m.worldFingerprint);
 }
 void writeBody(ByteWriter& w, const Refused& m) { w.writeU8(static_cast<std::uint8_t>(m.reason)); }
 void writeBody(ByteWriter& w, const Disconnect& m) { w.writeU64(m.sessionToken); }
@@ -79,10 +80,11 @@ std::optional<ControlMessage> readChallengeResponse(ByteReader& r) {
 std::optional<ControlMessage> readAccepted(ByteReader& r) {
     const auto id = r.readU8();
     const auto token = r.readU64();
-    if (!id || *id >= kMaxPlayers || !token) {
+    const auto world = r.readU64();
+    if (!id || *id >= kMaxPlayers || !token || !world) {
         return std::nullopt;
     }
-    return Accepted{*id, *token};
+    return Accepted{*id, *token, *world};
 }
 
 std::optional<ControlMessage> readRefused(ByteReader& r) {

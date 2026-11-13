@@ -28,6 +28,8 @@ struct RegistryLimits {
     /// Code d'invitation exigé (T056), normalisé (net::normalizeInviteCode). Vide : serveur
     /// ouvert à tous (en local, ou derrière un VPN).
     std::string inviteCode;
+    /// Empreinte de la carte du serveur, annoncée dans chaque acceptation (0 : sans carte).
+    std::uint64_t worldFingerprint = 0;
 };
 
 /// Qui est connecté au serveur, et quelles places sont libres. Aucune notion de réseau : on lui

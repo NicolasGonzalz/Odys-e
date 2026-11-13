@@ -27,10 +27,11 @@ std::optional<GameWorld> loadGameWorld(const std::string& path) {
         return std::nullopt;
     }
 
+    const std::uint64_t fingerprint = decoded.world->fingerprint;
     auto terrain = std::make_unique<world::WorldTerrain>(std::move(*decoded.world));
     kLog.info("carte « {} » chargée : {} volumes de collision, apparition « {} »", path,
               terrain->world().boxes.size(), marker->id);
-    return GameWorld(std::move(terrain), SpawnPoint{marker->position, marker->yaw});
+    return GameWorld(std::move(terrain), SpawnPoint{marker->position, marker->yaw}, fingerprint);
 }
 
 } // namespace odyssee::server

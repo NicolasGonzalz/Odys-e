@@ -38,7 +38,11 @@ class GameWorld {
     GameWorld();
     /// Sur une carte : son sol et ses murs (le client doit charger la même), et son point
     /// d'apparition.
-    GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn);
+    GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn,
+              std::uint64_t worldFingerprint = 0);
+
+    /// Empreinte de la carte (world::fingerprintOf), annoncée aux joueurs ; 0 sans carte.
+    [[nodiscard]] std::uint64_t worldFingerprint() const { return _worldFingerprint; }
 
     /// Fait correspondre les joueurs du monde à ceux qui sont connectés : ajoute les nouveaux
     /// (au point d'apparition), retire ceux qui sont partis. Une place dont la génération a
@@ -93,6 +97,7 @@ class GameWorld {
 
     std::unique_ptr<const sim::Terrain> _terrain;
     SpawnPoint _spawn;
+    std::uint64_t _worldFingerprint = 0;
     ecs::Registry _registry;
     /// L'entité de chaque joueur connecté, par numéro de joueur.
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;

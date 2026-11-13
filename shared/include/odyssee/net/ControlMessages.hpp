@@ -59,6 +59,9 @@ struct ChallengeResponse {
 struct Accepted {
     PlayerId playerId = 0;
     SessionToken sessionToken = 0;
+    /// Empreinte de la carte du serveur (world::fingerprintOf ; 0 = sol plat, sans carte) : le
+    /// client vérifie qu'il a la même.
+    std::uint64_t worldFingerprint = 0;
     friend bool operator==(const Accepted&, const Accepted&) = default;
 };
 struct Refused {

@@ -50,8 +50,9 @@ GameWorld::GameWorld()
     : GameWorld(std::make_unique<sim::FlatTerrain>(sim::provisionalGroundHeight()),
                 provisionalSpawn()) {}
 
-GameWorld::GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn)
-    : _terrain(std::move(terrain)), _spawn(spawn) {}
+GameWorld::GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn,
+                     std::uint64_t worldFingerprint)
+    : _terrain(std::move(terrain)), _spawn(spawn), _worldFingerprint(worldFingerprint) {}
 
 void GameWorld::syncPlayers(std::span<const ConnectedPlayer> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
