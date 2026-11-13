@@ -38,7 +38,7 @@
 | M1 — Premier contact réseau | 10 / 16 | 44 / 70 h | — |
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
-| M4 — Récolter, fabriquer, enquêter | 4 / 16 | 17 / 88 h | — |
+| M4 — Récolter, fabriquer, enquêter | 5 / 16 | 23 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 1 / 9 | 4 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
@@ -177,7 +177,7 @@
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T043 | Nicolas | ECS serveur | 6 | Entités et composants, système de mise à jour par tick. |
+| ☑ | T043 | Nicolas | ECS serveur | 6 | Entités et composants, système de mise à jour par tick. |
 | ☐ | T044 | Nicolas | Ressources récoltables avec repousse | 6 | Arbres et rochers récoltables, repousse côté serveur. |
 | ☑ | T066 | Coéquipier | Objets, outils et ressources | 5 | Hache, pioche, ressources au sol, icônes d'inventaire. |
 | ☑ | T068 | Les deux | Matériaux transformés et munitions | 4 | Planches, bâton, lingot de métal, munitions de pistolet et de fusil : .blend, .fbx et icônes d'inventaire, dans le style des outils. |

@@ -4,6 +4,7 @@ add_library(odyssee_server_core STATIC
     src/ChallengeTokens.cpp
     src/ClientRegistry.cpp
     src/CommandLine.cpp
+    src/ecs/EntityPool.cpp
     src/ConnectionService.cpp
     src/GameStep.cpp
     src/GameWorld.cpp
