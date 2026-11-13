@@ -43,7 +43,8 @@
 - **Gestion des sessions** : handshake, version du protocole, timeouts, déconnexion.
 - **ECS** (maison, `server/src/ecs/`, [ADR 0004](adr/0004-ecs-maison.md)) : entités (joueurs, ressources,
   créatures, objets au sol) stockées en composants contigus ; les systèmes sont des fonctions appelées
-  dans un ordre fixe à chaque tick. Les joueurs ont `PlayerControl` et `Motion` (T043).
+  dans un ordre fixe à chaque tick. Les joueurs ont `PlayerControl` et `Motion` (T043) ; les ressources
+  récoltables, `ResourceNode`, `Placement` et `NetworkEntity` (`server/src/resources/`, T044).
 - **Area of Interest** : chaque joueur ne reçoit que les entités des chunks proches de lui.
 - **Persistance** : sauvegarde périodique et à l'arrêt (SQLite), chunks modifiés uniquement.
 

@@ -31,6 +31,7 @@ add_executable(odyssee_tests
     test_interpolation.cpp
     test_traffic_meter.cpp
     test_catalog.cpp
+    test_resources_data.cpp
 )
 target_link_libraries(odyssee_tests PRIVATE odyssee::shared doctest::doctest)
 # Pour retrouver les fichiers du dépôt (la vraie carte) d'où que les tests soient lancés.
@@ -49,6 +50,7 @@ if(ODYSSEE_BUILD_SERVER)
         test_ecs.cpp
         test_vitals.cpp
         test_game_session.cpp
+        test_resources.cpp
     )
     target_link_libraries(odyssee_tests PRIVATE odyssee_server_core)
 endif()

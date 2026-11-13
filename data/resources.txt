@@ -1,0 +1,58 @@
+# Ressources récoltables (format : docs/DATA_FORMAT.md).
+#
+# Un bloc par type : [resource identifiant], puis ses lignes « clé = valeur ».
+#   name      : nom affiché (français)
+#   shape     : forme provisoire tant qu'il n'y a pas de modèle : tree, rock, bush ou vein
+#   item      : objet gagné à chaque coup, « identifiant quantité » (objet de items.txt)
+#   hits      : coups avant épuisement (1 à 1000)
+#   hit_ticks : ticks entre deux coups avec l'outil (20 ticks = 1 s ; à la main : 2 fois plus)
+#   tool      : outil qui récolte à pleine vitesse (facultatif, une ligne par outil)
+#   hand      : yes (défaut) ou no : récoltable sans outil ?
+#   regrow    : ticks avant la repousse, une fois épuisée
+#   abundance : poids relatif au placement dans le monde (0 : jamais placée d'office)
+#
+# L'ordre des blocs compte : client et serveur doivent lire le même fichier (le type circule
+# sur le réseau par son rang). Valeurs provisoires, à équilibrer en jeu.
+
+[resource tree]
+name = Arbre
+shape = tree
+item = wood_log 1
+hits = 6
+hit_ticks = 15
+tool = stone_axe
+tool = metal_axe
+regrow = 6000
+abundance = 45
+
+[resource rock]
+name = Rocher
+shape = rock
+item = stone 2
+hits = 5
+hit_ticks = 15
+tool = stone_pickaxe
+tool = metal_pickaxe
+regrow = 7200
+abundance = 25
+
+[resource fiber_bush]
+name = Buisson de fibres
+shape = bush
+item = fiber 2
+hits = 3
+hit_ticks = 10
+regrow = 3600
+abundance = 20
+
+[resource ore_vein]
+name = Filon de minerai
+shape = vein
+item = ore 1
+hits = 4
+hit_ticks = 20
+tool = stone_pickaxe
+tool = metal_pickaxe
+hand = no
+regrow = 12000
+abundance = 10

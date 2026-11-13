@@ -49,6 +49,13 @@ TEST_CASE("Ligne de commande : carte à charger") {
     CHECK_FALSE(parse({"--world", ""}).has_value());
 }
 
+TEST_CASE("Ligne de commande : dossier des données") {
+    CHECK(parse({}).value().dataDir.empty());
+    CHECK(parse({"--data", "/srv/odyssee/data"}).value().dataDir == "/srv/odyssee/data");
+    CHECK_FALSE(parse({"--data"}).has_value());
+    CHECK_FALSE(parse({"--data", ""}).has_value());
+}
+
 TEST_CASE("Ligne de commande : code d'invitation") {
     CHECK(parse({}).value().inviteCode.empty());
     CHECK(parse({"--invite", "ody-7kq2"}).value().inviteCode == "ODY7KQ2"); // normalisé

@@ -75,13 +75,14 @@ bool isNetworkOption(std::string_view arg) {
 }
 
 bool isTextOption(std::string_view arg) {
-    return arg == "--world" || arg == "--invite";
+    return arg == "--world" || arg == "--data" || arg == "--invite";
 }
 
-/// Applique `--world fichier` ou `--invite code`. Faux si la valeur est vide ou invalide.
+/// Applique `--world fichier`, `--data dossier` ou `--invite code`. Faux si la valeur est vide
+/// ou invalide.
 bool applyTextOption(std::string_view name, std::string_view value, Options& options) {
-    if (name == "--world") {
-        options.worldPath = std::string(value);
+    if (name == "--world" || name == "--data") {
+        (name == "--world" ? options.worldPath : options.dataDir) = std::string(value);
         return !value.empty();
     }
     options.inviteCode = net::normalizeInviteCode(value);
@@ -127,10 +128,12 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
 
 std::string usage(std::string_view programName) {
     return std::format(
-        "Usage : {} [--verbose] [--world fichier] [--invite code] [--lag ms] "
-        "[--jitter ms] [--loss %] [--dup %] [port]\n"
+        "Usage : {} [--verbose] [--world fichier] [--data dossier] [--invite code] "
+        "[--lag ms] [--jitter ms] [--loss %] [--dup %] [port]\n"
         "  --verbose      affiche les messages de debug\n"
         "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
+        "  --data d       dossier des données (items.txt, resources.txt) ; défaut :\n"
+        "                 « data » s'il existe, sinon pas de ressources\n"
         "  --invite code  code d'invitation exigé des joueurs (lettres et chiffres,\n"
         "                 32 au plus) ; sans lui, le serveur est ouvert à tous\n"
         "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"

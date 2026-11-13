@@ -172,8 +172,16 @@ Canal fiable : l'émetteur n'envoie que les messages à moins de 512 numéros du
 
 - **Input** (8 octets) : `moveForward` (i8), `moveRight` (i8), `yaw` (u16), `pitch` (i16), `buttons` (u16).
   Boutons : `Jump` 1, `Sprint` 2, `Crouch` 4, `Use` 8, `Primary` 16, `Secondary` 32 ; tout autre bit est refusé.
-- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1), `x`, `y`, `z` (i32), `yaw` (u16), `flags` (u8 :
-  au sol 1, accroupi 2, court 4, épuisé 8).
+- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1, `Resource` = 2), `x`, `y`, `z` (i32), `yaw` (u16),
+  `flags` (u8). Joueur : au sol 1, accroupi 2, court 4, épuisé 8. Toute autre sorte est refusée.
+- **Ressources** (protocole v7, T044) : arbres, rochers… Numéros d'entité à partir de `kFirstResourceEntity` = 4
+  (0 à 3 : les joueurs), fixes pour la partie. Position de la base posée au sol, `yaw` = rotation (aspect seul).
+  `flags` : bits 0 à 6 = rang du type dans `data/resources.txt` (client et serveur doivent donc lire le même
+  fichier), bit 7 (`0x80`) = épuisée. Une ressource ne bouge pas : le client l'affiche telle que reçue dans le
+  dernier snapshot, sans l'interpoler (`client::Interpolation` ne garde que les joueurs).
+- **Choix des entités** : le snapshot d'un joueur contient d'abord **tous les joueurs**, puis les ressources à
+  moins de **60 m** de lui (à l'horizontale), des plus proches aux plus lointaines, jusqu'à 60 entités en tout.
+  Une ressource qui sort du snapshot n'a pas disparu : elle est juste hors de portée (le client peut l'oublier).
 - **`self`** : vitesse `vx`, `vy`, `vz` (i16, 1/256 m par tick) et endurance (u16) du joueur destinataire. Avec sa
   propre entité, c'est son état de simulation complet : sa prédiction repart exactement de là (T029).
 - **`vitals`** (protocole v5, T051) : vie, faim et soif du joueur destinataire, en % (u8, 0 à 100 ; plus

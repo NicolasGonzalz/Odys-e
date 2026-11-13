@@ -1,5 +1,6 @@
 #include "GameWorld.hpp"
 
+#include "odyssee/core/Log.hpp"
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/sim/ProvisionalGround.hpp"
 #include "odyssee/sim/Replication.hpp"
@@ -12,6 +13,8 @@
 namespace odyssee::server {
 
 namespace {
+
+constexpr log::Logger kLog{"server"};
 
 /// Point d'apparition sans carte : la salle des capsules du centre de stase
 /// (tools/worldgen/world_layout.json, centre_stase), posé sur le sol provisoire partagé avec le
@@ -42,6 +45,14 @@ net::InputCommand idleCommand(const sim::PlayerState& motion) {
         command.buttons = static_cast<std::uint16_t>(net::InputButton::Crouch);
     }
     return command;
+}
+
+/// Vrai si le joueur tient l'action principale (récolter, frapper) : son dernier input appliqué
+/// l'indique, et ce n'est pas un vieil input rejoué pour un client devenu muet.
+bool isHoldingPrimary(const PlayerControl& control) {
+    return control.lastProcessedInput != 0 &&
+           control.guessedInARow < GameWorld::kMaxGuessedInputs &&
+           control.lastCommand.isPressed(net::InputButton::Primary);
 }
 
 } // namespace
@@ -83,6 +94,53 @@ void GameWorld::step() {
     _registry.each<Vitals, Motion>([](ecs::Entity, Vitals& vitals, const Motion& motion) {
         vitals = stepVitals(vitals, motion.state.has(sim::kSprinting));
     });
+
+    // Systèmes « ressources » (T044) : repousse, puis coups des joueurs qui récoltent.
+    _resources.stepRegrowth(_registry);
+    _registry.each<PlayerControl, Motion, Harvester>(
+        [this](ecs::Entity, const PlayerControl& control, const Motion& motion,
+               Harvester& harvester) { harvestWith(control, motion, harvester); });
+}
+
+void GameWorld::harvestWith(const PlayerControl& control, const Motion& motion,
+                            Harvester& harvester) {
+    if (harvester.cooldownTicks > 0) {
+        --harvester.cooldownTicks;
+    }
+    if (harvester.cooldownTicks > 0 || !isHoldingPrimary(control)) {
+        return;
+    }
+    // Pas encore d'objet tenu en main (T045) : on récolte à mains nues.
+    const auto strike =
+        _resources.strike(_registry, motion.state.position, motion.state.yaw, kBareHands);
+    if (!strike) {
+        return;
+    }
+    harvester.cooldownTicks = strike->cooldownTicks;
+    // T045 : ajouter à l'inventaire
+    kLog.debug("joueur {} : +{} objet n°{} (ressource {})", control.id, strike->harvest.count,
+               strike->harvest.item.value, strike->node);
+}
+
+std::size_t GameWorld::addResources(data::ResourceCatalog types, const ScatterSettings& settings) {
+    const auto placed = scatterResources(*_terrain, _spawn.position, types.types(), settings);
+    return addResources(std::move(types), placed);
+}
+
+std::size_t GameWorld::addResources(data::ResourceCatalog types,
+                                    std::span<const PlacedResource> placed) {
+    _resources.setTypes(std::move(types));
+    return _resources.spawn(_registry, placed);
+}
+
+std::optional<ResourceNode> GameWorld::resourceNode(net::EntityId id) const {
+    const std::span<const ecs::Entity> nodes = _resources.nodes();
+    const std::size_t index = std::size_t{id} - net::kFirstResourceEntity;
+    if (id < net::kFirstResourceEntity || index >= nodes.size()) {
+        return std::nullopt;
+    }
+    const ResourceNode* node = _registry.get<ResourceNode>(nodes[index]);
+    return node ? std::optional<ResourceNode>(*node) : std::nullopt;
 }
 
 void GameWorld::stepPlayer(PlayerControl& control, Motion& motion) const {
@@ -136,6 +194,11 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
             snapshot.entities.push_back(sim::toEntity(id, motion->state));
         }
     }
+    if (const Motion* own = motionComponentOf(player)) {
+        // Puis les ressources proches (T044), dans la place qui reste.
+        _resources.appendNearby(_registry, own->state.position, snapshot.entities,
+                                kMaxSnapshotEntities);
+    }
     return snapshot;
 }
 
@@ -172,6 +235,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     const ecs::Entity entity = _registry.create();
     _registry.add<Motion>(entity, Motion{state});
     _registry.add<Vitals>(entity); // plein de vie, rassasié, désaltéré
+    _registry.add<Harvester>(entity);
     PlayerControl control;
     control.id = player.id;
     control.generation = player.generation;

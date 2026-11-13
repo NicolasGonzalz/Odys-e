@@ -1,5 +1,6 @@
 // Point d'entrée du serveur : lit les options, prépare le serveur, puis le lance.
 #include "CommandLine.hpp"
+#include "ResourceLoading.hpp"
 #include "Server.hpp"
 #include "ShutdownSignals.hpp"
 #include "WorldLoading.hpp"
@@ -42,6 +43,12 @@ int main(int argc, char** argv) {
 
     auto world = prepareWorld(*options);
     if (!world) {
+        return EXIT_FAILURE;
+    }
+    // Sans carte, une douzaine de ressources sur le sol plat, autour du point d'apparition.
+    const auto& scatter =
+        options->worldPath.empty() ? server::kProvisionalScatter : server::kMapScatter;
+    if (!server::populateResources(*world, options->dataDir, scatter)) {
         return EXIT_FAILURE;
     }
 

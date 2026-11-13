@@ -74,7 +74,11 @@ void checkBounds(const GameMessage& message) {
         CHECK(inputs->commands.size() >= 1);
         CHECK(inputs->commands.size() <= kMaxInputsPerBatch);
     } else {
-        CHECK(std::get<Snapshot>(message).entities.size() <= kMaxSnapshotEntities);
+        const Snapshot& snapshot = std::get<Snapshot>(message);
+        CHECK(snapshot.entities.size() <= kMaxSnapshotEntities);
+        for (const EntityState& entity : snapshot.entities) {
+            CHECK((entity.kind == EntityKind::Player || entity.kind == EntityKind::Resource));
+        }
     }
 }
 
@@ -82,7 +86,11 @@ void checkBounds(const GameMessage& message) {
 std::vector<std::vector<std::byte>> validPackets() {
     Session session(0x1122334455667788ULL);
     session.queueUnreliable(InputBatch{7, {InputCommand{10, -10, 500, -200, 3}, InputCommand{}}});
-    Snapshot snapshot{12, 7, {EntityState{1, EntityKind::Player, {1, 2, 3}, 4, 5}}, {}, {}};
+    Snapshot snapshot{12, 7,
+                      {EntityState{1, EntityKind::Player, {1, 2, 3}, 4, 5},
+                       EntityState{kFirstResourceEntity, EntityKind::Resource, {6, 7, 8}, 9,
+                                   kResourceDepleted | 1}},
+                      {}, {}};
     session.queueUnreliable(snapshot);
     (void)session.queueReliable(std::vector<std::byte>(20, std::byte{0xAB}));
 

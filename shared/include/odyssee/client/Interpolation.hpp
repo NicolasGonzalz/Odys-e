@@ -18,7 +18,8 @@ struct ShownEntity {
 };
 
 /// Interpolation des entités distantes (T033) : les autres joueurs bougent sans saccades malgré
-/// la latence, la gigue et les pertes.
+/// la latence, la gigue et les pertes. Seuls les joueurs sont gardés : les ressources (fixes) se
+/// lisent directement dans le dernier snapshot.
 ///
 /// On n'affiche pas le dernier snapshot reçu, mais un instant **un peu dans le passé**
 /// (kDelayTicks derrière le plus récent) : il y a alors presque toujours deux snapshots qui
