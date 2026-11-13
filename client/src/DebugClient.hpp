@@ -8,6 +8,7 @@
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/Prediction.hpp"
 #include "odyssee/client/ServerLink.hpp"
+#include "odyssee/data/ResourceCatalog.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Terrain.hpp"
 #include "odyssee/world/WorldTerrain.hpp"
@@ -38,7 +39,10 @@ class DebugClient {
 
     /// `map` : la carte, la même que celle du serveur (sinon la prédiction diverge), gardée par
     /// l'appelant tant que l'objet vit. Nulle : le sol plat du serveur lancé sans carte.
-    DebugClient(client::ServerLink link, const world::WorldTerrain* map);
+    /// `resourceTypes` : data/resources.txt, pour dessiner les ressources (nul : formes neutres),
+    /// lui aussi gardé par l'appelant.
+    DebugClient(client::ServerLink link, const world::WorldTerrain* map,
+                const data::ResourceCatalog* resourceTypes);
 
     // La prédiction garde une référence vers le sol : l'objet ne se copie ni ne se déplace.
     DebugClient(const DebugClient&) = delete;
@@ -67,6 +71,7 @@ class DebugClient {
 
     client::ServerLink _link;
     const world::WorldTerrain* _map; ///< nul : sol plat provisoire
+    const data::ResourceCatalog* _resourceTypes; ///< nul : ressources en formes neutres
     sim::FlatTerrain _flat;
     client::Prediction _prediction; ///< après _map et _flat : elle se réfère à l'un d'eux
     std::optional<MapView> _mapView;

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 
 namespace odyssee::client {
 
@@ -17,6 +18,15 @@ const net::EntityState* find(const std::vector<net::EntityState>& entities, net:
     const auto it = std::find_if(entities.begin(), entities.end(),
                                  [id](const net::EntityState& e) { return e.id == id; });
     return it == entities.end() ? nullptr : &*it;
+}
+
+/// Les entités qui bougent (joueurs) : les ressources, fixes, s'affichent telles que reçues dans
+/// le dernier snapshot, sans retard ni interpolation.
+std::vector<net::EntityState> movingEntities(const std::vector<net::EntityState>& entities) {
+    std::vector<net::EntityState> moving;
+    std::copy_if(entities.begin(), entities.end(), std::back_inserter(moving),
+                 [](const net::EntityState& e) { return e.kind == net::EntityKind::Player; });
+    return moving;
 }
 
 /// Écart d'angle le plus court de `from` vers `to`, en degrés (-180 à 180).
@@ -38,7 +48,7 @@ void Interpolation::push(const net::Snapshot& snapshot) {
         return; // arrivé trop tard : l'affichage est déjà passé
     }
 
-    _frames.insert(at, Frame{snapshot.serverTick, snapshot.entities});
+    _frames.insert(at, Frame{snapshot.serverTick, movingEntities(snapshot.entities)});
     if (!_renderTick) {
         _renderTick = targetTick();
     }

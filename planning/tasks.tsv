@@ -50,7 +50,7 @@ T041	15	M3	nicolas	server,world	8	Chargement de la carte et collisions serveur	L
 T042	15	M3	nicolas	server,net	4	Zone d'intérêt (AOI)	Chaque joueur ne reçoit que les entités proches.	a_faire
 T065	15	M3	ami	map,unreal	6	Habillage de la zone de départ	Centre de stase, village, ferme, pont effondré, premier cocon ; occlusion culling en place.	a_faire
 T043	16	M4	nicolas	server	6	ECS serveur	Entités et composants, système de mise à jour par tick.	fait
-T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	a_faire
+T044	16	M4	nicolas	gameplay	6	Ressources récoltables avec repousse	Arbres et rochers récoltables, repousse côté serveur.	fait
 T066	16	M4	ami	art,blender	5	Objets, outils et ressources	Hache, pioche, ressources au sol, icônes d'inventaire.	fait
 T045	17	M4	nicolas	gameplay,net	6	Inventaire synchronisé	Inventaire serveur, mis à jour via le canal fiable.	a_faire
 T046	17	M4	nicolas	gameplay,data	6	Objets et recettes data-driven	Objets et recettes décrits dans des fichiers de données.	fait

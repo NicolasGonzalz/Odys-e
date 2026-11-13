@@ -46,6 +46,25 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
   en coop, servent à tous.
 - Recettes décrites dans des fichiers de données (T046), fabrication validée par le serveur (T047).
 
+### Récolte (T044)
+
+- **Arbres, rochers, buissons de fibres, filons de minerai** : types décrits dans `data/resources.txt`
+  (objet gagné par coup, nombre de coups, cadence, outils, repousse ; format dans [DATA_FORMAT.md](DATA_FORMAT.md)).
+- On récolte en **maintenant le clic gauche** (`Primary`) face à une ressource : à **2,5 m** au plus, dans un
+  cône de **45°** de part et d'autre du regard (la hauteur du regard ne compte pas). Collé à elle (< 40 cm), le
+  cap ne compte plus. Plusieurs à portée : la plus proche.
+- **Cadence** : un coup toutes les `hit_ticks` avec un des outils indiqués (hache pour l'arbre, pioche pour
+  le rocher), **deux fois plus lent à la main**. Certaines ressources (filon) ne se récoltent pas à la main.
+- Après son dernier coup, la ressource est **épuisée** (affichée pâle) et **repousse** entière au bout de
+  `regrow` ticks (5 min pour un arbre). Pas de repousse partielle : entamée, elle le reste.
+- Le serveur décide de tout (portée, cadence, gain) ; le client ne fait que montrer. Le gain ira dans
+  l'inventaire avec T045 (pour l'instant, journal du serveur en `--verbose`). L'outil tenu viendra avec
+  l'inventaire : en attendant, tout le monde récolte à la main.
+- **Placement provisoire** : tant que la carte n'a pas de marqueurs de ressources (T038), le serveur les tire
+  au hasard **avec une graine fixe** (toujours les mêmes) : ~160 entre 15 et 130 m du point d'apparition, sur
+  le relief à découvert (ni trou, ni mur, ni toit, pente douce), 4 m d'écart au moins ; sans carte, une
+  douzaine autour du point d'apparition.
+
 ## 3. Carte et exploration
 
 **Pas de mini-carte.** On se repère au paysage, et on consulte une **grande carte plein écran** quand on veut.

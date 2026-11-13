@@ -9,6 +9,9 @@
 
 namespace odyssee::net {
 
+static_assert(kFirstResourceEntity == kMaxPlayers,
+              "les ressources sont numérotées juste après les joueurs");
+
 namespace {
 
 // --- Écriture ---------------------------------------------------------------------------------
@@ -112,7 +115,8 @@ std::optional<EntityState> readEntity(ByteReader& r) {
     const auto z = r.readI32();
     const auto yaw = r.readU16();
     const auto flags = r.readU8();
-    const bool knownKind = kind && *kind == static_cast<std::uint8_t>(EntityKind::Player);
+    const bool knownKind = kind && (*kind == static_cast<std::uint8_t>(EntityKind::Player) ||
+                                    *kind == static_cast<std::uint8_t>(EntityKind::Resource));
     if (!id || !knownKind || !x || !y || !z || !yaw || !flags) {
         return std::nullopt;
     }

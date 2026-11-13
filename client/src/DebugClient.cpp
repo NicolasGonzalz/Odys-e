@@ -1,6 +1,7 @@
 #include "DebugClient.hpp"
 
 #include "PauseMenu.hpp"
+#include "ResourceShapes.hpp"
 #include "Scene.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -12,6 +13,7 @@
 
 #include <raylib.h>
 
+#include <algorithm>
 #include <utility>
 
 namespace odyssee::debugclient {
@@ -35,10 +37,20 @@ const char* describe(net::ConnectionState state) {
     return "?";
 }
 
+/// Les autres joueurs du snapshot (sans soi, ni les ressources).
+int otherPlayersIn(const net::Snapshot& snapshot) {
+    const auto players =
+        std::count_if(snapshot.entities.begin(), snapshot.entities.end(),
+                      [](const net::EntityState& e) { return e.kind == net::EntityKind::Player; });
+    return std::max(0, static_cast<int>(players) - 1);
+}
+
 } // namespace
 
-DebugClient::DebugClient(client::ServerLink link, const world::WorldTerrain* map)
-    : _link(std::move(link)), _map(map), _flat(sim::provisionalGroundHeight()),
+DebugClient::DebugClient(client::ServerLink link, const world::WorldTerrain* map,
+                         const data::ResourceCatalog* resourceTypes)
+    : _link(std::move(link)), _map(map), _resourceTypes(resourceTypes),
+      _flat(sim::provisionalGroundHeight()),
       _prediction(_map != nullptr ? static_cast<const sim::Terrain&>(*_map) : _flat) {
     if (_map != nullptr) {
         _mapView.emplace(_map->world());
@@ -207,6 +219,9 @@ void DebugClient::drawWorld(float betweenTicks) const {
     } else {
         drawGround(feet, net::dequantizePosition(_flat.groundHeight(0, 0)));
     }
+    if (_latest) {
+        drawResources(_latest->entities, _resourceTypes); // T044 : fixes, dernier état connu
+    }
     for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
         drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),
                    playerColor(entity.id));
@@ -241,7 +256,7 @@ HudInfo DebugClient::hudInfo() const {
     info.lossPercent = static_cast<float>(traffic.incomingLossPercent);
     info.uploadKbps = static_cast<float>(traffic.sentKilobytesPerSecond);
     info.downloadKbps = static_cast<float>(traffic.receivedKilobytesPerSecond);
-    info.playersInView = _latest ? static_cast<int>(_latest->entities.size()) - 1 : 0;
+    info.playersInView = _latest ? otherPlayersIn(*_latest) : 0;
     if (_latest) {
         info.health = _latest->vitals.health;
         info.hunger = _latest->vitals.hunger;

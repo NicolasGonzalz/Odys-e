@@ -6,6 +6,8 @@
 #include "Options.hpp"
 
 #include "odyssee/client/ServerLink.hpp"
+#include "odyssee/data/Catalog.hpp"
+#include "odyssee/data/ResourceCatalog.hpp"
 #include "odyssee/net/Address.hpp"
 #include "odyssee/world/WorldFileLoader.hpp"
 #include "odyssee/world/WorldTerrain.hpp"
@@ -41,19 +43,21 @@ debugclient::ConnectSettings initialSettings(const debugclient::Options& options
 
 /// Une partie avec ces réglages. Le message dit pourquoi elle s'est arrêtée, s'il y a lieu.
 debugclient::SessionEnd playOnce(const debugclient::ConnectTarget& target,
-                                 const world::WorldTerrain* map) {
+                                 const world::WorldTerrain* map,
+                                 const data::ResourceCatalog* resourceTypes) {
     auto link =
         client::ServerLink::open(target.settings.name, target.server, target.settings.inviteCode);
     if (!link) {
         return {false, "Impossible d'ouvrir un socket UDP"};
     }
-    debugclient::DebugClient game(std::move(*link), map);
+    debugclient::DebugClient game(std::move(*link), map, resourceTypes);
     return game.run();
 }
 
 /// Écran de connexion, partie, et retour à l'écran, jusqu'à ce que le joueur quitte. Avec une
 /// adresse en ligne de commande, la première partie part sans passer par l'écran.
-void play(const debugclient::Options& options, const world::WorldTerrain* map) {
+void play(const debugclient::Options& options, const world::WorldTerrain* map,
+          const data::ResourceCatalog* resourceTypes) {
     auto settings = initialSettings(options);
     bool skipScreen = options.host.has_value();
     std::string message;
@@ -67,7 +71,7 @@ void play(const debugclient::Options& options, const world::WorldTerrain* map) {
         }
         settings = target->settings;
         debugclient::saveSettings(settings, debugclient::settingsPath());
-        const auto end = playOnce(*target, map);
+        const auto end = playOnce(*target, map, resourceTypes);
         if (end.quit) {
             return;
         }
@@ -100,6 +104,27 @@ std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(std::string pa
     return std::make_unique<const world::WorldTerrain>(std::move(*decoded.world));
 }
 
+/// Types de ressources (T044), pour les dessiner : `data` du dossier courant, sinon à côté de
+/// l'exécutable. Absents ou invalides : std::nullopt (formes neutres), sans empêcher de jouer.
+std::optional<data::ResourceCatalog> loadResourceTypes() {
+    const std::string besideExecutable = std::string(GetApplicationDirectory()) + "data";
+    for (const std::string& dir : {std::string("data"), besideExecutable}) {
+        if (!FileExists((dir + "/resources.txt").c_str())) {
+            continue;
+        }
+        const auto items = data::Catalog::fromDirectory(dir);
+        auto types = items.catalog ? data::ResourceCatalog::fromDirectory(dir, *items.catalog)
+                                   : data::ResourceCatalogResult{};
+        if (types.catalog) {
+            std::cout << "Ressources : " << dir << "/resources.txt\n";
+            return std::move(types.catalog);
+        }
+        const auto& error = items.error ? items.error : types.error;
+        std::cerr << "Ressources non chargées : " << (error ? error->describe() : dir) << "\n";
+    }
+    return std::nullopt;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -114,8 +139,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    const auto resourceTypes = loadResourceTypes();
+
     openWindow();
-    play(*options, map->get());
+    play(*options, map->get(), resourceTypes ? &*resourceTypes : nullptr);
     CloseWindow();
     return 0;
 }

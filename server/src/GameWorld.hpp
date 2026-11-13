@@ -5,8 +5,10 @@
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
 #include "ecs/Registry.hpp"
+#include "resources/ResourceField.hpp"
 
 #include "odyssee/core/Config.hpp"
+#include "odyssee/data/ResourceCatalog.hpp"
 #include "odyssee/net/ControlMessages.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Movement.hpp"
@@ -73,7 +75,19 @@ class GameWorld {
     ///   (aucune touche, même orientation), sans avancer les ticks du client.
     void step();
 
-    /// Ce que voit `player` : tous les joueurs, son dernier input appliqué et ses besoins vitaux.
+    /// Ressources récoltables (T044) : `types` (data/resources.txt), placées autour du point
+    /// d'apparition par un tirage déterministe (resources/ResourceScatter.hpp). Renvoie le nombre
+    /// de ressources créées. Une seule fois, au démarrage.
+    std::size_t addResources(data::ResourceCatalog types, const ScatterSettings& settings);
+    /// Même chose à des places données (tests ; plus tard, les marqueurs de la carte).
+    std::size_t addResources(data::ResourceCatalog types, std::span<const PlacedResource> placed);
+
+    [[nodiscard]] const ResourceField& resources() const { return _resources; }
+    /// État d'une ressource par son numéro réseau (tests, outils), si elle existe.
+    [[nodiscard]] std::optional<ResourceNode> resourceNode(net::EntityId id) const;
+
+    /// Ce que voit `player` : tous les joueurs, puis les ressources proches de lui (dans la limite
+    /// de kMaxSnapshotEntities), son dernier input appliqué et ses besoins vitaux.
     [[nodiscard]] net::Snapshot snapshotFor(net::PlayerId player, net::Tick serverTick) const;
 
     /// État de mouvement complet d'un joueur (tests, outils), s'il est dans le monde.
@@ -90,6 +104,7 @@ class GameWorld {
     void catchUp(PlayerControl& control, Motion& motion) const;
     void apply(PlayerControl& control, Motion& motion, const net::InputCommand& command,
                net::Tick tick) const;
+    void harvestWith(const PlayerControl& control, const Motion& motion, Harvester& harvester);
     void spawn(const ConnectedPlayer& player);
     void despawn(net::PlayerId player);
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
@@ -101,6 +116,7 @@ class GameWorld {
     ecs::Registry _registry;
     /// L'entité de chaque joueur connecté, par numéro de joueur.
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;
+    ResourceField _resources; ///< arbres, rochers… (T044)
 };
 
 } // namespace odyssee::server

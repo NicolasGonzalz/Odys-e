@@ -8,6 +8,7 @@ add_executable(odyssee_client
     src/MapView.cpp
     src/PauseMenu.cpp
     src/Scene.cpp
+    src/ResourceShapes.cpp
     src/Hud.cpp
     src/Widgets.cpp
     src/DebugClient.cpp

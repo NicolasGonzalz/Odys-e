@@ -14,7 +14,12 @@ add_library(odyssee_server_core STATIC
     src/SipHash.cpp
     src/TokenBucket.cpp
     src/Vitals.cpp
+    src/ResourceLoading.cpp
     src/WorldLoading.cpp
+    src/resources/HarvestReach.cpp
+    src/resources/Harvesting.cpp
+    src/resources/ResourceField.cpp
+    src/resources/ResourceScatter.cpp
 )
 target_include_directories(odyssee_server_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(odyssee_server_core PUBLIC odyssee::shared)
