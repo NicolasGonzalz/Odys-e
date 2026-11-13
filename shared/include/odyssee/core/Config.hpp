@@ -11,8 +11,8 @@ namespace odyssee {
 /// 2 : paquets de jeu (T024). 3 : poignée de main sans état, jeton de session.
 /// 4 : code d'invitation dans la réponse au défi (T056). 5 : besoins vitaux dans le snapshot (T051).
 /// 6 : empreinte de la carte dans l'acceptation. 7 : entités ressources dans le snapshot (T044).
-/// 8 : événements fiables (inventaire, T045).
-inline constexpr std::uint16_t kProtocolVersion = 8;
+/// 8 : événements fiables (inventaire, T045). 9 : case tenue dans l'input, artisanat (T047).
+inline constexpr std::uint16_t kProtocolVersion = 9;
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;
@@ -31,6 +31,10 @@ inline constexpr std::size_t kMaxPacketSize = 1200;
 
 /// Joueurs par monde : un par survivant (docs/CHARACTERS.md).
 inline constexpr std::size_t kMaxPlayers = 4;
+
+/// Cases d'un inventaire ; les kHotbarSlots premières forment la barre d'outils (touches 1 à 5).
+inline constexpr std::size_t kInventorySlots = 25;
+inline constexpr std::size_t kHotbarSlots = 5;
 
 /// Longueur maximale d'un pseudo, en octets UTF-8.
 inline constexpr std::size_t kMaxPlayerNameLength = 16;

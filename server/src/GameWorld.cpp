@@ -1,5 +1,7 @@
 #include "GameWorld.hpp"
 
+#include "ItemUse.hpp"
+
 #include "odyssee/core/Log.hpp"
 #include "odyssee/net/Quantize.hpp"
 #include "odyssee/sim/ProvisionalGround.hpp"
@@ -95,11 +97,32 @@ void GameWorld::step() {
         vitals = stepVitals(vitals, motion.state.has(sim::kSprinting));
     });
 
+    // Systèmes « objets » (T047) : manger ce qu'on tient (touche E), fabrications en cours.
+    _registry.each<PlayerControl, Vitals, Inventory>(
+        [this](ecs::Entity, PlayerControl& control, Vitals& vitals, Inventory& inventory) {
+            useHeldItem(control, vitals, inventory);
+        });
+    _registry.each<PlayerControl, Crafting, Inventory>(
+        [this](ecs::Entity, const PlayerControl& control, Crafting& crafting,
+               Inventory& inventory) { craftFor(control, crafting, inventory); });
+
     // Systèmes « ressources » (T044) : repousse, puis coups des joueurs qui récoltent.
     _resources.stepRegrowth(_registry);
     _registry.each<PlayerControl, Motion, Harvester>(
         [this](ecs::Entity, const PlayerControl& control, const Motion& motion,
                Harvester& harvester) { harvestWith(control, motion, harvester); });
+}
+
+void GameWorld::useHeldItem(PlayerControl& control, Vitals& vitals, Inventory& inventory) {
+    if ((control.pressedThisTick & static_cast<std::uint16_t>(net::InputButton::Use)) != 0) {
+        (void)useItem(inventory, control.lastCommand.heldSlot, vitals, _catalog);
+    }
+}
+
+void GameWorld::craftFor(const PlayerControl& control, Crafting& crafting, Inventory& inventory) {
+    if (const auto done = stepCraft(crafting, inventory, _catalog)) {
+        _outbox[control.id].push_back(net::CraftStatus{*done, net::CraftOutcome::Done, 0});
+    }
 }
 
 void GameWorld::harvestWith(const PlayerControl& control, const Motion& motion,
@@ -110,9 +133,11 @@ void GameWorld::harvestWith(const PlayerControl& control, const Motion& motion,
     if (harvester.cooldownTicks > 0 || !isHoldingPrimary(control)) {
         return;
     }
-    // Pas encore d'objet tenu en main (T045) : on récolte à mains nues.
-    const auto strike =
-        _resources.strike(_registry, motion.state.position, motion.state.yaw, kBareHands);
+    // L'outil tenu (case active de la barre d'outils, T047) ; sinon mains nues.
+    const Inventory* inventory = inventoryOf(control.id);
+    const HeldTool tool = inventory ? heldToolOf(*inventory, control.lastCommand.heldSlot, _catalog)
+                                    : kBareHands;
+    const auto strike = _resources.strike(_registry, motion.state.position, motion.state.yaw, tool);
     if (!strike) {
         return;
     }
@@ -145,6 +170,7 @@ std::optional<ResourceNode> GameWorld::resourceNode(net::EntityId id) const {
 }
 
 void GameWorld::stepPlayer(PlayerControl& control, Motion& motion) const {
+    control.pressedThisTick = 0;
     if (const auto input = control.inputs.pop()) {
         apply(control, motion, input->command, input->tick);
         control.guessedInARow = 0;
@@ -176,6 +202,8 @@ void GameWorld::catchUp(PlayerControl& control, Motion& motion) const {
 void GameWorld::apply(PlayerControl& control, Motion& motion, const net::InputCommand& command,
                       net::Tick tick) const {
     motion.state = sim::step(motion.state, command, *_terrain);
+    control.pressedThisTick = static_cast<std::uint16_t>(
+        control.pressedThisTick | (command.buttons & ~control.lastCommand.buttons));
     control.lastCommand = command;
     control.lastProcessedInput = tick;
 }
@@ -210,6 +238,17 @@ std::optional<sim::PlayerState> GameWorld::motionOf(net::PlayerId player) const 
 
 void GameWorld::receiveRequest(net::PlayerId player, const net::GameEvent& request) {
     Inventory* inventory = mutableInventoryOf(player);
+    if (const auto* craft = std::get_if<net::CraftRequest>(&request); craft && inventory) {
+        Crafting* crafting = _registry.get<Crafting>(*_players[player]);
+        const net::CraftOutcome outcome =
+            crafting ? startCraft(*crafting, *inventory, craft->recipe, _catalog)
+                     : net::CraftOutcome::Busy;
+        const auto ticks = outcome == net::CraftOutcome::Started
+                               ? static_cast<std::uint16_t>(crafting->ticksLeft)
+                               : std::uint16_t{0};
+        _outbox[player].push_back(net::CraftStatus{craft->recipe, outcome, ticks});
+        return;
+    }
     const auto* move = std::get_if<net::MoveItem>(&request);
     if (inventory && move && !moveItem(*inventory, move->from, move->to, _catalog)) {
         inventory->changed = true; // refusé : on renvoie l'état réel, le client se recale
@@ -228,6 +267,10 @@ std::optional<net::InventoryContents> GameWorld::takeInventoryUpdate(net::Player
     }
     inventory->changed = false;
     return toContents(*inventory);
+}
+
+std::vector<net::GameEvent> GameWorld::takeEvents(net::PlayerId player) {
+    return player < kMaxPlayers ? std::exchange(_outbox[player], {}) : std::vector<net::GameEvent>{};
 }
 
 const Inventory* GameWorld::inventoryOf(net::PlayerId player) const {
@@ -274,6 +317,8 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     _registry.add<Vitals>(entity); // plein de vie, rassasié, désaltéré
     _registry.add<Harvester>(entity);
     _registry.add<Inventory>(entity); // vide ; envoyé au joueur dès le premier tick
+    _registry.add<Crafting>(entity);
+    _outbox[player.id].clear();
     PlayerControl control;
     control.id = player.id;
     control.generation = player.generation;

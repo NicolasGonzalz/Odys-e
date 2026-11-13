@@ -26,6 +26,8 @@ struct PlayerControl {
     InputQueue inputs;
     net::InputCommand lastCommand;   ///< dernier input appliqué (reçu ou deviné)
     std::uint32_t guessedInARow = 0; ///< inputs devinés depuis le dernier input reçu
+    /// Boutons enfoncés pendant ce tick (et pas au précédent) : un appui sur E mange une fois.
+    std::uint16_t pressedThisTick = 0;
 };
 
 } // namespace odyssee::server

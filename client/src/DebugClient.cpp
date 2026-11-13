@@ -145,6 +145,12 @@ void DebugClient::handleWindowKeys() {
     if (IsKeyPressed(KEY_V)) {
         _thirdPerson = !_thirdPerson;
     }
+    if (IsKeyPressed(KEY_C) && !_paused) {
+        _craft.toggle();
+    }
+    if (const auto recipe = _catalog ? _craft.handleKeys(*_catalog) : std::nullopt) {
+        _link.sendEvent(net::CraftRequest{*recipe});
+    }
 }
 
 void DebugClient::setPaused(bool paused) {
@@ -183,6 +189,8 @@ void DebugClient::keepEvents() {
     for (auto& event : _link.takeEvents()) {
         if (auto* contents = std::get_if<net::InventoryContents>(&event)) {
             _inventory = std::move(*contents); // le serveur renvoie tout à chaque changement
+        } else if (const auto* status = std::get_if<net::CraftStatus>(&event); status && _catalog) {
+            _craft.onStatus(*status, *_catalog);
         }
     }
 }
@@ -197,10 +205,12 @@ std::string DebugClient::hotbarText() const {
         const data::ItemDef* def = _catalog ? _catalog->item(data::ItemId{slot.item}) : nullptr;
         const std::string name =
             slot.count == 0 ? "-" : (def ? def->name : "objet " + std::to_string(slot.item));
-        text += "  " + std::to_string(i + 1) + ":" + name;
+        const bool held = i == _input.heldSlot();
+        text += "  " + std::string(held ? "[" : "") + std::to_string(i + 1) + ":" + name;
         text += slot.count > 1 ? " x" + std::to_string(slot.count) : "";
+        text += held ? "]" : "";
     }
-    return text;
+    return text + (_craft.lastMessage().empty() ? "" : "   " + _craft.lastMessage());
 }
 
 void DebugClient::reconcileWithLatest() {
@@ -229,6 +239,9 @@ PauseChoice DebugClient::draw(float betweenTicks) const {
         drawWorld(betweenTicks);
     }
     drawHud(hudInfo());
+    if (_catalog) {
+        _craft.draw(*_catalog);
+    }
     const PauseChoice choice = _paused ? drawPauseMenu() : PauseChoice::None;
     EndDrawing();
     return choice;

@@ -70,7 +70,7 @@ sim::PlayerState standingAt(std::int32_t x, std::int32_t y, std::int32_t z) {
 }
 
 net::InputCommand forwardEast(std::uint16_t buttons = 0) {
-    return net::InputCommand{net::quantizeAxis(1.0f), 0, net::quantizeYaw(0.0f), 0, buttons};
+    return net::InputCommand{net::quantizeAxis(1.0f), 0, net::quantizeYaw(0.0f), 0, buttons, 0};
 }
 
 sim::PlayerState run(sim::PlayerState state, const net::InputCommand& command, int ticks,
@@ -180,7 +180,7 @@ TEST_CASE("WorldTerrain : un saut sous un plafond s'y cogne et retombe") {
     auto state = standingAt(16 * kMeter, 6 * kMeter, floor);
 
     state = sim::step(
-        state, net::InputCommand{0, 0, 0, 0, static_cast<std::uint16_t>(net::InputButton::Jump)},
+        state, net::InputCommand{0, 0, 0, 0, static_cast<std::uint16_t>(net::InputButton::Jump), 0},
         terrain);
     std::int32_t highest = state.position[2];
     for (int i = 0; i < 40; ++i) {

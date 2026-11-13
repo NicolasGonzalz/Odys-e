@@ -19,7 +19,7 @@ std::optional<GameMessage> roundTrip(const GameMessage& message) {
 InputCommand walkingNorth() {
     const auto buttons = static_cast<std::uint16_t>(InputButton::Sprint);
     return InputCommand{quantizeAxis(1.0f), 0, quantizeYaw(270.0f), quantizePitch(-10.0f),
-                        buttons};
+                        buttons, 2};
 }
 
 InputBatch batchOf(Tick firstTick, std::size_t count) {

@@ -18,9 +18,19 @@ void writeBody(ByteWriter& w, const MoveItem& m) {
     w.writeU8(m.to);
 }
 
+void writeBody(ByteWriter& w, const CraftRequest& m) {
+    w.writeU16(m.recipe);
+}
+
+void writeBody(ByteWriter& w, const CraftStatus& m) {
+    w.writeU16(m.recipe);
+    w.writeU8(static_cast<std::uint8_t>(m.outcome));
+    w.writeU16(m.ticks);
+}
+
+/// Le type d'un événement : son rang dans le variant + 1 (même ordre que GameEventType).
 GameEventType typeOf(const GameEvent& message) {
-    return std::holds_alternative<InventoryContents>(message) ? GameEventType::InventoryContents
-                                                              : GameEventType::MoveItem;
+    return static_cast<GameEventType>(message.index() + 1);
 }
 
 std::optional<GameEvent> readInventory(ByteReader& r) {
@@ -45,12 +55,35 @@ std::optional<GameEvent> readMove(ByteReader& r) {
     return MoveItem{*from, *to};
 }
 
+std::optional<GameEvent> readCraftRequest(ByteReader& r) {
+    const auto recipe = r.readU16();
+    if (!recipe) {
+        return std::nullopt;
+    }
+    return CraftRequest{*recipe};
+}
+
+std::optional<GameEvent> readCraftStatus(ByteReader& r) {
+    const auto recipe = r.readU16();
+    const auto outcome = r.readU8();
+    const auto ticks = r.readU16();
+    const bool known = outcome && *outcome >= 1 && *outcome <= 6;
+    if (!recipe || !known || !ticks) {
+        return std::nullopt;
+    }
+    return CraftStatus{*recipe, static_cast<CraftOutcome>(*outcome), *ticks};
+}
+
 std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
     switch (type) {
     case GameEventType::InventoryContents:
         return readInventory(r);
     case GameEventType::MoveItem:
         return readMove(r);
+    case GameEventType::CraftRequest:
+        return readCraftRequest(r);
+    case GameEventType::CraftStatus:
+        return readCraftStatus(r);
     }
     return std::nullopt;
 }

@@ -2,6 +2,7 @@
 
 #include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
+#include "Crafting.hpp"
 #include "Inventory.hpp"
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
@@ -21,6 +22,7 @@
 #include <optional>
 #include <span>
 #include <utility>
+#include <vector>
 
 namespace odyssee::server {
 
@@ -69,6 +71,9 @@ class GameWorld {
 
     /// L'inventaire d'un joueur s'il a changé depuis le dernier appel (à lui renvoyer), sinon rien.
     [[nodiscard]] std::optional<net::InventoryContents> takeInventoryUpdate(net::PlayerId player);
+
+    /// Les autres événements à envoyer à un joueur (réponses d'artisanat…), depuis le dernier appel.
+    [[nodiscard]] std::vector<net::GameEvent> takeEvents(net::PlayerId player);
 
     /// Inventaire d'un joueur (tests, outils), s'il est dans le monde.
     [[nodiscard]] const Inventory* inventoryOf(net::PlayerId player) const;
@@ -122,6 +127,8 @@ class GameWorld {
     void catchUp(PlayerControl& control, Motion& motion) const;
     void apply(PlayerControl& control, Motion& motion, const net::InputCommand& command,
                net::Tick tick) const;
+    void useHeldItem(PlayerControl& control, Vitals& vitals, Inventory& inventory);
+    void craftFor(const PlayerControl& control, Crafting& crafting, Inventory& inventory);
     void harvestWith(const PlayerControl& control, const Motion& motion, Harvester& harvester);
     void spawn(const ConnectedPlayer& player);
     void despawn(net::PlayerId player);
@@ -133,6 +140,8 @@ class GameWorld {
     SpawnPoint _spawn;
     std::uint64_t _worldFingerprint = 0;
     data::Catalog _catalog;
+    /// Événements en attente d'envoi, par joueur (voir takeEvents).
+    std::array<std::vector<net::GameEvent>, kMaxPlayers> _outbox;
     ecs::Registry _registry;
     /// L'entité de chaque joueur connecté, par numéro de joueur.
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;

@@ -81,5 +81,6 @@ private:
 	bool bInGame = false;
 	TArray<FString> ShownToolbar;     ///< contenu affiché de chaque case (redessin si changement)
 	TMap<FString, FString> IconCache; ///< nom de base → texture trouvée (vide : aucune)
+	int32 ShownHeldSlot = -1;         ///< case tenue affichée (redessin si changement)
 
 };

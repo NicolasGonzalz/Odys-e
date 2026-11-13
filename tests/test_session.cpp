@@ -27,7 +27,7 @@ bool deliver(Session& to, const std::vector<std::byte>& bytes, Clock::time_point
 }
 
 InputBatch inputsAt(Tick tick) {
-    return InputBatch{tick, {InputCommand{quantizeAxis(1.0f), 0, quantizeYaw(45.0f), 0, 0}}};
+    return InputBatch{tick, {InputCommand{quantizeAxis(1.0f), 0, quantizeYaw(45.0f), 0, 0, 0}}};
 }
 
 std::vector<std::byte> payload(std::uint8_t value) { return {std::byte{value}}; }

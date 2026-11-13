@@ -51,6 +51,7 @@ if(ODYSSEE_BUILD_SERVER)
         test_ecs.cpp
         test_vitals.cpp
         test_inventory.cpp
+        test_crafting.cpp
         test_game_session.cpp
         test_resources.cpp
     )

@@ -38,3 +38,16 @@ TEST_CASE("GameEvents : messages invalides refusés") {
     bytes.pop_back(); // tronqué
     CHECK_FALSE(decodeGameEvent(bytes));
 }
+
+TEST_CASE("GameEvents : artisanat, demande et réponse") {
+    for (const GameEvent& event :
+         {GameEvent{CraftRequest{7}}, GameEvent{CraftStatus{7, CraftOutcome::Started, 120}},
+          GameEvent{CraftStatus{2, CraftOutcome::MissingIngredients, 0}}}) {
+        const auto decoded = decodeGameEvent(encodeGameEvent(event));
+        REQUIRE(decoded);
+        CHECK(*decoded == event);
+    }
+    auto bytes = encodeGameEvent(CraftStatus{1, CraftOutcome::Done, 0});
+    bytes[3] = std::byte{9}; // issue inconnue
+    CHECK_FALSE(decodeGameEvent(bytes));
+}

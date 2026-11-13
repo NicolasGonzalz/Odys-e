@@ -7,10 +7,12 @@ add_library(odyssee_server_core STATIC
     src/CommandLine.cpp
     src/ecs/EntityPool.cpp
     src/ConnectionService.cpp
+    src/Crafting.cpp
     src/GameStep.cpp
     src/GameWorld.cpp
     src/InputQueue.cpp
     src/Inventory.cpp
+    src/ItemUse.cpp
     src/IpRateLimiter.cpp
     src/ShutdownSignals.cpp
     src/SipHash.cpp

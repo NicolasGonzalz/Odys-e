@@ -102,12 +102,12 @@ std::optional<std::unique_ptr<const world::WorldTerrain>> loadMap(std::string pa
     return std::make_unique<const world::WorldTerrain>(std::move(*decoded.world));
 }
 
-/// Types de ressources (T044), pour les dessiner : `data` du dossier courant, sinon à côté de
-/// l'exécutable. Absents ou invalides : std::nullopt (formes neutres), sans empêcher de jouer.
-std::optional<data::ResourceCatalog> loadResourceTypes() {
+/// Types de ressources (T044), pour les dessiner : --data, sinon data/ à côté de l'exécutable ou
+/// du dossier courant. Absents ou invalides : std::nullopt (formes neutres), sans empêcher de jouer.
+std::optional<data::ResourceCatalog> loadResourceTypes(const std::string& requested) {
     const std::string besideExecutable = std::string(GetApplicationDirectory()) + "data";
-    for (const std::string& dir : {std::string("data"), besideExecutable}) {
-        if (!FileExists((dir + "/resources.txt").c_str())) {
+    for (const std::string& dir : {requested, besideExecutable, std::string("data")}) {
+        if (dir.empty() || !FileExists((dir + "/resources.txt").c_str())) {
             continue;
         }
         const auto items = data::Catalog::fromDirectory(dir);
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    const auto resourceTypes = loadResourceTypes();
+    const auto resourceTypes = loadResourceTypes(options->dataDir);
     const auto catalog = loadCatalog(options->dataDir);
 
     openWindow();

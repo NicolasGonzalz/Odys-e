@@ -77,7 +77,8 @@ void drawHud(const HudInfo& info) {
 
     const int bottom = GetScreenHeight() - 30;
     DrawText(info.mouseCaptured ? "ZQSD/WASD bouger - Maj courir - Espace sauter - Ctrl accroupi"
-                                  " - V vue extérieure - Échap menu"
+                                  " - V vue - 1-5 outil - E manger"
+                                  " - C artisanat - Échap menu"
                                 : "Échap : menu - clic : reprendre la souris",
              16, bottom, 18, Color{255, 255, 255, 200});
 }

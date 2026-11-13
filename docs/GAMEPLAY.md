@@ -71,6 +71,16 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
 - Tenu par le serveur seul : récolte et artisanat y ajoutent, le joueur ne fait que réorganiser
   (déplacer une case : échange, ou regroupement d'une même pile).
 
+### Outil tenu, artisanat, nourriture (T047)
+
+- **Touches 1 à 5** : la case tenue de la barre d'outils part dans chaque input. Un **outil** tenu (hache,
+  pioche) récolte à pleine vitesse ; sinon, mains nues (deux fois plus lent, filon impossible).
+- **E** : mange ou boit le consommable tenu (`eat` / `drink` dans `data/items.txt`), une fois par appui.
+  Pour l'instant : les **baies** (buissons de baies). Une source d'eau reste à concevoir.
+- **Artisanat** : le joueur demande une recette ; le serveur vérifie poste et ingrédients, les prend au
+  début, et ajoute le résultat après `ticks`. Une fabrication à la fois. Seules les recettes « à la main »
+  marchent tant que les établis et forges ne sont pas posés dans le monde.
+
 ## 3. Carte et exploration
 
 **Pas de mini-carte.** On se repère au paysage, et on consulte une **grande carte plein écran** quand on veut.

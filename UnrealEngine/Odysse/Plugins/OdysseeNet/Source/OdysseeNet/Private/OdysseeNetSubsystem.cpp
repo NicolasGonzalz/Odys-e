@@ -207,6 +207,75 @@ void UOdysseeNetSubsystem::KeepEvents()
 		{
 			Inventory = std::move(*Contents); // le serveur renvoie tout à chaque changement
 		}
+		else if (const auto* Status = std::get_if<odyssee::net::CraftStatus>(&Event))
+		{
+			OnCraftChanged.Broadcast(RecipeKeyOf(Status->recipe),
+				static_cast<EOdysseeCraftOutcome>(Status->outcome),
+				static_cast<float>(Status->ticks) / static_cast<float>(odyssee::kTickRate));
+		}
+	}
+}
+
+const odyssee::data::Catalog* UOdysseeNetSubsystem::FindCatalog() const
+{
+	const UOdysseeCatalogSubsystem* Data = GetGameInstance()->GetSubsystem<UOdysseeCatalogSubsystem>();
+	return Data ? Data->GetCatalog() : nullptr;
+}
+
+FName UOdysseeNetSubsystem::RecipeKeyOf(std::uint16_t Recipe) const
+{
+	const odyssee::data::Catalog* Catalog = FindCatalog();
+	if (!Catalog || Recipe >= Catalog->recipes().size())
+	{
+		return NAME_None;
+	}
+	return FName(UTF8_TO_TCHAR(Catalog->recipes()[Recipe].key.c_str()));
+}
+
+TArray<FOdysseeRecipe> UOdysseeNetSubsystem::GetRecipes() const
+{
+	TArray<FOdysseeRecipe> Recipes;
+	const odyssee::data::Catalog* Catalog = FindCatalog();
+	if (!Catalog)
+	{
+		return Recipes;
+	}
+	for (const odyssee::data::RecipeDef& Def : Catalog->recipes())
+	{
+		FOdysseeRecipe& Recipe = Recipes.AddDefaulted_GetRef();
+		Recipe.Key = FName(UTF8_TO_TCHAR(Def.key.c_str()));
+		const odyssee::data::ItemDef* Output = Catalog->item(Def.output.item);
+		Recipe.Name = FText::FromString(UTF8_TO_TCHAR(Output ? Output->name.c_str() : Def.key.c_str()));
+		Recipe.Station = FName(UTF8_TO_TCHAR(std::string(odyssee::data::stationName(Def.station)).c_str()));
+		FString Ingredients;
+		for (const odyssee::data::ItemStack& Input : Def.inputs)
+		{
+			const odyssee::data::ItemDef* Item = Catalog->item(Input.item);
+			Ingredients += FString::Printf(TEXT("%s%d %s"), Ingredients.IsEmpty() ? TEXT("") : TEXT(", "),
+				static_cast<int32>(Input.count), Item ? UTF8_TO_TCHAR(Item->name.c_str()) : TEXT("?"));
+		}
+		Recipe.Ingredients = FText::FromString(Ingredients);
+		Recipe.Seconds = static_cast<float>(Def.ticks) / static_cast<float>(odyssee::kTickRate);
+	}
+	return Recipes;
+}
+
+void UOdysseeNetSubsystem::RequestCraft(FName RecipeKey)
+{
+	const odyssee::data::Catalog* Catalog = FindCatalog();
+	const std::string Key(TCHAR_TO_UTF8(*RecipeKey.ToString()));
+	if (!Link || !Catalog)
+	{
+		return;
+	}
+	const auto Recipes = Catalog->recipes();
+	for (std::size_t Index = 0; Index < Recipes.size(); ++Index)
+	{
+		if (Recipes[Index].key == Key)
+		{
+			Link->sendEvent(odyssee::net::CraftRequest{static_cast<std::uint16_t>(Index)});
+			return;
+		}
 	}
 }
 

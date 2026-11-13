@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CraftMenu.hpp"
 #include "Hud.hpp"
 #include "InputSampler.hpp"
 #include "MapView.hpp"
@@ -88,6 +89,7 @@ class DebugClient {
     InputSampler _input;
     std::optional<net::Snapshot> _latest;
     std::optional<net::InventoryContents> _inventory; ///< dernier reçu du serveur (T045)
+    CraftMenu _craft; ///< artisanat (T047), touche C
     client::Interpolation _remote; ///< les autres joueurs, affichés entre deux snapshots (T033)
     /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
     std::optional<std::array<std::int32_t, 3>> _previousDisplay;

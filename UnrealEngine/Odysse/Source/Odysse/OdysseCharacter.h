@@ -69,6 +69,10 @@ protected:
 	 *  dans le Blueprint du personnage. */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* PrimaryAction;
+
+	/** Utiliser (tenir, touche E), facultatif : manger ou boire ce qu'on tient (T047). */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* UseAction;
 	
 public:
 	AOdysseCharacter();
@@ -111,6 +115,11 @@ protected:
 	void CrouchEnd();
 	void PrimaryStart();
 	void PrimaryEnd();
+	void UseStart();
+	void UseEnd();
+
+	/** Touches 1 à 5 : case tenue de la barre d'outils (liées directement aux touches). */
+	void BindHotbarKeys(UInputComponent* PlayerInputComponent);
 	
 
 public:

@@ -27,7 +27,7 @@ PlayerState standing() {
 net::InputCommand input(float forward, float right, float yawDegrees,
                         std::uint16_t buttons = 0) {
     return net::InputCommand{net::quantizeAxis(forward), net::quantizeAxis(right),
-                             net::quantizeYaw(yawDegrees), 0, buttons};
+                             net::quantizeYaw(yawDegrees), 0, buttons, 0};
 }
 
 constexpr auto button(net::InputButton b) { return static_cast<std::uint16_t>(b); }

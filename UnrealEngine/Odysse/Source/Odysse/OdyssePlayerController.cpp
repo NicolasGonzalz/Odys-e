@@ -250,6 +250,16 @@ void AOdyssePlayerController::UpdateHud()
 	if (const AOdysseCharacter* Survivor = Cast<AOdysseCharacter>(GetPawn()))
 	{
 		Hud->StaminaBar->SetPercent(Survivor->GetSimMovement()->GetStamina());
+		// Case tenue (touches 1 à 5, T047) : encadrée dans la barre d'outils.
+		const int32 Held = Survivor->GetSimMovement()->GetHeldSlot();
+		if (Held != ShownHeldSlot) // seulement au changement : SetActive recharge une texture
+		{
+			ShownHeldSlot = Held;
+			for (int32 Index = 0; Index < Hud->ToolSlots.Num(); ++Index)
+			{
+				Hud->ToolSlots[Index]->SetActive(Index == Held);
+			}
+		}
 	}
 
 	const UOdysseeNetSubsystem* Net = GetNet();

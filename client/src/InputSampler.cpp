@@ -37,6 +37,11 @@ std::uint16_t pressedButtons() {
 } // namespace
 
 void InputSampler::update() {
+    for (int key = KEY_ONE; key <= KEY_FIVE; ++key) {
+        if (IsKeyPressed(key)) {
+            _heldSlot = static_cast<std::uint8_t>(key - KEY_ONE); // barre d'outils (T047)
+        }
+    }
     if (!IsCursorHidden()) {
         return; // souris libre (Échap) : la caméra ne bouge pas
     }
@@ -47,6 +52,7 @@ void InputSampler::update() {
 
 net::InputCommand InputSampler::sample() const {
     net::InputCommand command;
+    command.heldSlot = _heldSlot;
     if (!IsCursorHidden()) {
         // Souris libre (menu Échap, fenêtre quittée) : le joueur ne bouge plus, il garde son cap.
         command.yaw = net::quantizeYaw(_yaw);
