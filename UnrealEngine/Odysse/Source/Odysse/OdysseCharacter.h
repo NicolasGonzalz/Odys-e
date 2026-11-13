@@ -11,6 +11,7 @@ class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
+class UOdysseeMovementComponent;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -31,6 +32,13 @@ class AOdysseCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
+	/**
+	 * Mouvement par la simulation partagée avec le serveur (T016) : il remplace le
+	 * CharacterMovementComponent, désactivé au lancement (ADR 0003).
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UOdysseeMovementComponent* SimMovement;
+
 protected:
 
 	/** Jump Input Action */
@@ -48,6 +56,14 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
+
+	/** Courir (tenir), facultatif : à renseigner dans le Blueprint du personnage. */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* SprintAction;
+
+	/** S'accroupir (tenir), facultatif : à renseigner dans le Blueprint du personnage. */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* CrouchAction;
 	
 public:
 	AOdysseCharacter();
@@ -80,6 +96,14 @@ protected:
 
 	/** Set up input action bindings */
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+	/** Coupe le CharacterMovementComponent : c'est SimMovement qui déplace le personnage. */
+	virtual void BeginPlay() override;
+
+	void SprintStart();
+	void SprintEnd();
+	void CrouchStart();
+	void CrouchEnd();
 	
 
 public:
@@ -89,6 +113,9 @@ public:
 
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	/** Mouvement par la simulation partagée (endurance, vitesse, état au sol…). */
+	UOdysseeMovementComponent* GetSimMovement() const { return SimMovement; }
 
 };
 

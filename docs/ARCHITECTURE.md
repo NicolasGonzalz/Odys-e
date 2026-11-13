@@ -121,6 +121,19 @@ le client pour prédire (puis réconcilier) : **le résultat doit être identiqu
   repartir d'un snapshot (`sim::restore`) puis rejouer retombe exactement sur l'état du serveur, et
   que le serveur (inputs en lots redondants) et la prédiction du client arrivent au même état.
 
+### Dans Unreal (T016)
+
+- **`UOdysseeMovementComponent`** (plugin OdysseeNet) déplace le personnage avec `sim::step`, à 20 pas
+  par seconde comme le serveur, et interpole l'affichage entre deux pas. Le `CharacterMovementComponent`
+  du modèle First Person est coupé au lancement ; la capsule ne sert plus qu'aux requêtes (tirs, traces).
+- **`UOdysseeWorldSubsystem`** charge le même fichier monde que le serveur : `<Projet>/World/odyssee.world`
+  (jeu empaqueté) ou `tools/worldgen/output/odyssee.world` du dépôt (développement). Sans lui : sol plat.
+- **Repère** : identique à celui de la simulation (X est, Y sud, Z haut, cap de +X vers +Y) ; seule
+  l'échelle change (1/256 m ↔ cm, `OdysseeUnits.h`). La position de simulation est celle des pieds.
+- Le personnage transmet ses entrées (déplacement, saut, et `SprintAction` / `CrouchAction` si elles sont
+  renseignées) ; le cap vient de la rotation du contrôleur. Les animations et le HUD lisent l'état par
+  `GetVelocity`, `IsGrounded`, `IsCrouched`, `GetStamina`…
+
 ## Modèle de threads (cible)
 
 - **Serveur** : un thread de simulation (pas de verrous dans la logique de jeu), un thread réseau I/O,
