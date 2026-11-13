@@ -15,6 +15,14 @@ void line(int row, const std::string& text, Color color = RAYWHITE) {
     DrawText(text.c_str(), 16, 16 + row * kLine, 20, color);
 }
 
+std::string vitalsText(const HudInfo& info) {
+    if (!info.health) {
+        return "Vie, faim, soif : en attente du serveur";
+    }
+    return "Vie " + std::to_string(*info.health) + " %  -  faim " + std::to_string(*info.hunger) +
+           " %  -  soif " + std::to_string(*info.thirst) + " %";
+}
+
 std::string positionText(const HudInfo& info) {
     if (!info.x) {
         return "Position : en attente du serveur";
@@ -62,6 +70,8 @@ void drawHud(const HudInfo& info) {
     line(4, "Autres joueurs visibles : " + std::to_string(info.playersInView));
     line(5, correctionText(info));
     drawStamina(6, info.stamina, info.exhausted);
+    const bool low = info.health && (*info.health < 30 || *info.hunger == 0 || *info.thirst == 0);
+    line(8, vitalsText(info), low ? ORANGE : RAYWHITE);
     DrawFPS(16, 16 + 7 * kLine);
 
     const int bottom = GetScreenHeight() - 30;

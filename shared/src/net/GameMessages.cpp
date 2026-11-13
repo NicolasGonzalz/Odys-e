@@ -52,6 +52,9 @@ void writeBody(ByteWriter& w, const Snapshot& snapshot) {
         w.writeI16(component);
     }
     w.writeU16(snapshot.self.stamina);
+    w.writeU8(snapshot.vitals.health);
+    w.writeU8(snapshot.vitals.hunger);
+    w.writeU8(snapshot.vitals.thirst);
     w.writeU8(static_cast<std::uint8_t>(count));
     for (std::size_t i = 0; i < count; ++i) {
         writeEntity(w, snapshot.entities[i]);
@@ -132,15 +135,29 @@ std::optional<OwnMotion> readOwnMotion(ByteReader& r) {
     return OwnMotion{{*vx, *vy, *vz}, *stamina};
 }
 
+/// Chaque besoin entre 0 et kMaxVital : au-delà, le paquet est invalide.
+std::optional<OwnVitals> readOwnVitals(ByteReader& r) {
+    const auto health = r.readU8();
+    const auto hunger = r.readU8();
+    const auto thirst = r.readU8();
+    if (!health || !hunger || !thirst || *health > kMaxVital || *hunger > kMaxVital ||
+        *thirst > kMaxVital) {
+        return std::nullopt;
+    }
+    return OwnVitals{*health, *hunger, *thirst};
+}
+
 std::optional<GameMessage> readSnapshot(ByteReader& r) {
     const auto serverTick = r.readU32();
     const auto lastInput = r.readU32();
     const auto self = readOwnMotion(r);
+    const auto vitals = readOwnVitals(r);
     const auto count = r.readU8();
-    if (!serverTick || !lastInput || !self || !count || *count > kMaxSnapshotEntities) {
+    if (!serverTick || !lastInput || !self || !vitals || !count ||
+        *count > kMaxSnapshotEntities) {
         return std::nullopt;
     }
-    Snapshot snapshot{*serverTick, *lastInput, {}, *self};
+    Snapshot snapshot{*serverTick, *lastInput, {}, *self, *vitals};
     for (std::uint8_t i = 0; i < *count; ++i) {
         const auto entity = readEntity(r);
         if (!entity || containsId(snapshot.entities, entity->id)) {

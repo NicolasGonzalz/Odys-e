@@ -21,6 +21,15 @@ leur contenu vient du serveur.
 - Le mouvement est calculé par **`shared/sim`**, à l'identique sur le client et le serveur (prédiction puis
   réconciliation). « Courir » est un simple drapeau dans l'input envoyé au serveur (T024).
 
+### Besoins vitaux (T051)
+
+- **Vie, faim, soif** : simulées par le serveur à chaque tick, montrées en % dans le HUD.
+- La faim se vide en ~21 min et la soif en ~14 min de jeu ; **courir** les creuse deux fois plus vite.
+- Faim ou soif à zéro : la vie baisse (~3 min pour tout perdre, deux fois plus vite si les deux sont vides).
+- Faim et soif au-dessus de 60 % : la vie remonte lentement (~5 min pour la remplir).
+- Chiffres provisoires (`server/src/Vitals.hpp`, `VitalsTuning`). Manger et boire : avec l'inventaire
+  (T045) ; mort et réapparition : T052.
+
 ## 2. Artisanat : à la main, à l'établi, à la forge
 
 Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **à côté** (~3 m).

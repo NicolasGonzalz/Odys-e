@@ -86,6 +86,18 @@ struct OwnMotion {
     friend bool operator==(const OwnMotion&, const OwnMotion&) = default;
 };
 
+/// Les besoins vitaux du joueur destinataire (T051), en pourcentage (0 à kMaxVital). Calculés par
+/// le serveur seul : le client ne fait que les afficher.
+inline constexpr std::uint8_t kMaxVital = 100;
+
+struct OwnVitals {
+    std::uint8_t health = kMaxVital;
+    std::uint8_t hunger = kMaxVital; ///< 100 = rassasié, 0 = affamé
+    std::uint8_t thirst = kMaxVital; ///< 100 = désaltéré, 0 = assoiffé
+
+    friend bool operator==(const OwnVitals&, const OwnVitals&) = default;
+};
+
 /// L'état du monde vu par un joueur à un tick du serveur.
 struct Snapshot {
     Tick serverTick = 0;
@@ -94,6 +106,7 @@ struct Snapshot {
     Tick lastProcessedInput = 0;
     std::vector<EntityState> entities; ///< au plus kMaxSnapshotEntities
     OwnMotion self;                    ///< le joueur destinataire
+    OwnVitals vitals;                  ///< ses besoins vitaux
 
     friend bool operator==(const Snapshot&, const Snapshot&) = default;
 };

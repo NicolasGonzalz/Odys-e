@@ -164,7 +164,7 @@ Canal fiable : l'émetteur n'envoie que les messages à moins de 512 numéros du
 | Type | Sens | Contenu |
 |---|---|---|
 | `Inputs` = 1 | client → serveur | `firstTick` (u32, ≥ 1), `count` (u8, 1 à 16), puis `count` inputs de ticks consécutifs, du plus ancien au plus récent |
-| `Snapshot` = 2 | serveur → client | `serverTick` (u32), `lastProcessedInput` (u32), `self` (8 octets), `count` (u8, ≤ 60), puis `count` entités |
+| `Snapshot` = 2 | serveur → client | `serverTick` (u32), `lastProcessedInput` (u32), `self` (8 octets), `vitals` (3 octets), `count` (u8, ≤ 60), puis `count` entités |
 
 - **Input** (8 octets) : `moveForward` (i8), `moveRight` (i8), `yaw` (u16), `pitch` (i16), `buttons` (u16).
   Boutons : `Jump` 1, `Sprint` 2, `Crouch` 4, `Use` 8, `Primary` 16, `Secondary` 32 ; tout autre bit est refusé.
@@ -172,6 +172,8 @@ Canal fiable : l'émetteur n'envoie que les messages à moins de 512 numéros du
   au sol 1, accroupi 2, court 4, épuisé 8).
 - **`self`** : vitesse `vx`, `vy`, `vz` (i16, 1/256 m par tick) et endurance (u16) du joueur destinataire. Avec sa
   propre entité, c'est son état de simulation complet : sa prédiction repart exactement de là (T029).
+- **`vitals`** (protocole v5, T051) : vie, faim et soif du joueur destinataire, en % (u8, 0 à 100 ; plus
+  est invalide). Calculées par le serveur seul : le client les affiche, sans les prédire.
 - `lastProcessedInput` : dernier tick d'input **de ce joueur** appliqué par le serveur (0 tant qu'aucun),
   base de la réconciliation. Les ticks d'input sont ceux du client et **commencent à 1** (un lot qui
   commence à 0 est refusé). Le serveur n'accepte que des `Inputs` : un `Snapshot` reçu d'un client est
