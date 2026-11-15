@@ -293,6 +293,7 @@ stack = 50
 category = resource
 model = ressources/plume
 
+# Se transforme en tissu à l'établi (recette cloth_from_hide).
 [item hide]
 name = Peau
 stack = 10

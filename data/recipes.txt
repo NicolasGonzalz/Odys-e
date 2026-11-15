@@ -86,6 +86,13 @@ input = fiber 6
 output = cloth 1
 ticks = 100
 
+# La peau (dépeçage au couteau) donne plus de tissu que les fibres, et plus vite.
+[recipe cloth_from_hide]
+station = workbench
+input = hide 1
+output = cloth 2
+ticks = 80
+
 [recipe bow]
 station = workbench
 input = stick 3
@@ -98,6 +105,7 @@ station = workbench
 input = stick 1
 input = stone 1
 input = fiber 1
+input = feather 1
 output = arrow 3
 ticks = 60
 
