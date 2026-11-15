@@ -6,6 +6,7 @@
 
 #include "OdysseeNetSettings.generated.h"
 
+class AOdysseeBagActor;
 class AOdysseeRemotePlayer;
 class AOdysseeResourceActor;
 
@@ -25,6 +26,10 @@ public:
 	 *  pour remplacer les formes provisoires par des modèles). */
 	UPROPERTY(Config, EditAnywhere, Category = "Ressources")
 	TSoftClassPtr<AOdysseeResourceActor> ResourceClass;
+
+	/** Acteur qui montre les sacs laissés à la mort (AOdysseeBagActor ou un Blueprint enfant). */
+	UPROPERTY(Config, EditAnywhere, Category = "Sacs")
+	TSoftClassPtr<AOdysseeBagActor> BagClass;
 
 	virtual FName GetCategoryName() const override { return TEXT("Odyssee"); }
 };

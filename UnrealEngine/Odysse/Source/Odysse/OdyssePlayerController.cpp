@@ -120,6 +120,7 @@ void AOdyssePlayerController::CreateScreens()
 	if (UOdysseeNetSubsystem* Net = GetNet())
 	{
 		Net->OnConnectionChanged.AddUniqueDynamic(this, &AOdyssePlayerController::OnConnectionChanged);
+		Net->OnPlayerDied.AddUniqueDynamic(this, &AOdyssePlayerController::OnPlayerDied);
 	}
 }
 
@@ -235,6 +236,15 @@ void AOdyssePlayerController::OnConnectionChanged(EOdysseeConnection State, cons
 }
 
 // --- HUD ----------------------------------------------------------------------------------------
+
+void AOdyssePlayerController::OnPlayerDied(bool bLeftBag)
+{
+	// Le serveur a déjà replacé le joueur ; l'inventaire vidé arrive par l'événement d'inventaire.
+	constexpr float MessageSeconds = 6.f;
+	Hud->ShowCenterMessage(bLeftBag
+		? LOCTEXT("DiedWithBag", "Vous êtes mort : votre sac est resté sur place")
+		: LOCTEXT("Died", "Vous êtes mort"), MessageSeconds);
+}
 
 void AOdyssePlayerController::PlayerTick(float DeltaTime)
 {

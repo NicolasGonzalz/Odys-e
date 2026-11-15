@@ -28,6 +28,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Odyssee|UI")
 	void AddNotification(const FText& Message);
 
+	/** Grand message au centre de l'écran (mort…), qui s'efface après `Seconds`. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|UI")
+	void ShowCenterMessage(const FText& Message, float Seconds);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
+	TObjectPtr<UTextBlock> CenterMessageText;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
 	TObjectPtr<UProgressBar> HealthBar;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI")
@@ -57,4 +64,8 @@ private:
 	UWidget* BuildToolBar();
 	UWidget* BuildNetwork();
 	UWidget* BuildCrosshair();
+	UWidget* BuildCenterMessage();
+	void HideCenterMessage();
+
+	FTimerHandle CenterMessageTimer;
 };
