@@ -28,6 +28,10 @@ void writeBody(ByteWriter& w, const CraftStatus& m) {
     w.writeU16(m.ticks);
 }
 
+void writeBody(ByteWriter& w, const PlayerDied& m) {
+    w.writeU16(m.bag);
+}
+
 /// Le type d'un événement : son rang dans le variant + 1 (même ordre que GameEventType).
 GameEventType typeOf(const GameEvent& message) {
     return static_cast<GameEventType>(message.index() + 1);
@@ -74,6 +78,14 @@ std::optional<GameEvent> readCraftStatus(ByteReader& r) {
     return CraftStatus{*recipe, static_cast<CraftOutcome>(*outcome), *ticks};
 }
 
+std::optional<GameEvent> readPlayerDied(ByteReader& r) {
+    const auto bag = r.readU16();
+    if (!bag) {
+        return std::nullopt;
+    }
+    return PlayerDied{*bag};
+}
+
 std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
     switch (type) {
     case GameEventType::InventoryContents:
@@ -84,6 +96,8 @@ std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
         return readCraftRequest(r);
     case GameEventType::CraftStatus:
         return readCraftStatus(r);
+    case GameEventType::PlayerDied:
+        return readPlayerDied(r);
     }
     return std::nullopt;
 }

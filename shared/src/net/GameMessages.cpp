@@ -118,8 +118,8 @@ std::optional<EntityState> readEntity(ByteReader& r) {
     const auto z = r.readI32();
     const auto yaw = r.readU16();
     const auto flags = r.readU8();
-    const bool knownKind = kind && (*kind == static_cast<std::uint8_t>(EntityKind::Player) ||
-                                    *kind == static_cast<std::uint8_t>(EntityKind::Resource));
+    const bool knownKind = kind && *kind >= static_cast<std::uint8_t>(EntityKind::Player) &&
+                           *kind <= static_cast<std::uint8_t>(EntityKind::Bag);
     if (!id || !knownKind || !x || !y || !z || !yaw || !flags) {
         return std::nullopt;
     }

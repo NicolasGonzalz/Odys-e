@@ -12,7 +12,8 @@ namespace odyssee {
 /// 4 : code d'invitation dans la réponse au défi (T056). 5 : besoins vitaux dans le snapshot (T051).
 /// 6 : empreinte de la carte dans l'acceptation. 7 : entités ressources dans le snapshot (T044).
 /// 8 : événements fiables (inventaire, T045). 9 : case tenue dans l'input, artisanat (T047).
-inline constexpr std::uint16_t kProtocolVersion = 9;
+/// 10 : mort et sac au sol (entité Bag, événement PlayerDied, T052).
+inline constexpr std::uint16_t kProtocolVersion = 10;
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;

@@ -18,6 +18,8 @@ add_library(odyssee_server_core STATIC
     src/SipHash.cpp
     src/TokenBucket.cpp
     src/Vitals.cpp
+    src/death/Death.cpp
+    src/death/DroppedBags.cpp
     src/ResourceLoading.cpp
     src/WorldLoading.cpp
     src/resources/HarvestReach.cpp

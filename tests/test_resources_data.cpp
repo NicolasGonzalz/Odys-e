@@ -198,11 +198,11 @@ TEST_CASE("Snapshot : les entités ressources passent le réseau") {
     REQUIRE(decoded.has_value());
     CHECK(std::get<net::Snapshot>(*decoded) == snapshot);
 
-    // Une sorte inconnue (3) est toujours refusée : kind est après ticks (8), self (8),
-    // vitals (3), compteur (1) et id (2).
+    // Une sorte inconnue (4, après le sac de T052) est toujours refusée : kind est après
+    // ticks (8), self (8), vitals (3), compteur (1) et id (2).
     auto bytes = net::encodeGameMessage(net::Snapshot{1, 1, {resource(9, 0)}, {}, {}});
     REQUIRE(bytes[22] == std::byte{2});
-    bytes[22] = std::byte{3};
+    bytes[22] = std::byte{4};
     CHECK_FALSE(net::decodeGameMessage(type, bytes).has_value());
 }
 

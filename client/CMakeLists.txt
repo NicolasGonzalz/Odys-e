@@ -10,6 +10,7 @@ add_executable(odyssee_client
     src/PauseMenu.cpp
     src/Scene.cpp
     src/ResourceShapes.cpp
+    src/BagShapes.cpp
     src/Hud.cpp
     src/Widgets.cpp
     src/DebugClient.cpp

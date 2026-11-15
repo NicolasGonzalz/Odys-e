@@ -176,3 +176,14 @@ TEST_CASE("Inputs : le tick 0 est refusé (les ticks d'input commencent à 1)") 
     CHECK_FALSE(decodeGameMessage(type, rawBatch(0, InputCommand{})).has_value());
     CHECK(decodeGameMessage(type, rawBatch(1, InputCommand{})).has_value());
 }
+
+TEST_CASE("GameMessages : un sac au sol (T052) fait l'aller-retour dans le snapshot") {
+    const EntityState bag{kFirstBagEntity, EntityKind::Bag,
+                          {quantizePosition(1890.0f), quantizePosition(2601.5f),
+                           quantizePosition(10.0f)},
+                          0, 2};
+    const Snapshot snapshot{7, 3, {player(0), bag}, {}, {}};
+    const auto decoded = roundTrip(snapshot);
+    REQUIRE(decoded.has_value());
+    CHECK(std::get<Snapshot>(*decoded) == snapshot);
+}
