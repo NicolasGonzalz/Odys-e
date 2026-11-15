@@ -23,6 +23,8 @@ struct BagContents {
     net::PlayerId owner = 0;
 
     [[nodiscard]] bool empty() const;
+
+    friend bool operator==(const BagContents&, const BagContents&) = default;
 };
 
 /// Les sacs au sol (T052), entités de l'ECS du monde (composants BagContents, Placement et

@@ -390,12 +390,23 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     PlayerControl control;
     control.id = player.id;
     control.generation = player.generation;
+    control.name = player.name;
+    control.saved = !player.name.empty() && !nameInUse(player.name);
+    const bool saved = control.saved;
     _registry.add<PlayerControl>(entity, std::move(control));
     _players[player.id] = entity;
+    // T053 : un joueur déjà venu retrouve sa position, ses besoins et son inventaire.
+    if (const auto found = _absent.find(player.name); saved && found != _absent.end()) {
+        restorePlayer(entity, found->second);
+        _absent.erase(found);
+    }
 }
 
 void GameWorld::despawn(net::PlayerId player) {
     if (_players[player]) {
+        if (auto saved = capturePlayer(*_players[player])) { // T053 : gardé pour son retour
+            _absent[saved->name] = std::move(*saved);
+        }
         _registry.destroy(*_players[player]);
         _players[player].reset();
     }

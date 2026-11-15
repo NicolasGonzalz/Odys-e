@@ -49,6 +49,7 @@ if(ODYSSEE_BUILD_SERVER)
         test_input_queue.cpp
         test_game_world.cpp
     test_death.cpp
+    test_persistence.cpp
         test_ecs.cpp
         test_vitals.cpp
         test_inventory.cpp

@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string>
 
 namespace odyssee::server {
 
@@ -23,6 +24,10 @@ struct Motion {
 struct PlayerControl {
     net::PlayerId id = 0;
     ConnectionGeneration generation = 0; ///< connexion qui occupe la place (voir syncPlayers)
+    std::string name;                    ///< retrouve sa sauvegarde (T053)
+    /// Faux si un autre joueur du même nom était déjà là à la connexion : celui-ci repart de zéro
+    /// et n'est pas sauvegardé (sinon les deux écraseraient la même sauvegarde).
+    bool saved = true;
     net::Tick lastProcessedInput = 0;
     InputQueue inputs;
     net::InputCommand lastCommand;   ///< dernier input appliqué (reçu ou deviné)
@@ -36,6 +41,8 @@ struct PlayerControl {
 struct RestPoint {
     std::array<std::int32_t, 3> position{};
     std::uint16_t yaw = 0;
+
+    friend bool operator==(const RestPoint&, const RestPoint&) = default;
 };
 
 } // namespace odyssee::server

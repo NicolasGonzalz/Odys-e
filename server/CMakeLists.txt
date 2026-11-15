@@ -10,6 +10,7 @@ add_library(odyssee_server_core STATIC
     src/Crafting.cpp
     src/GameStep.cpp
     src/GameWorld.cpp
+    src/GameWorldSave.cpp
     src/InputQueue.cpp
     src/Inventory.cpp
     src/ItemUse.cpp
@@ -20,6 +21,8 @@ add_library(odyssee_server_core STATIC
     src/Vitals.cpp
     src/death/Death.cpp
     src/death/DroppedBags.cpp
+    src/persistence/SaveStore.cpp
+    src/persistence/Sqlite.cpp
     src/ResourceLoading.cpp
     src/WorldLoading.cpp
     src/resources/HarvestReach.cpp
@@ -28,7 +31,7 @@ add_library(odyssee_server_core STATIC
     src/resources/ResourceScatter.cpp
 )
 target_include_directories(odyssee_server_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(odyssee_server_core PUBLIC odyssee::shared)
+target_link_libraries(odyssee_server_core PUBLIC odyssee::shared PRIVATE odyssee::sqlite)
 odyssee_set_options(odyssee_server_core)
 
 # L'exécutable ne fait qu'assembler.

@@ -75,12 +75,16 @@ bool isNetworkOption(std::string_view arg) {
 }
 
 bool isTextOption(std::string_view arg) {
-    return arg == "--world" || arg == "--data" || arg == "--invite";
+    return arg == "--world" || arg == "--data" || arg == "--invite" || arg == "--save";
 }
 
-/// Applique `--world fichier`, `--data dossier` ou `--invite code`. Faux si la valeur est vide
-/// ou invalide.
+/// Applique `--world fichier`, `--data dossier`, `--save fichier` ou `--invite code`. Faux si la
+/// valeur est vide ou invalide.
 bool applyTextOption(std::string_view name, std::string_view value, Options& options) {
+    if (name == "--save") {
+        options.savePath = std::string(value);
+        return !value.empty();
+    }
     if (name == "--world" || name == "--data") {
         (name == "--world" ? options.worldPath : options.dataDir) = std::string(value);
         return !value.empty();
@@ -99,6 +103,10 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
         const std::string_view arg = args[i];
         if (arg == "--verbose") {
             options.verbose = true;
+            continue;
+        }
+        if (arg == "--no-save") {
+            options.savePath.clear();
             continue;
         }
         if (isTextOption(arg)) {
@@ -129,13 +137,16 @@ std::optional<Options> parseCommandLine(std::span<const std::string_view> args) 
 std::string usage(std::string_view programName) {
     return std::format(
         "Usage : {} [--verbose] [--world fichier] [--data dossier] [--invite code] "
-        "[--lag ms] [--jitter ms] [--loss %] [--dup %] [port]\n"
+        "[--save fichier | --no-save] [--lag ms] [--jitter ms] [--loss %] [--dup %] [port]\n"
         "  --verbose      affiche les messages de debug\n"
         "  --world f      carte à charger (fichier .world) ; sans elle, sol plat\n"
         "  --data d       dossier des données (items, recettes, ressources) ; défaut :\n"
         "                 data/ à côté du serveur, sinon celui du dossier courant\n"
         "  --invite code  code d'invitation exigé des joueurs (lettres et chiffres,\n"
         "                 32 au plus) ; sans lui, le serveur est ouvert à tous\n"
+        "  --save f       base où le monde est sauvegardé (défaut : odyssee_monde.sqlite,\n"
+        "                 dans le dossier courant) ; reprise au démarrage\n"
+        "  --no-save      ne rien sauvegarder (essais)\n"
         "  --lag ms       simulation réseau : délai ajouté à chaque envoi\n"
         "  --jitter ms    simulation réseau : ± au hasard autour du délai\n"
         "  --loss %       simulation réseau : envois perdus (0 à 100)\n"

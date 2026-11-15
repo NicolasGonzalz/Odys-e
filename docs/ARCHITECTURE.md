@@ -46,7 +46,12 @@
   dans un ordre fixe à chaque tick. Les joueurs ont `PlayerControl` et `Motion` (T043) ; les ressources
   récoltables, `ResourceNode`, `Placement` et `NetworkEntity` (`server/src/resources/`, T044).
 - **Area of Interest** : chaque joueur ne reçoit que les entités des chunks proches de lui.
-- **Persistance** : sauvegarde périodique et à l'arrêt (SQLite), chunks modifiés uniquement.
+- **Persistance** (T053) : sauvegarde toutes les 5 minutes et à l'arrêt, dans une base SQLite (`--save`,
+  défaut `odyssee_monde.sqlite`), reprise au démarrage. Elle garde les joueurs (retrouvés par leur nom, même
+  déconnectés), leur inventaire, leurs besoins et leur point de repos, l'état des ressources et les sacs au sol
+  (`server/src/persistence/`). Chaque écriture remplace la précédente en une transaction. Si la carte a changé,
+  les joueurs repartent du point d'apparition avec leur inventaire. À venir : chunks modifiés uniquement,
+  écriture dans un fil à part si elle devient lente.
 
 ### `client/`
 - **Réseau** : envoi des inputs horodatés par tick, réception des snapshots.

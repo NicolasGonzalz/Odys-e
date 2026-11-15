@@ -7,6 +7,7 @@
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
 #include "death/DroppedBags.hpp"
+#include "persistence/WorldSave.hpp"
 #include "ecs/Registry.hpp"
 #include "resources/ResourceField.hpp"
 
@@ -18,10 +19,13 @@
 #include "odyssee/sim/Terrain.hpp"
 
 #include <array>
+#include <functional>
+#include <map>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <span>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -130,6 +134,14 @@ class GameWorld {
     /// Contenu d'un sac par son numéro réseau (tests, outils), s'il existe.
     [[nodiscard]] std::optional<BagContents> bagContents(net::EntityId id) const;
 
+    /// Tout ce qui doit survivre à un redémarrage (T053) : les joueurs (connectés ou partis,
+    /// retrouvés par leur nom), l'état des ressources et les sacs au sol.
+    [[nodiscard]] WorldSave save() const;
+    /// Reprend une sauvegarde, au démarrage, après addResources. Les joueurs la retrouvent à leur
+    /// connexion. Si la carte a changé depuis, ils gardent inventaire et besoins mais repartent
+    /// du point d'apparition ; ressources et sacs (liés à l'ancienne carte) sont oubliés.
+    void load(const WorldSave& save);
+
     [[nodiscard]] bool hasPlayer(net::PlayerId player) const;
     [[nodiscard]] std::size_t playerCount() const;
 
@@ -146,6 +158,11 @@ class GameWorld {
     void pickUpBags();
     void spawn(const ConnectedPlayer& player);
     void despawn(net::PlayerId player);
+    [[nodiscard]] bool nameInUse(const std::string& name) const;
+    /// Ce qu'on garde d'un joueur ; rien s'il n'est pas sauvegardé (nom pris par un autre).
+    [[nodiscard]] std::optional<SavedPlayer> capturePlayer(ecs::Entity entity) const;
+    void restorePlayer(ecs::Entity entity, const SavedPlayer& saved);
+    void loadResources(const std::vector<SavedResource>& saved);
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
     [[nodiscard]] const Motion* motionComponentOf(net::PlayerId player) const;
     [[nodiscard]] Inventory* mutableInventoryOf(net::PlayerId player);
@@ -161,6 +178,8 @@ class GameWorld {
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;
     ResourceField _resources; ///< arbres, rochers… (T044)
     DroppedBags _bags;        ///< sacs laissés à la mort (T052)
+    /// Joueurs sauvegardés qui ne sont pas connectés, par nom (T053).
+    std::map<std::string, SavedPlayer, std::less<>> _absent;
 };
 
 } // namespace odyssee::server

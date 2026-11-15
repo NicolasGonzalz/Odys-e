@@ -50,6 +50,7 @@ bool Server::run() {
 
     loop(connections);
 
+    saveWorld(); // avant de déconnecter : les joueurs encore là sont sauvegardés avec le reste
     connections.shutdown();
     return true;
 }
@@ -101,9 +102,27 @@ void Server::tick(ConnectionService& connections, std::uint64_t tickIndex,
     // Les ticks réseau sont sur 32 bits : 6 ans à 20 ticks/s avant de reboucler.
     stepGame(connections, _world, static_cast<net::Tick>(tickIndex), now);
 
+    if (tickIndex != 0 && tickIndex % kAutosaveTicks == 0) {
+        saveWorld();
+    }
     if (tickIndex % (kTickRate * 10) == 0) {
         kLog.debug("tick {} — {} joueur(s)", tickIndex, connections.playerCount());
     }
+}
+
+void Server::saveWorld() {
+    if (!_store) {
+        return;
+    }
+    const auto started = Clock::now();
+    const WorldSave save = _world.save();
+    if (!_store->store(save)) {
+        kLog.error("sauvegarde du monde impossible : la précédente est gardée");
+        return;
+    }
+    const auto took = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - started);
+    kLog.info("monde sauvegardé : {} joueur(s), {} sac(s) ({} ms)", save.players.size(),
+              save.bags.size(), took.count());
 }
 
 } // namespace odyssee::server

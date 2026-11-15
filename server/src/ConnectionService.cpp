@@ -58,7 +58,7 @@ std::vector<ConnectedPlayer> ConnectionService::connectedPlayers() const {
     std::vector<ConnectedPlayer> players;
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
         if (_links[id]) {
-            players.push_back(ConnectedPlayer{id, _links[id]->generation});
+            players.push_back(ConnectedPlayer{id, _links[id]->generation, _links[id]->name});
         }
     }
     return players;
@@ -237,7 +237,7 @@ void ConnectionService::syncLinks(Clock::time_point now) {
         if (!info) {
             link.reset();
         } else if (!link || link->generation != info->generation) {
-            link.emplace(PlayerLink{info->address, info->generation, info->sessionToken,
+            link.emplace(PlayerLink{info->address, info->generation, info->sessionToken, info->name,
                                     net::Session{info->sessionToken},
                                     TokenBucket(_limits.perPlayer, now)});
             link->session.acceptOnly(net::GameMessageType::Inputs);
