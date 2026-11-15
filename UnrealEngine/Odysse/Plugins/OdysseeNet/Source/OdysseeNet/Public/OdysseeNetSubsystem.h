@@ -17,6 +17,7 @@
 #include "OdysseeNetSubsystem.generated.h"
 
 class AOdysseeRemotePlayer;
+class UOdysseeBagSync;
 class UOdysseeResourceSync;
 
 UENUM(BlueprintType)
@@ -35,6 +36,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOdysseeConnectionChanged, EOdyssee
 UENUM(BlueprintType)
 enum class EOdysseeCraftOutcome : uint8
 {
+	None = 0 UMETA(Hidden), ///< valeur par défaut d'Unreal, jamais envoyée par le serveur
 	Started = 1,
 	Done = 2,
 	Busy = 3,
@@ -42,6 +44,9 @@ enum class EOdysseeCraftOutcome : uint8
 	MissingIngredients = 5,
 	UnknownRecipe = 6,
 };
+
+/** Le joueur local est mort (T052) ; `bLeftBag` : son inventaire est resté dans un sac, sur place. */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOdysseePlayerDied, bool, bLeftBag);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOdysseeCraftChanged, FName, RecipeKey,
 	EOdysseeCraftOutcome, Outcome, float, Seconds);
@@ -100,7 +105,8 @@ struct FOdysseeInventorySlot
  *   envoie aussi ses inputs par SendInputs) et l'affichage des autres joueurs, interpolés avec un
  *   léger retard (T033) : un AOdysseeRemotePlayer par joueur.
  * - Les ressources récoltables du dernier snapshot sont montrées telles quelles, sans interpolation
- *   (T044) : un AOdysseeResourceActor par ressource (UOdysseeResourceSync).
+ *   (T044) : un AOdysseeResourceActor par ressource (UOdysseeResourceSync), et de même les sacs
+ *   laissés à la mort (T052) : un AOdysseeBagActor par sac (UOdysseeBagSync).
  */
 UCLASS()
 class ODYSSEENET_API UOdysseeNetSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
@@ -169,6 +175,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Artisanat")
 	FOdysseeCraftChanged OnCraftChanged;
 
+	/** Le joueur local est mort : le serveur le replace au point de repos et lui renvoie son
+	 *  inventaire (vide s'il a laissé un sac). */
+	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Survie")
+	FOdysseePlayerDied OnPlayerDied;
+
 	// --- Pour la prédiction (C++) ---------------------------------------------------------------
 
 	bool IsConnected() const { return Connection == EOdysseeConnection::Connected; }
@@ -202,6 +213,7 @@ private:
 	AOdysseeRemotePlayer* SpawnRemotePlayer(int32 Id);
 	void RemoveRemotePlayers();
 	void ShowResources();
+	void ShowBags();
 
 	std::optional<odyssee::client::ServerLink> Link;
 	std::optional<odyssee::net::Snapshot> Latest;
@@ -210,6 +222,7 @@ private:
 	uint64 SnapshotVersion = 0;
 	uint32 SessionId = 0;
 	uint64 ShownResources = 0; ///< SnapshotVersion dont les ressources sont montrées
+	uint64 ShownBags = 0; ///< SnapshotVersion dont les sacs sont montrés
 
 	EOdysseeConnection Connection = EOdysseeConnection::Offline;
 	FText Status;
@@ -219,4 +232,7 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UOdysseeResourceSync> Resources;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UOdysseeBagSync> Bags;
 };

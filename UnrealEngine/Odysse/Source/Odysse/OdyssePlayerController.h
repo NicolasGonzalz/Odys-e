@@ -73,6 +73,7 @@ private:
 	UFUNCTION() void OnResumeClicked();
 	UFUNCTION() void OnLeaveClicked();
 	UFUNCTION() void OnConnectionChanged(EOdysseeConnection State, const FText& Status);
+	UFUNCTION() void OnPlayerDied(bool bLeftBag);
 	void TogglePause();
 
 	UPROPERTY(Transient) TObjectPtr<UOdysseeHudWidget> Hud;

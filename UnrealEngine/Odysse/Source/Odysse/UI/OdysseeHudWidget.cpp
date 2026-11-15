@@ -9,6 +9,8 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 #include "UI/OdysseeGaugeWidget.h"
 #include "UI/OdysseeToolSlotWidget.h"
 #include "UI/OdysseeUiStyle.h"
@@ -38,6 +40,7 @@ UWidget* UOdysseeHudWidget::BuildTree()
 	Pin(Canvas, BuildToolBar(), FVector2D(0.5f, 1.f), FVector2D(0.f, -24.f));
 	Pin(Canvas, BuildNetwork(), FVector2D(0.f, 0.f), FVector2D(20.f, 16.f));
 	Pin(Canvas, BuildCrosshair(), FVector2D(0.5f, 0.5f), FVector2D::ZeroVector);
+	Pin(Canvas, BuildCenterMessage(), FVector2D(0.5f, 0.35f), FVector2D::ZeroVector);
 	NotificationBox = MakeColumn(TEXT("NotificationBox"));
 	Pin(Canvas, NotificationBox, FVector2D(1.f, 0.f), FVector2D(-24.f, 24.f));
 	return Canvas;
@@ -111,6 +114,32 @@ UWidget* UOdysseeHudWidget::BuildCrosshair()
 	UTextBlock* Mark = MakeText(NAME_None, FText::FromString(TEXT("+")), 16, false,
 		FLinearColor(1.f, 1.f, 1.f, 0.75f));
 	return Mark;
+}
+
+UWidget* UOdysseeHudWidget::BuildCenterMessage()
+{
+	CenterMessageText = MakeText(TEXT("CenterMessageText"), FText::GetEmpty(), 24, true);
+	CenterMessageText->SetFont(OdysseeUi::Font(24, true, 60));
+	CenterMessageText->SetJustification(ETextJustify::Center);
+	UBorder* Panel = MakePanel(TEXT("CenterMessage"), CenterMessageText, FMargin(36.f, 16.f));
+	Panel->SetVisibility(ESlateVisibility::Collapsed);
+	return Panel;
+}
+
+void UOdysseeHudWidget::ShowCenterMessage(const FText& Message, float Seconds)
+{
+	CenterMessageText->SetText(Message);
+	CenterMessageText->GetParent()->SetVisibility(ESlateVisibility::HitTestInvisible);
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(CenterMessageTimer,
+			FTimerDelegate::CreateUObject(this, &UOdysseeHudWidget::HideCenterMessage), Seconds, false);
+	}
+}
+
+void UOdysseeHudWidget::HideCenterMessage()
+{
+	CenterMessageText->GetParent()->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UOdysseeHudWidget::AddNotification(const FText& Message)

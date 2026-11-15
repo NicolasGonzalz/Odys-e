@@ -26,8 +26,9 @@ void UOdysseeCatalogSubsystem::LoadItems(const FString& Dir)
 	auto Result = odyssee::data::Catalog::fromDirectory(std::string(TCHAR_TO_UTF8(*Dir)));
 	if (!Result.catalog)
 	{
-		UE_LOG(LogOdysseeCatalog, Error, TEXT("Objets non chargés : %s"),
-			UTF8_TO_TCHAR(Result.error ? Result.error->describe().c_str() : "erreur inconnue"));
+		// Texte calculé à part : UTF8_TO_TCHAR ne s'applique qu'au premier terme d'un « ? : ».
+		const std::string Why = Result.error ? Result.error->describe() : "erreur inconnue";
+		UE_LOG(LogOdysseeCatalog, Error, TEXT("Objets non chargés : %s"), UTF8_TO_TCHAR(Why.c_str()));
 		return;
 	}
 	Catalog = std::move(Result.catalog);
@@ -44,8 +45,9 @@ void UOdysseeCatalogSubsystem::LoadResourceTypes(const FString& Dir)
 	auto Result = odyssee::data::ResourceCatalog::fromDirectory(std::string(TCHAR_TO_UTF8(*Dir)), *Catalog);
 	if (!Result.catalog)
 	{
-		UE_LOG(LogOdysseeCatalog, Error, TEXT("Ressources non chargées : %s"),
-			UTF8_TO_TCHAR(Result.error ? Result.error->describe().c_str() : "erreur inconnue"));
+		// Texte calculé à part : UTF8_TO_TCHAR ne s'applique qu'au premier terme d'un « ? : ».
+		const std::string Why = Result.error ? Result.error->describe() : "erreur inconnue";
+		UE_LOG(LogOdysseeCatalog, Error, TEXT("Ressources non chargées : %s"), UTF8_TO_TCHAR(Why.c_str()));
 		return;
 	}
 	ResourceTypes = std::move(Result.catalog);

@@ -1,5 +1,6 @@
 #include "OdysseeNetSubsystem.h"
 
+#include "OdysseeBagSync.h"
 #include "OdysseeCatalogSubsystem.h"
 #include "OdysseeNetSettings.h"
 #include "OdysseeRemotePlayer.h"
@@ -99,6 +100,10 @@ void UOdysseeNetSubsystem::Disconnect()
 	{
 		Resources->RemoveAll();
 	}
+	if (Bags)
+	{
+		Bags->RemoveAll();
+	}
 	if (Connection == EOdysseeConnection::Connecting || Connection == EOdysseeConnection::Connected)
 	{
 		SetConnection(EOdysseeConnection::Offline, LOCTEXT("Offline", "Hors ligne"));
@@ -109,6 +114,7 @@ void UOdysseeNetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	Resources = NewObject<UOdysseeResourceSync>(this);
+	Bags = NewObject<UOdysseeBagSync>(this);
 }
 
 void UOdysseeNetSubsystem::Deinitialize()
@@ -183,6 +189,7 @@ void UOdysseeNetSubsystem::Tick(float DeltaTime)
 		Remote.advance(static_cast<double>(DeltaTime) * odyssee::kTickRate);
 		ShowRemotePlayers(DeltaTime);
 		ShowResources();
+		ShowBags();
 	}
 }
 
@@ -207,11 +214,15 @@ void UOdysseeNetSubsystem::KeepEvents()
 		{
 			Inventory = std::move(*Contents); // le serveur renvoie tout à chaque changement
 		}
-		else if (const auto* Status = std::get_if<odyssee::net::CraftStatus>(&Event))
+		else if (const auto* Craft = std::get_if<odyssee::net::CraftStatus>(&Event))
 		{
-			OnCraftChanged.Broadcast(RecipeKeyOf(Status->recipe),
-				static_cast<EOdysseeCraftOutcome>(Status->outcome),
-				static_cast<float>(Status->ticks) / static_cast<float>(odyssee::kTickRate));
+			OnCraftChanged.Broadcast(RecipeKeyOf(Craft->recipe),
+				static_cast<EOdysseeCraftOutcome>(Craft->outcome),
+				static_cast<float>(Craft->ticks) / static_cast<float>(odyssee::kTickRate));
+		}
+		else if (const auto* Died = std::get_if<odyssee::net::PlayerDied>(&Event))
+		{
+			OnPlayerDied.Broadcast(Died->bag != 0); // 0 : rien à laisser, pas de sac
 		}
 	}
 }
@@ -416,6 +427,18 @@ void UOdysseeNetSubsystem::ShowResources()
 	ShownResources = SnapshotVersion;
 	const UOdysseeCatalogSubsystem* Data = GetGameInstance()->GetSubsystem<UOdysseeCatalogSubsystem>();
 	Resources->Show(*Latest, *World, Data ? Data->GetResourceTypes() : nullptr);
+}
+
+void UOdysseeNetSubsystem::ShowBags()
+{
+	// Fixes comme les ressources : seul le dernier snapshot compte, et seulement quand il change.
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!Bags || !Latest || !World || ShownBags == SnapshotVersion)
+	{
+		return;
+	}
+	ShownBags = SnapshotVersion;
+	Bags->Show(*Latest, *World);
 }
 
 AOdysseeRemotePlayer* UOdysseeNetSubsystem::SpawnRemotePlayer(int32 Id)
