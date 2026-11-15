@@ -30,6 +30,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UScrollBox> WorldList;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> NewWorldButton;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UButton> LoadWorldButton;
+	/** Nul pendant la bêta (adresse du serveur dans les réglages : UOdysseeNetSettings). */
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> AddressInput;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> NameInput;
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|UI") TObjectPtr<UEditableTextBox> JoinCodeInput;

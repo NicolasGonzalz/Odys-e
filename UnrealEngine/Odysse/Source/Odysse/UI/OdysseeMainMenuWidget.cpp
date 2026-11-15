@@ -1,4 +1,5 @@
 #include "UI/OdysseeMainMenuWidget.h"
+#include "OdysseeNetSettings.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -130,9 +131,13 @@ UWidget* UOdysseeMainMenuWidget::BuildMultiplayerPage()
 	UBorder* Panel = MakeMenuPanel(NAME_None, LOCTEXT("MultiTitle", "Multijoueur"), Column);
 	AddTo(Column, MakeText(NAME_None, LOCTEXT("JoinLabel", "Rejoindre avec un code"), 14, true), FMargin(0.f, 0.f,
 		0.f, 6.f), HAlign_Left);
-	AddressInput = MakeField(TEXT("AddressInput"), LOCTEXT("AddressHint", "Adresse (89.92.152.61:58121)"));
+	// Bêta : un seul serveur, réglé dans le projet ; seuls le pseudo et le code sont demandés.
+	if (GetDefault<UOdysseeNetSettings>()->BetaServerAddress.IsEmpty())
+	{
+		AddressInput = MakeField(TEXT("AddressInput"), LOCTEXT("AddressHint", "Adresse (IP:port)"));
+		AddTo(Column, MakeSized(AddressInput, FVector2D(410.f, 48.f)), FMargin(0.f, 0.f, 0.f, 6.f), HAlign_Left);
+	}
 	NameInput = MakeField(TEXT("NameInput"), LOCTEXT("NameHint", "Pseudo"));
-	AddTo(Column, MakeSized(AddressInput, FVector2D(410.f, 48.f)), FMargin(0.f, 0.f, 0.f, 6.f), HAlign_Left);
 	AddTo(Column, MakeSized(NameInput, FVector2D(410.f, 48.f)), FMargin(0.f, 0.f, 0.f, 6.f), HAlign_Left);
 	AddTo(Column, BuildJoinRow(), FMargin(0.f, 0.f, 0.f, 4.f));
 	JoinStatusText = MakeText(TEXT("JoinStatusText"), FText::GetEmpty(), 12, false, OdysseeUi::BoneDim);
