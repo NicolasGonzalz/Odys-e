@@ -55,9 +55,14 @@ struct TempBase {
         : path((std::filesystem::temp_directory_path() /
                 ("odyssee_test_" + std::string(name) + ".sqlite"))
                    .string()) {
-        std::filesystem::remove(path);
+        std::error_code ignored;
+        std::filesystem::remove(path, ignored);
     }
-    ~TempBase() { std::filesystem::remove(path); }
+    /// Sans exception : sous Windows, un fichier encore ouvert ne s'efface pas.
+    ~TempBase() {
+        std::error_code ignored;
+        std::filesystem::remove(path, ignored);
+    }
 };
 
 /// Un monde sans carte, avec un rocher 1,5 m au nord du joueur 0 (comme au démarrage du

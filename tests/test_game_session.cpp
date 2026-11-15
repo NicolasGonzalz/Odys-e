@@ -269,7 +269,8 @@ TEST_CASE("Partie : l'inventaire arrive par le canal fiable, et le client peut l
 TEST_CASE("Redémarrage (T054) : arrêt, sauvegarde, nouveau serveur ; le joueur retrouve tout") {
     const auto base = (std::filesystem::temp_directory_path() / "odyssee_test_redemarrage.sqlite")
                           .string();
-    std::filesystem::remove(base);
+    std::error_code ignored;
+    std::filesystem::remove(base, ignored);
     const auto catalog = [] {
         auto loaded = data::Catalog::fromText(
             "[item stick]\nname = Bâton\nstack = 40\ncategory = resource\n", "");
@@ -295,11 +296,13 @@ TEST_CASE("Redémarrage (T054) : arrêt, sauvegarde, nouveau serveur ; le joueur
 
     Match second; // nouveau serveur, nouveau port, monde neuf repris de la base
     second.world.useCatalog(catalog());
-    auto store = server::SaveStore::open(base);
-    REQUIRE(store);
-    const auto save = store->load();
-    REQUIRE(save);
-    second.world.load(*save);
+    {
+        auto store = server::SaveStore::open(base); // refermée avant l'effacement (Windows)
+        REQUIRE(store);
+        const auto save = store->load();
+        REQUIRE(save);
+        second.world.load(*save);
+    }
 
     GameClient teo("Teo", second.service.port());
     teo.yawDegrees = 0.0f;
@@ -322,7 +325,7 @@ TEST_CASE("Redémarrage (T054) : arrêt, sauvegarde, nouveau serveur ; le joueur
     const auto dx = std::abs(std::int64_t{self->position[0]} - leftAt[0]);
     const auto dy = std::abs(std::int64_t{self->position[1]} - leftAt[1]);
     CHECK(dx + dy < 10 * 256);
-    std::filesystem::remove(base);
+    std::filesystem::remove(base, ignored);
 }
 
 namespace {
