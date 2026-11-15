@@ -22,11 +22,13 @@ struct Options {
     std::string dataDir;
     /// Code d'invitation exigé (T056), normalisé. Vide : serveur ouvert à tous.
     std::string inviteCode;
+    /// Base SQLite où le monde est sauvegardé (T053). Vide (`--no-save`) : rien n'est gardé.
+    std::string savePath = "odyssee_monde.sqlite";
     net::NetworkConditions network; ///< simulation de mauvais réseau (aucune par défaut)
 };
 
 /// Lit les arguments (sans le nom du programme) : `[--verbose] [--world fichier] [--data dossier]
-/// [--invite code]
+/// [--invite code] [--save fichier | --no-save]
 /// [--lag ms] [--jitter ms] [--loss %] [--dup %] [port]`, dans n'importe quel ordre.
 /// Renvoie std::nullopt si un argument est inconnu, une valeur invalide ou manquante, ou si le
 /// port est donné deux fois.

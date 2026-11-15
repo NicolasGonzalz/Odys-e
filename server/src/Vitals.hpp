@@ -28,6 +28,8 @@ struct Vitals {
     std::int32_t health = VitalsTuning::kVitalScale;
     std::int32_t hunger = VitalsTuning::kVitalScale; ///< kVitalScale = rassasié
     std::int32_t thirst = VitalsTuning::kVitalScale;
+
+    friend bool operator==(const Vitals&, const Vitals&) = default;
 };
 
 /// Un tick de besoins : la faim et la soif baissent (plus vite en courant) ; à zéro, la vie

@@ -4,6 +4,7 @@
 #include "ConnectionService.hpp"
 #include "GameStep.hpp"
 #include "GameWorld.hpp"
+#include "persistence/SaveStore.hpp"
 
 #include "odyssee/client/InputHistory.hpp"
 #include "odyssee/client/ServerLink.hpp"
@@ -21,6 +22,7 @@
 #include <array>
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>
@@ -261,4 +263,63 @@ TEST_CASE("Partie : l'inventaire arrive par le canal fiable, et le client peut l
     REQUIRE(!received.empty());
     CHECK(std::get<InventoryContents>(received.back()).slots[3] == InventorySlot{0, 7});
     CHECK(match.world.inventoryOf(0)->slots[3].count == 7);
+}
+
+TEST_CASE("Redémarrage (T054) : arrêt, sauvegarde, nouveau serveur ; le joueur retrouve tout") {
+    const auto base = (std::filesystem::temp_directory_path() / "odyssee_test_redemarrage.sqlite")
+                          .string();
+    std::filesystem::remove(base);
+    const auto catalog = [] {
+        auto loaded = data::Catalog::fromText(
+            "[item stick]\nname = Bâton\nstack = 40\ncategory = resource\n", "");
+        REQUIRE(loaded.catalog);
+        return std::move(*loaded.catalog);
+    };
+
+    std::array<std::int32_t, 3> leftAt{};
+    {
+        Match first;
+        first.world.useCatalog(catalog());
+        GameClient teo("Teo", first.service.port());
+        first.connect(teo);
+        CHECK(first.world.giveItem(0, data::ItemId{0}, 9) == 0);
+        first.runUntil({&teo}, [&] { return teo.latest && teo.latest->lastProcessedInput > 20; });
+        leftAt = first.world.motionOf(0)->position; // il a marché : loin du point d'apparition
+
+        // Arrêt du serveur : sauvegarde du monde, comme Server::run le fait en sortant.
+        auto store = server::SaveStore::open(base);
+        REQUIRE(store);
+        REQUIRE(store->store(first.world.save()));
+    }
+
+    Match second; // nouveau serveur, nouveau port, monde neuf repris de la base
+    second.world.useCatalog(catalog());
+    auto store = server::SaveStore::open(base);
+    REQUIRE(store);
+    const auto save = store->load();
+    REQUIRE(save);
+    second.world.load(*save);
+
+    GameClient teo("Teo", second.service.port());
+    teo.yawDegrees = 0.0f;
+    second.connect(teo);
+    std::optional<InventoryContents> inventory;
+    second.runUntil({&teo}, [&] {
+        for (auto& event : teo.link.takeEvents()) {
+            if (auto* contents = std::get_if<InventoryContents>(&event)) {
+                inventory = *contents;
+            }
+        }
+        return inventory.has_value() && teo.latest.has_value();
+    });
+    REQUIRE(inventory);
+    CHECK(inventory->slots[0] == InventorySlot{0, 9});
+    REQUIRE(teo.latest);
+    const EntityState* self = teo.entity(*teo.link.playerId());
+    REQUIRE(self != nullptr);
+    // Il repart d'où il était (à quelques pas près : il marche depuis sa reconnexion).
+    const auto dx = std::abs(std::int64_t{self->position[0]} - leftAt[0]);
+    const auto dy = std::abs(std::int64_t{self->position[1]} - leftAt[1]);
+    CHECK(dx + dy < 10 * 256);
+    std::filesystem::remove(base);
 }

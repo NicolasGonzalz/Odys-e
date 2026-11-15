@@ -1,12 +1,14 @@
 #pragma once
 
 #include "GameWorld.hpp"
+#include "persistence/SaveStore.hpp"
 
 #include "odyssee/net/NetworkSimulator.hpp"
 
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <optional>
 #include <string>
 
 namespace odyssee::server {
@@ -30,16 +32,24 @@ class Server {
     [[nodiscard]] bool run();
     void stop() { _running = false; }
 
+    /// Sauvegarde le monde dans `store` (T053) toutes les kAutosaveTicks et à l'arrêt.
+    void saveTo(SaveStore store) { _store.emplace(std::move(store)); }
+
+    /// Ticks entre deux sauvegardes automatiques (5 minutes, docs/GAMEPLAY.md §5).
+    static constexpr std::uint64_t kAutosaveTicks = std::uint64_t{kTickRate} * 300;
+
   private:
     void loop(ConnectionService& connections);
     void tick(ConnectionService& connections, std::uint64_t tickIndex, Clock::time_point now);
     static void waitUntil(ConnectionService& connections, Clock::time_point nextTick);
+    void saveWorld();
 
     std::uint16_t _port;
     net::NetworkConditions _network;
     GameWorld _world;
     std::string _inviteCode; ///< normalisé ; vide : pas de code exigé
     std::atomic<bool> _running{false};
+    std::optional<SaveStore> _store; ///< sans : rien n'est sauvegardé
 };
 
 } // namespace odyssee::server

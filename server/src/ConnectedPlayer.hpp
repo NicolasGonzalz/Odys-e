@@ -3,6 +3,8 @@
 #include "odyssee/net/ControlMessages.hpp"
 
 #include <cstdint>
+#include <string>
+#include <utility>
 
 namespace odyssee::server {
 
@@ -14,8 +16,15 @@ using ConnectionGeneration = std::uint32_t;
 /// génération change pour une même place, c'est un autre joueur (ou le même qui s'est
 /// reconnecté) : son état ne doit pas être repris.
 struct ConnectedPlayer {
+    ConnectedPlayer() = default;
+    ConnectedPlayer(net::PlayerId playerId, ConnectionGeneration playerGeneration,
+                    std::string playerName = {})
+        : id(playerId), generation(playerGeneration), name(std::move(playerName)) {}
+
     net::PlayerId id = 0;
     ConnectionGeneration generation = 0;
+    /// Nom choisi à la connexion : c'est lui qui retrouve la sauvegarde du joueur (T053).
+    std::string name;
 
     friend bool operator==(const ConnectedPlayer&, const ConnectedPlayer&) = default;
 };

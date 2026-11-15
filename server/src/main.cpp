@@ -60,8 +60,21 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    // T053 : la sauvegarde du monde, reprise avant d'accueillir les joueurs.
+    std::optional<server::SaveStore> store;
+    if (!options->savePath.empty()) {
+        store = server::SaveStore::open(options->savePath);
+        const auto save = store ? store->load() : std::nullopt;
+        if (!save) {
+            return EXIT_FAILURE; // base illisible : on ne l'écrase pas (la raison est au journal)
+        }
+        world->load(*save);
+    }
     server::Server gameServer(options->port, options->network, std::move(*world),
                               options->inviteCode);
+    if (store) {
+        gameServer.saveTo(std::move(*store));
+    }
     server::stopOnShutdownSignals(gameServer);
     return gameServer.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

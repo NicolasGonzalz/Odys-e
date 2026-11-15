@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace odyssee::server {
@@ -107,6 +108,7 @@ class ConnectionService {
         net::Address address;
         ConnectionGeneration generation = 0;
         net::SessionToken sessionToken = 0;
+        std::string name;
         net::Session session;
         TokenBucket budget; ///< débit accordé à ce joueur
     };
