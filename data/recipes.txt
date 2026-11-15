@@ -42,9 +42,9 @@ ticks = 100
 
 [recipe spear]
 station = hand
-input = stick 2
-input = stone 3
-input = fiber 4
+input = stick 3
+input = stone 2
+input = fiber 3
 output = spear 1
 ticks = 80
 
@@ -58,6 +58,7 @@ ticks = 40
 
 [recipe campfire]
 station = hand
+input = stick 2
 input = wood_log 5
 input = stone 10
 output = campfire 1
@@ -97,14 +98,14 @@ station = workbench
 input = stick 1
 input = stone 1
 input = fiber 1
-output = arrow 5
+output = arrow 3
 ticks = 60
 
 [recipe crossbow]
 station = workbench
 input = plank 4
-input = rope 2
-input = ingot 1
+input = rope 3
+input = ingot 2
 output = crossbow 1
 ticks = 300
 
@@ -148,27 +149,30 @@ ticks = 300
 station = forge
 input = ore 4
 input = wood_log 3
-output = ingot 1
+output = ingot 2
 ticks = 300
 
 [recipe metal_axe]
 station = forge
 input = ingot 3
-input = stick 1
+input = stick 2
+input = rope 2
 output = metal_axe 1
 ticks = 300
 
 [recipe metal_pickaxe]
 station = forge
-input = ingot 3
-input = stick 1
+input = ingot 2
+input = stick 2
+input = rope 2
 output = metal_pickaxe 1
 ticks = 300
 
 [recipe hammer]
 station = forge
-input = ingot 2
+input = ingot 3
 input = stick 1
+input = rope 1
 output = hammer 1
 ticks = 200
 
@@ -178,12 +182,6 @@ input = ingot 1
 input = plank 1
 output = knife 1
 ticks = 200
-
-[recipe crowbar]
-station = forge
-input = ingot 3
-output = crowbar 1
-ticks = 240
 
 [recipe metal_chest]
 station = forge
