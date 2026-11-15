@@ -4,6 +4,7 @@
 #include "ConnectionService.hpp"
 #include "GameStep.hpp"
 #include "GameWorld.hpp"
+#include "Server.hpp"
 #include "persistence/SaveStore.hpp"
 
 #include "odyssee/client/InputHistory.hpp"
@@ -321,5 +322,75 @@ TEST_CASE("Redémarrage (T054) : arrêt, sauvegarde, nouveau serveur ; le joueur
     const auto dx = std::abs(std::int64_t{self->position[0]} - leftAt[0]);
     const auto dy = std::abs(std::int64_t{self->position[1]} - leftAt[1]);
     CHECK(dx + dy < 10 * 256);
+    std::filesystem::remove(base);
+}
+
+namespace {
+
+/// Fait tourner `client` en temps réel (le vrai serveur avance seul, dans son fil) jusqu'à `done`,
+/// 5 s au plus.
+template <typename Done> void playFor(GameClient& client, Done done) {
+    const auto deadline = Clock::now() + 5s;
+    while (!done() && Clock::now() < deadline) {
+        client.step(Clock::now());
+        std::this_thread::sleep_for(5ms);
+    }
+}
+
+/// Position de son propre joueur vue par le client.
+std::optional<std::array<std::int32_t, 3>> ownPosition(const GameClient& client) {
+    const auto id = client.link.playerId();
+    const EntityState* self = id ? client.entity(*id) : nullptr;
+    return self ? std::optional(self->position) : std::nullopt;
+}
+
+} // namespace
+
+TEST_CASE("Redémarrage (T054) : le vrai serveur sauvegarde à l'arrêt et reprend au démarrage") {
+    const auto base =
+        (std::filesystem::temp_directory_path() / "odyssee_test_vrai_serveur.sqlite").string();
+    std::filesystem::remove(base);
+    constexpr std::uint16_t kPort = 27941;
+
+    std::array<std::int32_t, 3> leftAt{};
+    {
+        server::Server first(kPort);
+        auto store = server::SaveStore::open(base);
+        REQUIRE(store);
+        first.saveTo(std::move(*store));
+        std::thread running([&] { (void)first.run(); });
+
+        GameClient mara("Mara", kPort);
+        mara.link.connect(Clock::now());
+        playFor(mara, [&] { return mara.latest && mara.latest->lastProcessedInput > 20; });
+        first.stop(); // comme Ctrl+C : la boucle s'arrête, le monde est sauvegardé
+        running.join();
+        REQUIRE(ownPosition(mara));
+        leftAt = *ownPosition(mara);
+    }
+
+    auto store = server::SaveStore::open(base);
+    REQUIRE(store);
+    const auto save = store->load();
+    REQUIRE(save);
+    REQUIRE(save->players.size() == 1);
+    CHECK(save->players[0].name == "Mara");
+
+    GameWorld world;
+    world.load(*save);
+    server::Server second(kPort, {}, std::move(world));
+    std::thread running([&] { (void)second.run(); });
+    GameClient mara("Mara", kPort);
+    mara.yawDegrees = 180.0f; // elle repart dans l'autre sens : on la voit là où elle était
+    mara.link.connect(Clock::now());
+    std::optional<std::array<std::int32_t, 3>> seen;
+    playFor(mara, [&] { return (seen = ownPosition(mara)).has_value(); });
+    second.stop();
+    running.join();
+
+    REQUIRE(seen);
+    const auto gap = std::abs(std::int64_t{(*seen)[0]} - leftAt[0]) +
+                     std::abs(std::int64_t{(*seen)[1]} - leftAt[1]);
+    CHECK(gap < 4 * 256); // à quelques pas près (elle a pu bouger depuis l'arrêt)
     std::filesystem::remove(base);
 }

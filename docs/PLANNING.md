@@ -39,7 +39,7 @@
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 9 / 16 | 45 / 88 h | — |
-| M5 — Survivre & persister (MVP) | 2 / 9 | 10 / 58 h | — |
+| M5 — Survivre & persister (MVP) | 5 / 9 | 28 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
 
@@ -211,15 +211,15 @@
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☑ | T051 | Les deux | Santé, faim, soif, endurance | 6 | Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier). |
-| ☐ | T052 | Nicolas | Mort, sac au sol et réapparition | 6 | Inventaire laissé sur place, récupérable ; réapparition au point de repos. |
+| ☑ | T052 | Nicolas | Mort, sac au sol et réapparition | 6 | Inventaire laissé sur place, récupérable ; réapparition au point de repos. |
 | ☐ | T076 | Les deux | GPS et piles | 4 | Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS). |
 
 ### Semaine 21 — du 5 avr. 2027 · M4, M5 · Nicolas 12 h · Coéquipier 9 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
-| ☐ | T053 | Nicolas | Persistance SQLite | 10 | Joueurs, inventaires et modifications du monde sauvegardés et rechargés. |
-| ☐ | T054 | Nicolas | Test de redémarrage du serveur | 2 | Arrêt/redémarrage sans perte, automatisé. |
+| ☑ | T053 | Nicolas | Persistance SQLite | 10 | Joueurs, inventaires et modifications du monde sauvegardés et rechargés. |
+| ☑ | T054 | Nicolas | Test de redémarrage du serveur | 2 | Arrêt/redémarrage sans perte, automatisé. |
 | ☐ | T073 | Coéquipier | Notifications du HUD | 3 | Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu. |
 | ☐ | T075 | Coéquipier | Grande carte plein écran | 6 | Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte. |
 
