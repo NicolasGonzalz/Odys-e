@@ -97,6 +97,11 @@ void GameWorld::step() {
         vitals = stepVitals(vitals, motion.state.has(sim::kSprinting));
     });
 
+    // Systèmes « mort » (T052) : à 0 de vie, sac au sol et retour au point de repos ; puis on
+    // ramasse les sacs sur lesquels on passe.
+    killStarved();
+    pickUpBags();
+
     // Systèmes « objets » (T047) : manger ce qu'on tient (touche E), fabrications en cours.
     _registry.each<PlayerControl, Vitals, Inventory>(
         [this](ecs::Entity, PlayerControl& control, Vitals& vitals, Inventory& inventory) {
@@ -146,6 +151,45 @@ void GameWorld::harvestWith(const PlayerControl& control, const Motion& motion,
     const std::uint16_t lost = giveItem(control.id, strike->harvest.item, strike->harvest.count);
     kLog.debug("joueur {} : +{} objet n°{} (ressource {}, {} perdus)", control.id,
                strike->harvest.count, strike->harvest.item.value, strike->node, lost);
+}
+
+void GameWorld::killStarved() {
+    // Les morts d'abord relevés, puis traités : poser un sac crée une entité, ce qu'on évite
+    // pendant qu'on parcourt les composants.
+    std::vector<ecs::Entity> dead;
+    _registry.each<PlayerControl, Vitals>(
+        [&dead](ecs::Entity entity, const PlayerControl&, const Vitals& vitals) {
+            if (vitals.health == 0) {
+                dead.push_back(entity);
+            }
+        });
+    for (const ecs::Entity entity : dead) {
+        die(entity);
+    }
+}
+
+void GameWorld::die(ecs::Entity entity) {
+    const PlayerControl& control = *_registry.get<PlayerControl>(entity);
+    Motion& motion = *_registry.get<Motion>(entity);
+    BagContents contents{takeDroppedItems(*_registry.get<Inventory>(entity), _catalog), control.id};
+    const auto bag = _bags.drop(_registry, motion.state.position, contents);
+
+    const RestPoint& rest = *_registry.get<RestPoint>(entity);
+    motion.state = sim::PlayerState{};
+    motion.state.position = rest.position;
+    motion.state.yaw = rest.yaw;
+    *_registry.get<Vitals>(entity) = respawnVitals();
+    *_registry.get<Crafting>(entity) = Crafting{};
+    *_registry.get<Harvester>(entity) = Harvester{};
+    _outbox[control.id].push_back(net::PlayerDied{bag.value_or(0)});
+    kLog.info("joueur {} mort ; sac {} laissé sur place", control.id, bag.value_or(0));
+}
+
+void GameWorld::pickUpBags() {
+    _registry.each<PlayerControl, Motion, Inventory>(
+        [this](ecs::Entity, const PlayerControl&, const Motion& motion, Inventory& inventory) {
+            (void)_bags.pickUp(_registry, motion.state.position, inventory, _catalog);
+        });
 }
 
 std::size_t GameWorld::addResources(data::ResourceCatalog types, const ScatterSettings& settings) {
@@ -224,7 +268,8 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
         }
     }
     if (const Motion* own = motionComponentOf(player)) {
-        // Puis les ressources proches (T044), dans la place qui reste.
+        // Puis les sacs proches (T052), et les ressources proches (T044) dans la place qui reste.
+        _bags.appendNearby(_registry, own->state.position, snapshot.entities, kMaxSnapshotEntities);
         _resources.appendNearby(_registry, own->state.position, snapshot.entities,
                                 kMaxSnapshotEntities);
     }
@@ -295,6 +340,18 @@ std::optional<Vitals> GameWorld::vitalsOf(net::PlayerId player) const {
     return vitals ? std::optional<Vitals>(*vitals) : std::nullopt;
 }
 
+void GameWorld::setVitals(net::PlayerId player, const Vitals& vitals) {
+    if (player < kMaxPlayers && _players[player]) {
+        if (Vitals* current = _registry.get<Vitals>(*_players[player])) {
+            *current = vitals;
+        }
+    }
+}
+
+std::optional<BagContents> GameWorld::bagContents(net::EntityId id) const {
+    return _bags.contentsOf(_registry, id);
+}
+
 bool GameWorld::hasPlayer(net::PlayerId player) const {
     return controlOf(player) != nullptr;
 }
@@ -318,6 +375,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     _registry.add<Harvester>(entity);
     _registry.add<Inventory>(entity); // vide ; envoyé au joueur dès le premier tick
     _registry.add<Crafting>(entity);
+    _registry.add<RestPoint>(entity, RestPoint{state.position, state.yaw});
     _outbox[player.id].clear();
     PlayerControl control;
     control.id = player.id;

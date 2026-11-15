@@ -66,11 +66,14 @@ struct InputBatch {
 enum class EntityKind : std::uint8_t {
     Player = 1,
     Resource = 2, ///< ressource récoltable (T044) : fixe, ne s'interpole pas
+    Bag = 3, ///< sac laissé à la mort d'un joueur (T052) : fixe, se ramasse en passant dessus
 };
 
 /// Numéros d'entité : 0 à kMaxPlayers - 1 pour les joueurs (numéro d'entité = numéro de joueur),
 /// les ressources à partir de kFirstResourceEntity (attribués à leur entrée dans le monde).
 inline constexpr EntityId kFirstResourceEntity = 4; ///< = kMaxPlayers (static_assert côté .cpp)
+/// Les sacs (T052) à partir de kFirstBagEntity, après toutes les ressources possibles.
+inline constexpr EntityId kFirstBagEntity = 8192;
 
 /// Drapeaux d'une entité `Resource` : rang du type dans data/resources.txt (7 bits) et état.
 inline constexpr std::uint8_t kResourceTypeMask = 0x7F;
@@ -83,7 +86,7 @@ struct EntityState {
     std::array<std::int32_t, 3> position{}; ///< quantizePosition : x est, y sud, z haut
     std::uint16_t yaw = 0;                  ///< quantizeYaw
     /// Joueur : animation (au sol, accroupi…). Ressource : type et état (kResourceTypeMask,
-    /// kResourceDepleted).
+    /// kResourceDepleted). Sac : numéro du joueur à qui il appartenait.
     std::uint8_t flags = 0;
 
     friend bool operator==(const EntityState&, const EntityState&) = default;

@@ -90,6 +90,7 @@ class DebugClient {
     std::optional<net::Snapshot> _latest;
     std::optional<net::InventoryContents> _inventory; ///< dernier reçu du serveur (T045)
     CraftMenu _craft; ///< artisanat (T047), touche C
+    std::string _deathNotice; ///< dernier message de mort (T052), vide tant qu'on n'est pas mort
     client::Interpolation _remote; ///< les autres joueurs, affichés entre deux snapshots (T033)
     /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
     std::optional<std::array<std::int32_t, 3>> _previousDisplay;

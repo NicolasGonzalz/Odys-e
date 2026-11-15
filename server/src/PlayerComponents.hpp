@@ -7,6 +7,7 @@
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Movement.hpp"
 
+#include <array>
 #include <cstdint>
 
 namespace odyssee::server {
@@ -28,6 +29,13 @@ struct PlayerControl {
     std::uint32_t guessedInARow = 0; ///< inputs devinés depuis le dernier input reçu
     /// Boutons enfoncés pendant ce tick (et pas au précédent) : un appui sur E mange une fois.
     std::uint16_t pressedThisTick = 0;
+};
+
+/// Où le joueur réapparaît après sa mort (T052) : son point d'apparition pour l'instant, plus tard
+/// le dernier sac de couchage où il a dormi. En 1/256 m, cap quantifié.
+struct RestPoint {
+    std::array<std::int32_t, 3> position{};
+    std::uint16_t yaw = 0;
 };
 
 } // namespace odyssee::server

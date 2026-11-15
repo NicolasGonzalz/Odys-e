@@ -2,6 +2,7 @@
 
 #include "PauseMenu.hpp"
 #include "ResourceShapes.hpp"
+#include "BagShapes.hpp"
 #include "Scene.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -191,6 +192,9 @@ void DebugClient::keepEvents() {
             _inventory = std::move(*contents); // le serveur renvoie tout à chaque changement
         } else if (const auto* status = std::get_if<net::CraftStatus>(&event); status && _catalog) {
             _craft.onStatus(*status, *_catalog);
+        } else if (const auto* died = std::get_if<net::PlayerDied>(&event)) {
+            _deathNotice = died->bag != 0 ? "Vous êtes mort : votre sac est resté sur place"
+                                          : "Vous êtes mort";
         }
     }
 }
@@ -210,7 +214,8 @@ std::string DebugClient::hotbarText() const {
         text += slot.count > 1 ? " x" + std::to_string(slot.count) : "";
         text += held ? "]" : "";
     }
-    return text + (_craft.lastMessage().empty() ? "" : "   " + _craft.lastMessage());
+    text += _craft.lastMessage().empty() ? "" : "   " + _craft.lastMessage();
+    return text + (_deathNotice.empty() ? "" : "   " + _deathNotice);
 }
 
 void DebugClient::reconcileWithLatest() {
@@ -259,6 +264,7 @@ void DebugClient::drawWorld(float betweenTicks) const {
     }
     if (_latest) {
         drawResources(_latest->entities, _resourceTypes); // T044 : fixes, dernier état connu
+        drawBags(_latest->entities);                      // T052 : sacs laissés à la mort
     }
     for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
         drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),

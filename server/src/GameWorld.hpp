@@ -6,6 +6,7 @@
 #include "Inventory.hpp"
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
+#include "death/DroppedBags.hpp"
 #include "ecs/Registry.hpp"
 #include "resources/ResourceField.hpp"
 
@@ -96,6 +97,9 @@ class GameWorld {
     ///   prédiction si l'input deviné n'était pas le bon.
     /// - Au-delà de kMaxGuessedInputs d'affilée, ou avant le tout premier input : input neutre
     ///   (aucune touche, même orientation), sans avancer les ticks du client.
+    ///
+    /// Puis les besoins vitaux ; un joueur à 0 de vie meurt (T052) : son inventaire reste dans un
+    /// sac sur place, il réapparaît au point de repos. On ramasse un sac en passant dessus.
     void step();
 
     /// Ressources récoltables (T044) : `types` (data/resources.txt), placées autour du point
@@ -118,6 +122,13 @@ class GameWorld {
 
     /// Besoins vitaux d'un joueur (T051), s'il est dans le monde.
     [[nodiscard]] std::optional<Vitals> vitalsOf(net::PlayerId player) const;
+    /// Remplace les besoins vitaux d'un joueur (tests, outils, sauvegarde).
+    void setVitals(net::PlayerId player, const Vitals& vitals);
+
+    /// Sacs laissés à la mort des joueurs (T052).
+    [[nodiscard]] const DroppedBags& bags() const { return _bags; }
+    /// Contenu d'un sac par son numéro réseau (tests, outils), s'il existe.
+    [[nodiscard]] std::optional<BagContents> bagContents(net::EntityId id) const;
 
     [[nodiscard]] bool hasPlayer(net::PlayerId player) const;
     [[nodiscard]] std::size_t playerCount() const;
@@ -130,6 +141,9 @@ class GameWorld {
     void useHeldItem(PlayerControl& control, Vitals& vitals, Inventory& inventory);
     void craftFor(const PlayerControl& control, Crafting& crafting, Inventory& inventory);
     void harvestWith(const PlayerControl& control, const Motion& motion, Harvester& harvester);
+    void killStarved();
+    void die(ecs::Entity entity);
+    void pickUpBags();
     void spawn(const ConnectedPlayer& player);
     void despawn(net::PlayerId player);
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
@@ -146,6 +160,7 @@ class GameWorld {
     /// L'entité de chaque joueur connecté, par numéro de joueur.
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;
     ResourceField _resources; ///< arbres, rochers… (T044)
+    DroppedBags _bags;        ///< sacs laissés à la mort (T052)
 };
 
 } // namespace odyssee::server

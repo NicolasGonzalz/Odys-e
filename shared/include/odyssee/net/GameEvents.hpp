@@ -13,7 +13,8 @@
 namespace odyssee::net {
 
 /// Événements de jeu, envoyés sur le canal fiable ordonné (docs/NETWORK.md) : ce qui doit arriver,
-/// et dans l'ordre, mais pas à chaque tick. Pour l'instant : l'inventaire (T045).
+/// et dans l'ordre, mais pas à chaque tick : l'inventaire (T045), l'artisanat (T047), la mort
+/// (T052).
 
 using odyssee::kHotbarSlots;
 using odyssee::kInventorySlots;
@@ -68,14 +69,23 @@ struct CraftStatus {
     friend bool operator==(const CraftStatus&, const CraftStatus&) = default;
 };
 
+/// Serveur → client : le joueur est mort (T052) et réapparaît au point de repos. `bag` est le
+/// numéro d'entité du sac laissé sur place avec son inventaire, 0 s'il n'avait rien à laisser.
+struct PlayerDied {
+    std::uint16_t bag = 0;
+
+    friend bool operator==(const PlayerDied&, const PlayerDied&) = default;
+};
+
 enum class GameEventType : std::uint8_t {
     InventoryContents = 1,
     MoveItem = 2,
     CraftRequest = 3,
     CraftStatus = 4,
+    PlayerDied = 5,
 };
 
-using GameEvent = std::variant<InventoryContents, MoveItem, CraftRequest, CraftStatus>;
+using GameEvent = std::variant<InventoryContents, MoveItem, CraftRequest, CraftStatus, PlayerDied>;
 
 [[nodiscard]] std::vector<std::byte> encodeGameEvent(const GameEvent& message);
 

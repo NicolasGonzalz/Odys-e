@@ -51,3 +51,14 @@ TEST_CASE("GameEvents : artisanat, demande et réponse") {
     bytes[3] = std::byte{9}; // issue inconnue
     CHECK_FALSE(decodeGameEvent(bytes));
 }
+
+TEST_CASE("GameEvents : mort du joueur (T052), avec ou sans sac") {
+    for (const GameEvent& event : {GameEvent{PlayerDied{8192}}, GameEvent{PlayerDied{0}}}) {
+        const auto decoded = decodeGameEvent(encodeGameEvent(event));
+        REQUIRE(decoded);
+        CHECK(*decoded == event);
+    }
+    auto bytes = encodeGameEvent(PlayerDied{8192});
+    bytes.pop_back(); // tronqué
+    CHECK_FALSE(decodeGameEvent(bytes));
+}
