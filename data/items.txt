@@ -283,3 +283,34 @@ stack = 30
 category = consumable
 eat = 6
 drink = 4
+
+# --- Chasse : tombe des animaux (oiseaux abattus ; grands animaux dépecés au couteau) --------
+# Ajoutée en fin de fichier : le rang d'un objet est son numéro sur le réseau.
+
+[item feather]
+name = Plume
+stack = 50
+category = resource
+model = ressources/plume
+
+[item hide]
+name = Peau
+stack = 10
+category = resource
+model = ressources/peau
+
+# Petite viande (oiseaux). Mangée crue pour l'instant ; cuisson au feu de camp à prévoir.
+[item bird_meat]
+name = Viande d'oiseau
+stack = 20
+category = consumable
+model = ressources/viande_oiseau
+eat = 8
+
+# Grosse viande (cerfs et grands animaux).
+[item venison]
+name = Viande de gibier
+stack = 10
+category = consumable
+model = ressources/viande_gibier
+eat = 20
