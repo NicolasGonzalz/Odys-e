@@ -404,9 +404,8 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
 
 void GameWorld::despawn(net::PlayerId player) {
     if (_players[player]) {
-        const PlayerControl& control = *_registry.get<PlayerControl>(*_players[player]);
-        if (control.saved) { // T053 : on garde ce qu'il était, pour son retour
-            _absent[control.name] = capturePlayer(*_players[player]);
+        if (auto saved = capturePlayer(*_players[player])) { // T053 : gardé pour son retour
+            _absent[saved->name] = std::move(*saved);
         }
         _registry.destroy(*_players[player]);
         _players[player].reset();

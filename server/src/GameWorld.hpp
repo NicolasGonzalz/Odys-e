@@ -159,7 +159,8 @@ class GameWorld {
     void spawn(const ConnectedPlayer& player);
     void despawn(net::PlayerId player);
     [[nodiscard]] bool nameInUse(const std::string& name) const;
-    [[nodiscard]] SavedPlayer capturePlayer(ecs::Entity entity) const;
+    /// Ce qu'on garde d'un joueur ; rien s'il n'est pas sauvegardé (nom pris par un autre).
+    [[nodiscard]] std::optional<SavedPlayer> capturePlayer(ecs::Entity entity) const;
     void restorePlayer(ecs::Entity entity, const SavedPlayer& saved);
     void loadResources(const std::vector<SavedResource>& saved);
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;

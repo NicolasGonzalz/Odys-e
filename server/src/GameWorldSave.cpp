@@ -4,12 +4,26 @@
 #include "odyssee/core/Log.hpp"
 
 #include <algorithm>
+#include <optional>
+#include <tuple>
 
 namespace odyssee::server {
 
 namespace {
 
 constexpr log::Logger kLog{"sauvegarde"};
+
+/// Les composants sauvegardés d'un joueur, tous présents, ou rien (pointeurs constants si
+/// `registry` l'est).
+template <typename Registry> auto playerParts(Registry& registry, ecs::Entity entity) {
+    auto parts = std::tuple{
+        registry.template get<PlayerControl>(entity), registry.template get<Motion>(entity),
+        registry.template get<Vitals>(entity), registry.template get<Inventory>(entity),
+        registry.template get<RestPoint>(entity)};
+    const bool complete =
+        std::apply([](const auto*... part) { return ((part != nullptr) && ...); }, parts);
+    return complete ? std::optional(parts) : std::nullopt;
+}
 
 } // namespace
 
@@ -20,20 +34,24 @@ WorldSave GameWorld::save() const {
         save.players.push_back(player);
     }
     for (const auto& entity : _players) {
-        if (entity && _registry.get<PlayerControl>(*entity)->saved) {
-            save.players.push_back(capturePlayer(*entity));
+        if (const auto player = entity ? capturePlayer(*entity) : std::nullopt) {
+            save.players.push_back(*player);
         }
     }
     std::sort(save.players.begin(), save.players.end(),
               [](const SavedPlayer& a, const SavedPlayer& b) { return a.name < b.name; });
 
     for (const ecs::Entity node : _resources.nodes()) {
-        const ResourceNode& state = *_registry.get<ResourceNode>(node);
-        save.resources.push_back({state.hitsLeft, state.regrowTicksLeft});
+        const ResourceNode* state = _registry.get<ResourceNode>(node);
+        save.resources.push_back(state ? SavedResource{state->hitsLeft, state->regrowTicksLeft}
+                                       : SavedResource{});
     }
     for (const ecs::Entity bag : _bags.bags()) {
-        save.bags.push_back(
-            {_registry.get<Placement>(bag)->position, *_registry.get<BagContents>(bag)});
+        const Placement* placement = _registry.get<Placement>(bag);
+        const BagContents* contents = _registry.get<BagContents>(bag);
+        if (placement && contents) {
+            save.bags.push_back({placement->position, *contents});
+        }
     }
     return save;
 }
@@ -74,40 +92,46 @@ void GameWorld::loadResources(const std::vector<SavedResource>& saved) {
         return;
     }
     for (std::size_t i = 0; i < nodes.size(); ++i) {
-        ResourceNode& node = *_registry.get<ResourceNode>(nodes[i]);
-        node.hitsLeft = saved[i].hitsLeft;
-        node.regrowTicksLeft = saved[i].regrowTicksLeft;
+        if (ResourceNode* node = _registry.get<ResourceNode>(nodes[i])) {
+            node->hitsLeft = saved[i].hitsLeft;
+            node->regrowTicksLeft = saved[i].regrowTicksLeft;
+        }
     }
 }
 
 bool GameWorld::nameInUse(const std::string& name) const {
     return std::any_of(_players.begin(), _players.end(), [&](const auto& entity) {
-        return entity && _registry.get<PlayerControl>(*entity)->name == name;
+        const PlayerControl* control = entity ? _registry.get<PlayerControl>(*entity) : nullptr;
+        return control && control->name == name;
     });
 }
 
-SavedPlayer GameWorld::capturePlayer(ecs::Entity entity) const {
-    const sim::PlayerState& state = _registry.get<Motion>(entity)->state;
-    SavedPlayer saved;
-    saved.name = _registry.get<PlayerControl>(entity)->name;
-    saved.position = state.position;
-    saved.yaw = state.yaw;
-    saved.vitals = *_registry.get<Vitals>(entity);
-    saved.inventory = _registry.get<Inventory>(entity)->slots;
-    saved.rest = *_registry.get<RestPoint>(entity);
-    return saved;
+std::optional<SavedPlayer> GameWorld::capturePlayer(ecs::Entity entity) const {
+    const auto parts = playerParts(_registry, entity);
+    if (!parts) {
+        return std::nullopt;
+    }
+    const auto [control, motion, vitals, inventory, rest] = *parts;
+    if (!control->saved) {
+        return std::nullopt;
+    }
+    return SavedPlayer{control->name, motion->state.position, motion->state.yaw,
+                       *vitals,       inventory->slots,       *rest};
 }
 
 void GameWorld::restorePlayer(ecs::Entity entity, const SavedPlayer& saved) {
-    sim::PlayerState& state = _registry.get<Motion>(entity)->state;
-    state = sim::PlayerState{};
-    state.position = saved.position;
-    state.yaw = saved.yaw;
-    *_registry.get<Vitals>(entity) = saved.vitals;
-    Inventory& inventory = *_registry.get<Inventory>(entity);
-    inventory.slots = saved.inventory;
-    inventory.changed = true;
-    *_registry.get<RestPoint>(entity) = saved.rest;
+    const auto parts = playerParts(_registry, entity);
+    if (!parts) {
+        return;
+    }
+    const auto [control, motion, vitals, inventory, rest] = *parts;
+    motion->state = sim::PlayerState{};
+    motion->state.position = saved.position;
+    motion->state.yaw = saved.yaw;
+    *vitals = saved.vitals;
+    inventory->slots = saved.inventory;
+    inventory->changed = true;
+    *rest = saved.rest;
 }
 
 } // namespace odyssee::server
