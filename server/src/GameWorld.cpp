@@ -169,20 +169,30 @@ void GameWorld::killStarved() {
 }
 
 void GameWorld::die(ecs::Entity entity) {
-    const PlayerControl& control = *_registry.get<PlayerControl>(entity);
-    Motion& motion = *_registry.get<Motion>(entity);
-    BagContents contents{takeDroppedItems(*_registry.get<Inventory>(entity), _catalog), control.id};
-    const auto bag = _bags.drop(_registry, motion.state.position, contents);
+    const PlayerControl* control = _registry.get<PlayerControl>(entity);
+    Motion* motion = _registry.get<Motion>(entity);
+    Inventory* inventory = _registry.get<Inventory>(entity);
+    const RestPoint* rest = _registry.get<RestPoint>(entity);
+    if (!control || !motion || !inventory || !rest) {
+        return;
+    }
+    const BagContents contents{takeDroppedItems(*inventory, _catalog), control->id};
+    const auto bag = _bags.drop(_registry, motion->state.position, contents);
 
-    const RestPoint& rest = *_registry.get<RestPoint>(entity);
-    motion.state = sim::PlayerState{};
-    motion.state.position = rest.position;
-    motion.state.yaw = rest.yaw;
-    *_registry.get<Vitals>(entity) = respawnVitals();
-    *_registry.get<Crafting>(entity) = Crafting{};
-    *_registry.get<Harvester>(entity) = Harvester{};
-    _outbox[control.id].push_back(net::PlayerDied{bag.value_or(0)});
-    kLog.info("joueur {} mort ; sac {} laissé sur place", control.id, bag.value_or(0));
+    motion->state = sim::PlayerState{};
+    motion->state.position = rest->position;
+    motion->state.yaw = rest->yaw;
+    if (Vitals* vitals = _registry.get<Vitals>(entity)) {
+        *vitals = respawnVitals();
+    }
+    if (Crafting* crafting = _registry.get<Crafting>(entity)) {
+        *crafting = Crafting{};
+    }
+    if (Harvester* harvester = _registry.get<Harvester>(entity)) {
+        *harvester = Harvester{};
+    }
+    _outbox[control->id].push_back(net::PlayerDied{bag.value_or(0)});
+    kLog.info("joueur {} mort ; sac {} laissé sur place", control->id, bag.value_or(0));
 }
 
 void GameWorld::pickUpBags() {

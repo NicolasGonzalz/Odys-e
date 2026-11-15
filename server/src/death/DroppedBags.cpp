@@ -62,12 +62,13 @@ bool DroppedBags::pickUp(ecs::Registry& registry, const std::array<std::int32_t,
     bool took = false;
     for (std::size_t i = _bags.size(); i-- > 0;) {
         const ecs::Entity bag = _bags[i];
-        if (!withinReach(feet, registry.get<Placement>(bag)->position)) {
+        const Placement* placement = registry.get<Placement>(bag);
+        BagContents* contents = registry.get<BagContents>(bag);
+        if (!placement || !contents || !withinReach(feet, placement->position)) {
             continue;
         }
-        BagContents& contents = *registry.get<BagContents>(bag);
-        took = transfer(contents, inventory, catalog) || took;
-        if (contents.empty()) {
+        took = transfer(*contents, inventory, catalog) || took;
+        if (contents->empty()) {
             forget(registry, bag);
         }
     }
@@ -80,10 +81,12 @@ void DroppedBags::appendNearby(const ecs::Registry& registry,
     std::vector<std::pair<std::int64_t, std::size_t>> inRange;
     const std::int64_t radiusSquared = std::int64_t{kSnapshotRadius} * kSnapshotRadius;
     for (std::size_t i = 0; i < _bags.size(); ++i) {
-        const std::int64_t distance =
-            horizontalDistanceSquared(around, registry.get<Placement>(_bags[i])->position);
-        if (distance <= radiusSquared) {
-            inRange.emplace_back(distance, i);
+        const Placement* placement = registry.get<Placement>(_bags[i]);
+        if (placement) {
+            const std::int64_t distance = horizontalDistanceSquared(around, placement->position);
+            if (distance <= radiusSquared) {
+                inRange.emplace_back(distance, i);
+            }
         }
     }
     std::sort(inRange.begin(), inRange.end());
@@ -93,17 +96,23 @@ void DroppedBags::appendNearby(const ecs::Registry& registry,
             return;
         }
         const ecs::Entity bag = _bags[index];
-        entities.push_back(net::EntityState{
-            registry.get<NetworkEntity>(bag)->id, net::EntityKind::Bag,
-            registry.get<Placement>(bag)->position, 0, registry.get<BagContents>(bag)->owner});
+        const NetworkEntity* network = registry.get<NetworkEntity>(bag);
+        const Placement* placement = registry.get<Placement>(bag);
+        const BagContents* contents = registry.get<BagContents>(bag);
+        if (network && placement && contents) {
+            entities.push_back(net::EntityState{network->id, net::EntityKind::Bag,
+                                                placement->position, 0, contents->owner});
+        }
     }
 }
 
 std::optional<BagContents> DroppedBags::contentsOf(const ecs::Registry& registry,
                                                    net::EntityId id) const {
     for (const ecs::Entity bag : _bags) {
-        if (registry.get<NetworkEntity>(bag)->id == id) {
-            return *registry.get<BagContents>(bag);
+        const NetworkEntity* network = registry.get<NetworkEntity>(bag);
+        const BagContents* contents = registry.get<BagContents>(bag);
+        if (network && contents && network->id == id) {
+            return *contents;
         }
     }
     return std::nullopt;
@@ -112,7 +121,12 @@ std::optional<BagContents> DroppedBags::contentsOf(const ecs::Registry& registry
 std::optional<net::EntityId> DroppedBags::freeId(const ecs::Registry& registry) const {
     std::array<bool, kMaxBags> used{};
     for (const ecs::Entity bag : _bags) {
-        used[std::size_t{registry.get<NetworkEntity>(bag)->id} - net::kFirstBagEntity] = true;
+        const NetworkEntity* network = registry.get<NetworkEntity>(bag);
+        const std::size_t index =
+            network ? std::size_t{network->id} - net::kFirstBagEntity : kMaxBags;
+        if (index < kMaxBags) {
+            used[index] = true;
+        }
     }
     const auto free = std::find(used.begin(), used.end(), false);
     if (free == used.end()) {
