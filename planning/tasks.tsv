@@ -14,7 +14,7 @@ T012	3	M0.5	ami	client,unreal	3	Pion 1re personne et terrain de test	Déplacemen
 T013	3	M0.5	ami	art,blender	2	Blockout du premier survivant	Silhouette low-poly validée par rapport au concept Figma.	a_faire
 T014	4	M0.5	ami	art,blender	5	Modèle, rig et bras FPS du survivant 1	Corps entier + bras FPS riggés, animations idle et marche.	a_faire
 T015	4	M0.5	ami	client,unreal	3	Import du survivant animé dans Unreal	Le survivant animé s'affiche ; bras FPS visibles en vue subjective.	a_faire
-T016	4	M0.5	nicolas	client,unreal,sim	4	Composant de mouvement maison	Le pion est déplacé par une fonction de mouvement de shared/ (et non par le CharacterMovementComponent).	a_faire
+T016	4	M0.5	nicolas	client,unreal,sim	4	Composant de mouvement maison	Le pion est déplacé par une fonction de mouvement de shared/ (et non par le CharacterMovementComponent).	fait
 T017	5	M0.5	both	doc	2	Bilan du spike Unreal	Critères de l'ADR 0003 vérifiés ; problèmes et ajustements notés.	a_faire
 T018	5	M1	nicolas	net,shared	4	Abstraction socket UDP (POSIX)	Socket UDP non bloquante, envoi/réception, testée en local.	fait
 T019	5	M1	nicolas	net,shared	3	Implémentation Winsock	Même API sous Windows ; compile dans la CI Windows.	fait
@@ -29,8 +29,8 @@ T024	8	M1	nicolas	net,shared	4	Messages du protocole (inputs, état)	Types de me
 T025	8	M1	nicolas	net,tools	2	Simulateur de latence et de perte	Latence, gigue, perte et duplication configurables.	fait
 T061	8	M1	ami	art,blender	5	Survivant 3 (Teo) : modèle et rig	Corps + bras FPS riggés.	a_faire
 T026	9	M1	nicolas	server	5	Sessions et diffusion de l'état	Le serveur gère jusqu'à 4 joueurs et diffuse leurs positions à chaque tick.	fait
-T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.	a_faire
-T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.	a_faire
+T027	9	M1	nicolas	client,unreal,net	5	Client Unreal connecté au serveur	Connexion via OdysseeNet, affichage des autres joueurs.	fait
+T028	9	M1	nicolas	infra,homelab	2	Déploiement du serveur sur le homelab	Conteneur LXC, service systemd, odyssee.lan, Uptime Kuma.	fait
 T062	9	M1	ami	design,ui	5	HUD et menus dans Unreal	HUD, menu principal, menu pause et options faits directement dans Unreal (UMG/C++, sans Figma), branchés ensuite par T027 et T051.	fait
 T029	10	M2	nicolas	sim,shared	5	Simulation de mouvement partagée	shared/sim : marche, course (endurance), saut + collisions de base, utilisé par client et serveur.	fait
 T030	10	M2	nicolas	sim,tests	3	Tests de déterminisme	Même suite d'inputs = même état, client et serveur.	fait
