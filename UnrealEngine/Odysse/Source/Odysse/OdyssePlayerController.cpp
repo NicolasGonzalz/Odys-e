@@ -17,6 +17,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "OdysseCharacter.h"
 #include "OdysseeMovementComponent.h"
+#include "OdysseeNetSettings.h"
 #include "UI/OdysseeGaugeWidget.h"
 #include "UI/OdysseeHudWidget.h"
 #include "UI/OdysseeToolSlotWidget.h"
@@ -187,8 +188,12 @@ void AOdyssePlayerController::OnJoinClicked()
 {
 	if (UOdysseeNetSubsystem* Net = GetNet())
 	{
-		Net->Connect(MainMenu->AddressInput->GetText().ToString(), MainMenu->NameInput->GetText().ToString(),
-			MainMenu->JoinCodeInput->GetText().ToString());
+		// Bêta : l'adresse du serveur vient des réglages du projet ; le joueur ne la voit pas.
+		const FString& BetaServer = GetDefault<UOdysseeNetSettings>()->BetaServerAddress;
+		const FString Address = !BetaServer.IsEmpty() || !MainMenu->AddressInput
+			? BetaServer
+			: MainMenu->AddressInput->GetText().ToString();
+		Net->Connect(Address, MainMenu->NameInput->GetText().ToString(), MainMenu->JoinCodeInput->GetText().ToString());
 		MainMenu->JoinStatusText->SetText(Net->GetStatusText());
 	}
 }

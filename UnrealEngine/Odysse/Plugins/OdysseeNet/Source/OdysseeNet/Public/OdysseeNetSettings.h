@@ -31,5 +31,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Sacs")
 	TSoftClassPtr<AOdysseeBagActor> BagClass;
 
+	/** Serveur de la bêta (le seul pour l'instant), « IP:port » : le menu Multijoueur ne demande
+	 *  alors que le pseudo et le code d'invitation, l'adresse reste cachée. Vide : le menu
+	 *  redemande l'adresse (autres serveurs, tests en local). */
+	UPROPERTY(Config, EditAnywhere, Category = "Serveur")
+	FString BetaServerAddress;
+
 	virtual FName GetCategoryName() const override { return TEXT("Odyssee"); }
 };
