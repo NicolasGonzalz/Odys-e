@@ -17,6 +17,8 @@ add_library(odyssee_shared STATIC
     src/data/ResourceCatalog.cpp
     src/data/ResourceDef.cpp
     src/data/ResourceReader.cpp
+    src/data/StoryCatalog.cpp
+    src/data/StoryReader.cpp
     src/data/TextFile.cpp
     src/net/Acknowledgements.cpp
     src/net/Address.cpp

@@ -1,0 +1,339 @@
+# L'histoire du jeu (T049) : voir docs/HISTOIRE.md. Format : docs/DATA_FORMAT.md.
+#
+# [intro capsule]   lignes « line » de l'écran du réveil ; {capsule} = capsule du survivant.
+# [survivor clé]    name, capsule, memory (bribes au réveil, une ligne chacune).
+# [step clé]        number (1 à 8), text : phrase du journal quand l'étape est comprise.
+# [clue clé]        zone (1 à 5), step (1 à 8), reveals (yes par défaut ; no = pressentiment),
+#                   owner (survivant : indice personnel, avec memory et generic), title, text,
+#                   at = « est sud » en mètres depuis le point d'apparition (provisoire, en
+#                   attendant les marqueurs de la carte).
+#
+# Les clés ne doivent plus changer une fois en jeu (journal sauvegardé). Les survivants avant les
+# indices. Textes provisoires.
+
+[intro capsule]
+line = CENTRE DE STASE ODYSSÉE — SITE 12
+line = Capsule {capsule} : RÉVEIL D'URGENCE (alimentation de secours : 3 %)
+line = Durée de stase : 127 ans, 4 mois, 9 jours
+line = Transfert : NON EFFECTUÉ
+line = Opérateurs présents : 0
+line = Ouverture…
+
+# --- Les survivants (docs/CHARACTERS.md) ------------------------------------------------------
+
+[survivor mara]
+name = Mara Velin
+capsule = C-7
+memory = Je m'appelle Mara.
+memory = Je réparais des machines… de grandes arches de métal. Je devais partir.
+
+[survivor ilian]
+name = Ilian Sorel
+capsule = C-4
+memory = Ilian. Sorel ? Non, ce n'est pas mon vrai nom.
+memory = Je l'ai choisi pour me cacher. De quoi ?
+
+[survivor teo]
+name = Teo Brandt
+capsule = C-9
+memory = Teo.
+memory = Il y avait une foule, des cris. J'ai couru. Je n'aurais pas dû être là.
+
+[survivor nadia]
+name = Nadia Okoro
+capsule = C-12
+memory = Agente Okoro.
+memory = Je tenais une grille. On m'a dit de ne laisser passer personne.
+
+# --- Ce que j'ai compris : le fil des révélations (docs/ZONES.md) -------------------------------
+
+[step s1]
+number = 1
+text = Je me suis réveillé seul. Ceux qui veillaient sur les capsules ont fui.
+
+[step s2]
+number = 2
+text = Il existait un projet pour partir ailleurs : Odyssée, et ses Portes.
+
+[step s3]
+number = 3
+text = Tout le monde n'a pas été choisi pour partir.
+
+[step s4]
+number = 4
+text = Un projet pour réparer la planète a tout recouvert : Gaïa.
+
+[step s5]
+number = 5
+text = Les créatures de Gaïa ne chassent pas autour des cocons : elles les gardent.
+
+[step s6]
+number = 6
+text = Les Portes ont fonctionné : des gens sont partis.
+
+[step s7]
+number = 7
+text = La règle de Gaïa : protéger la vie, même contre elle-même.
+
+[step s8]
+number = 8
+text = Les cocons sont des humains vivants.
+
+# --- Zone 1 : l'Abri (centre de stase du Site 12) -----------------------------------------------
+
+[clue z1_capsule_log]
+zone = 1
+step = 1
+title = Journal de la capsule
+text = Mode : départ différé. Fenêtre de transfert : en attente d'un opérateur.
+text = Dernière commande reçue : il y a 127 ans. Aucune commande depuis.
+at = 2 1
+
+[clue z1_operator_note]
+zone = 1
+step = 1
+title = Note d'un opérateur
+text = Ils disent que la forêt a passé la rivière. Lenz est parti avec le camion.
+text = On ne peut pas emmener les capsules, elles sont trop lourdes. Elles tiendront toutes seules.
+text = Pardonnez-nous.
+at = 8 -4
+
+[clue z1_shift_board]
+zone = 1
+step = 2
+title = Tableau des transferts
+text = TRANSFERTS DIFFÉRÉS — LOT C : 12 capsules.
+text = Départ prévu : 3 jours après l'ouverture des Portes. Destination : Site des Portes, convoi n°4.
+at = -5 3
+
+[clue z1_poster]
+zone = 1
+step = 2
+title = Affiche délavée
+text = ODYSSÉE — UN NOUVEAU DÉPART.
+text = Les Portes s'ouvriront bientôt. Présentez-vous au centre de recrutement le plus proche.
+at = 0 -12
+
+[clue z1_farm_diary]
+zone = 1
+step = 4
+reveals = no
+title = Carnet de la ferme
+text = La haie a doublé en une nuit. Les bêtes ne veulent plus sortir.
+text = À la radio, ils appellent ça la Floraison, comme si c'était une fête.
+at = 30 -25
+
+[clue z1_mara_mission]
+zone = 1
+step = 2
+owner = mara
+title = Fiche de mission
+text = Velin, M. Technicienne réseau des Portes.
+text = Réveil prévu : à l'arrivée, pour remettre les Portes en service côté destination.
+memory = Je devais me réveiller de l'autre côté. Je suis toujours ici.
+generic = Fiche d'une technicienne qui devait être réveillée « à l'arrivée » pour remettre des Portes en service.
+at = -3 6
+
+[clue z1_ilian_alias]
+zone = 1
+step = 2
+owner = ilian
+title = Fiche passager
+text = Sorel, I. Agronome.
+text = En marge, à la main : « Ce n'est pas mon nom. Ils ne doivent pas savoir. »
+memory = J'ai changé de nom en rejoignant Odyssée. Parce que j'avais travaillé pour Gaïa.
+generic = Fiche d'un passager au nom d'emprunt : quelqu'un voyageait sous une fausse identité.
+at = -1 6
+
+[clue z1_teo_capsule]
+zone = 1
+step = 1
+owner = teo
+title = Registre des capsules
+text = CAPSULE C-9 — Passager enregistré : aucun. Statut : occupée.
+memory = Elle était vide. Je m'y suis caché pendant que tout le monde courait.
+generic = La capsule C-9 n'avait aucun passager enregistré. Pourtant, quelqu'un y dormait.
+at = 4 5
+
+[clue z1_nadia_orders]
+zone = 1
+step = 1
+owner = nadia
+title = Registre de sécurité
+text = Ordre n°114 : maintenir les accès du centre fermés jusqu'à nouvel ordre.
+text = Aucun nouvel ordre enregistré.
+memory = La foule derrière la grille. Des enfants. Je n'ai pas ouvert.
+generic = Registre : les accès du centre ont été fermés sur ordre, la dernière nuit, et jamais rouverts.
+at = 6 -10
+
+# --- Zone 2 : la Ville engloutie (Odyssée et les non-choisis) -----------------------------------
+
+[clue z2_selection]
+zone = 2
+step = 3
+title = Critères de sélection
+text = 1. Compétences rares. 2. Santé. 3. Âge inférieur à 40 ans.
+text = Les familles ne sont pas garanties d'être réunies.
+at = 180 -40
+
+[clue z2_boarding_list]
+zone = 2
+step = 3
+title = Liste d'embarquement
+text = Places restantes : 0.
+text = Sous la liste, peint en rouge : « ET NOUS ? »
+at = 184 -36
+
+[clue z2_van_log]
+zone = 2
+step = 3
+title = Terminal du fourgon U-12
+text = Ordre en cours : disperser tout rassemblement près du centre de recrutement.
+text = Ordre suivant : aucun.
+at = 200 -20
+
+[clue z2_hospital]
+zone = 2
+step = 8
+reveals = no
+title = Registre de l'hôpital
+text = Patients partis vers la forêt cette semaine : 31. Aucun corps retrouvé.
+text = Ils sont sortis seuls, calmes.
+at = 230 10
+
+[clue z2_park_note]
+zone = 2
+step = 5
+title = Message sur un banc
+text = Maman est partie vers la forêt. Elle souriait.
+text = Les grandes bêtes l'ont laissée passer, et puis elles sont restées là, à côté d'elle.
+at = 160 30
+
+[clue z2_teo_family]
+zone = 2
+step = 3
+owner = teo
+title = Message sur un mur
+text = Teo, on part vers les jardins du nord avec Lou. Là-bas, on ne souffre plus, il paraît.
+text = Rejoins-nous. — Maman
+memory = Ma mère. Ma petite sœur, Lou. Je ne les ai pas rejointes.
+generic = Un message de famille à un fils absent : « on part vers les jardins du nord ».
+at = 150 -60
+
+[clue z2_nadia_camera]
+zone = 2
+step = 3
+owner = nadia
+title = Enregistrement de la caméra 4
+text = 23 h 12 — La foule force la grille du centre. L'agente Okoro recule. Elle ne tire pas.
+memory = Je n'ai pas tiré. Je m'en souviens maintenant.
+generic = Une caméra montre une agente qui recule devant la foule, sans tirer.
+at = 210 -55
+
+[clue z2_mara_gate_plan]
+zone = 2
+step = 6
+reveals = no
+owner = mara
+title = Plan de chantier
+text = PORTE URBAINE N°3 — Chantier arrêté. Budget transféré au Site des Portes.
+text = Seul le Site sera ouvert.
+memory = Il devait y avoir des Portes partout. À la fin, il n'en restait qu'une.
+generic = Plan d'une Porte urbaine jamais terminée : tout a été transféré à un seul Site.
+at = 240 -30
+
+[clue z2_ilian_ad]
+zone = 2
+step = 4
+owner = ilian
+title = Publicité déchirée
+text = GAÏA — LA PLANÈTE SE RÉPARE. Rapport n°1 : +40 % de couvert végétal en six mois.
+text = Le graphique porte des initiales : I.S.
+memory = Ce graphique, c'est moi qui l'ai tracé. J'en étais fier.
+generic = Une ancienne publicité pour un projet nommé Gaïa : « la planète se répare ».
+at = 182 -44
+
+# --- Zone 3 : les Terres noyées (Gaïa) ------------------------------------------------------------
+
+[clue z3_launch_report]
+zone = 3
+step = 4
+title = Rapport de lancement
+text = Phase 1 réussie. Les sols morts reprennent vie en 40 jours.
+text = Gaïa apprend vite, plus vite que prévu.
+at = -350 120
+
+[clue z3_bloom_alert]
+zone = 3
+step = 4
+title = Alerte rouge
+text = Croissance hors modèle. Gaïa ne répond plus aux commandes d'arrêt.
+text = Évacuez les zones habitées.
+at = -380 160
+
+[clue z3_quarantine]
+zone = 3
+step = 5
+title = Panneau de quarantaine
+text = ZONE DE SPORES — Masque obligatoire.
+text = Ne touchez pas aux cocons. Ne provoquez pas les gardiens.
+at = -300 100
+
+[clue z3_rule_fragment]
+zone = 3
+step = 7
+title = Gravure du fronton
+text = … PROTÉGER LA VIE, SOUS TOUTES SES FORMES, Y COMPRIS CONTRE ELLE-MÊME …
+at = -352 116
+
+[clue z3_ranger_notes]
+zone = 3
+step = 5
+title = Carnet du garde-forestier
+text = La grande créature ne m'a pas attaqué.
+text = Elle s'est mise entre moi et les cocons, comme une mère devant ses petits.
+at = -420 60
+
+[clue z3_ilian_notes]
+zone = 3
+step = 7
+owner = ilian
+title = Notes de recherche
+text = Ajout de dernière minute à la règle : « y compris contre elle-même ».
+text = C'est moi qui l'ai écrit, seul, la veille du lancement. Qu'est-ce que j'ai fait ?
+memory = La règle. Ces quatre mots sont de moi. Tout ce qui est arrivé vient de là.
+generic = Note d'un chercheur : la règle de Gaïa a été modifiée au dernier moment, par un seul homme.
+at = -356 124
+
+[clue z3_mara_power]
+zone = 3
+step = 6
+reveals = no
+owner = mara
+title = Répartition de l'énergie
+text = Site des Portes : 100 %. Serres de Gaïa : 0 %. Ordre de la direction d'Odyssée.
+memory = On a coupé Gaïa pour nourrir les Portes. Je l'ai fait, avec mon équipe.
+generic = Un relevé : toute l'énergie a été détournée des serres de Gaïa vers le Site des Portes.
+at = -384 164
+
+[clue z3_teo_bracelet]
+zone = 3
+step = 8
+reveals = no
+owner = teo
+title = Bracelet d'enfant
+text = Un bracelet d'enfant pris dans la paroi d'un cocon. Gravé : « LOU ».
+memory = Le bracelet de Lou. Elle est là-dedans ?
+generic = Un bracelet d'enfant pris dans la paroi d'un cocon, comme si le cocon l'avait gardé.
+at = -440 40
+
+[clue z3_nadia_signed_order]
+zone = 3
+step = 1
+owner = nadia
+title = Ordre signé
+text = ORDRE DE LA DIRECTION ODYSSÉE — Fermer les centres de stase aux non-sélectionnés.
+text = Évacuer le personnel. Laisser les capsules en mode automatique.
+memory = Ils savaient. Ils nous ont laissés là exprès, en espérant que ça tienne.
+generic = Un ordre signé : évacuer le personnel des centres de stase et laisser les capsules seules.
+at = -390 170
