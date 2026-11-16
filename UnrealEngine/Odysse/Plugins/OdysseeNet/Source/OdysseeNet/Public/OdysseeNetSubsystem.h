@@ -51,6 +51,26 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOdysseePlayerDied, bool, bLeftBag);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOdysseeCraftChanged, FName, RecipeKey,
 	EOdysseeCraftOutcome, Outcome, float, Seconds);
 
+/** Un objet et sa quantité dans une recette (ingrédient ou résultat). */
+USTRUCT(BlueprintType)
+struct FOdysseeIngredient
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FName ItemKey;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FText Name;
+
+	/** Nom de base de l'icône (`buche`, d'après data/items.txt), comme FOdysseeInventorySlot. */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FString IconName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	int32 Count = 0;
+};
+
 /** Une recette (data/recipes.txt), prête à afficher dans l'interface d'artisanat (T048). */
 USTRUCT(BlueprintType)
 struct FOdysseeRecipe
@@ -74,6 +94,16 @@ struct FOdysseeRecipe
 
 	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
 	float Seconds = 0.0f;
+
+	/** Catégorie de l'objet fabriqué : « tool », « resource », « station »… (data/items.txt). */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FName Category;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	FOdysseeIngredient Output;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Artisanat")
+	TArray<FOdysseeIngredient> Inputs;
 };
 
 /** Une case de l'inventaire du joueur local (T045), prête à afficher. */

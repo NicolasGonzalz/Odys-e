@@ -82,12 +82,19 @@ private:
 
 	// Panneaux inventaire et artisanat (OdyssePlayerControllerPanels.cpp).
 	void CreatePanels();
-	void ToggleInventory();
-	void ToggleCrafting();
+	UFUNCTION() void ToggleInventory();
+	UFUNCTION() void ToggleCrafting();
+	/** Artisanat d'une station : « hand » (touche C : à la main seulement), « workbench » ou « forge »
+	 *  (leurs recettes, plus celles à la main). */
+	void ToggleStation(FName Station);
+	/** Console, en attendant que les établis et forges soient posés dans le monde (on les ouvrira
+	 *  en interagissant avec eux) : « OdysseeStation etabli », « OdysseeStation forge ». */
+	UFUNCTION(Exec) void OdysseeStation(const FString& Which);
 	void OpenPanel(UUserWidget* Panel);
 	/** Ferme l'inventaire ou l'artisanat ; vrai s'il y en avait un d'ouvert. */
 	bool ClosePanels();
 	void UpdateInventoryPanel();
+	void UpdateCraftingPanel();
 	void RequestMove(int32 From, int32 To);
 	void RequestCraft(FName Recipe);
 	UFUNCTION() void OnCraftChanged(FName RecipeKey, EOdysseeCraftOutcome Outcome, float Seconds);
@@ -97,6 +104,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UOdysseePauseMenuWidget> PauseMenu;
 	UPROPERTY(Transient) TObjectPtr<UOdysseeInventoryWidget> InventoryPanel;
 	UPROPERTY(Transient) TObjectPtr<UOdysseeCraftingWidget> CraftingPanel;
+	FName OpenStationName; ///< station dont l'artisanat est ouvert
 	bool bInGame = false;
 	TArray<FString> ShownToolbar;     ///< contenu affiché de chaque case (redessin si changement)
 	TMap<FString, FString> IconCache; ///< nom de base → texture trouvée (vide : aucune)

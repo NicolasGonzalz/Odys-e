@@ -25,6 +25,22 @@ namespace
 		return LOCTEXT("Hand", "À la main");
 	}
 
+	/** Nom d'onglet d'une catégorie d'objet (data/items.txt, `category`). */
+	FText CategoryLabel(FName Category)
+	{
+		static const TMap<FName, FText> Labels = {
+			{TEXT("tool"), LOCTEXT("Tools", "Outils")},
+			{TEXT("weapon"), LOCTEXT("Weapons", "Armes")},
+			{TEXT("ammo"), LOCTEXT("Ammo", "Munitions")},
+			{TEXT("resource"), LOCTEXT("Resources", "Matériaux")},
+			{TEXT("station"), LOCTEXT("Stations", "Stations")},
+			{TEXT("consumable"), LOCTEXT("Consumables", "Consommables")},
+			{TEXT("equipment"), LOCTEXT("Equipment", "Équipement")},
+		};
+		const FText* Label = Labels.Find(Category);
+		return Label ? *Label : FText::FromName(Category);
+	}
+
 	/** Réponse du serveur à une fabrication, en clair. */
 	FText OutcomeText(EOdysseeCraftOutcome Outcome)
 	{
@@ -70,26 +86,61 @@ void AOdyssePlayerController::ToggleInventory()
 
 void AOdyssePlayerController::ToggleCrafting()
 {
+	ToggleStation(TEXT("hand")); // C : seulement ce qui se fabrique à la main, partout
+}
+
+void AOdyssePlayerController::OdysseeStation(const FString& Which)
+{
+	const FString Name = Which.ToLower();
+	ToggleStation(Name == TEXT("forge") ? FName(TEXT("forge"))
+		: Name == TEXT("etabli") || Name == TEXT("workbench") ? FName(TEXT("workbench")) : FName(TEXT("hand")));
+}
+
+void AOdyssePlayerController::ToggleStation(FName Station)
+{
 	if (!bInGame || PauseMenu->IsInViewport())
 	{
 		return;
 	}
-	if (CraftingPanel->IsInViewport())
-	{
-		ClosePanels();
-		return;
-	}
+	const bool bSameOpen = CraftingPanel->IsInViewport() && OpenStationName == Station;
 	ClosePanels();
+	if (bSameOpen)
+	{
+		return; // même touche : on referme
+	}
+	OpenStationName = Station;
 	TArray<FOdysseeRecipeView> Views;
 	if (const UOdysseeNetSubsystem* Net = GetNet())
 	{
+		const auto ItemView = [this](const FOdysseeIngredient& Item) {
+			return FOdysseeItemView{Item.ItemKey, IconFor(Item.IconName), Item.Name, Item.Count};
+		};
 		for (const FOdysseeRecipe& Recipe : Net->GetRecipes())
 		{
-			Views.Add({Recipe.Key, Recipe.Name, StationName(Recipe.Station), Recipe.Ingredients, Recipe.Seconds});
+			// À la main : partout (touche C, et aussi à l'établi et à la forge). Une recette d'établi ou
+			// de forge n'apparaît qu'à sa station.
+			if (Recipe.Station != Station && Recipe.Station != TEXT("hand"))
+			{
+				continue;
+			}
+			FOdysseeRecipeView& View = Views.AddDefaulted_GetRef();
+			View.Key = Recipe.Key;
+			View.Category = Recipe.Category;
+			View.CategoryLabel = CategoryLabel(Recipe.Category);
+			View.Station = StationName(Recipe.Station);
+			View.Seconds = Recipe.Seconds;
+			View.Output = ItemView(Recipe.Output);
+			for (const FOdysseeIngredient& Input : Recipe.Inputs)
+			{
+				View.Inputs.Add(ItemView(Input));
+			}
 		}
 	}
+	CraftingPanel->SetTitle(Station == TEXT("forge") ? LOCTEXT("ForgeTitle", "Forge")
+		: Station == TEXT("workbench") ? LOCTEXT("WorkbenchTitle", "Établi") : LOCTEXT("HandTitle", "Artisanat"));
 	CraftingPanel->ShowRecipes(Views);
 	OpenPanel(CraftingPanel);
+	UpdateCraftingPanel();
 }
 
 void AOdyssePlayerController::OpenPanel(UUserWidget* Panel)
@@ -142,6 +193,28 @@ void AOdyssePlayerController::UpdateInventoryPanel()
 		}
 	}
 	InventoryPanel->ShowSlots(Views);
+}
+
+void AOdyssePlayerController::UpdateCraftingPanel()
+{
+	if (!CraftingPanel || !CraftingPanel->IsInViewport())
+	{
+		return;
+	}
+	// Ce que le joueur possède, objet par objet (plusieurs cases peuvent tenir le même objet).
+	TMap<FName, int32> Owned;
+	const UOdysseeNetSubsystem* Net = GetNet();
+	if (Net && Net->IsConnected())
+	{
+		for (const FOdysseeInventorySlot& Cell : Net->GetInventory())
+		{
+			if (Cell.Count > 0)
+			{
+				Owned.FindOrAdd(Cell.ItemKey) += Cell.Count;
+			}
+		}
+	}
+	CraftingPanel->ShowOwned(Owned);
 }
 
 void AOdyssePlayerController::RequestMove(int32 From, int32 To)

@@ -262,6 +262,7 @@ void AOdyssePlayerController::PlayerTick(float DeltaTime)
 	{
 		UpdateHud();
 		UpdateInventoryPanel();
+		UpdateCraftingPanel();
 	}
 }
 
