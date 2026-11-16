@@ -22,6 +22,10 @@ namespace
 			return EOdysseeResourceShape::Bush;
 		case odyssee::data::ResourceShape::Vein:
 			return EOdysseeResourceShape::Vein;
+		case odyssee::data::ResourceShape::Pebble:
+			return EOdysseeResourceShape::Pebble;
+		case odyssee::data::ResourceShape::Log:
+			return EOdysseeResourceShape::Log;
 		}
 		return EOdysseeResourceShape::Unknown;
 	}

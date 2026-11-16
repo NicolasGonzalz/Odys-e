@@ -29,10 +29,17 @@ enum class ResourceShape : std::uint8_t {
     Tree, ///< tronc (cylindre)
     Rock, ///< bloc
     Bush, ///< touffe basse
-    Vein, ///< filon : bloc veiné, plus sombre
+    Vein,   ///< filon : bloc veiné, plus sombre
+    Pebble, ///< caillou posé au sol : se ramasse d'un clic, disparaît puis revient
+    Log,    ///< bûche couchée au sol : idem
 };
 
-/// « tree », « rock », « bush », « vein » → forme (nullopt si inconnue).
+/// Vrai pour ce qui se ramasse au sol (caillou, bûche) : invisible une fois pris.
+[[nodiscard]] constexpr bool isGroundPickup(ResourceShape shape) {
+    return shape == ResourceShape::Pebble || shape == ResourceShape::Log;
+}
+
+/// « tree », « rock », « bush », « vein », « pebble », « log » → forme (nullopt si inconnue).
 [[nodiscard]] std::optional<ResourceShape> parseResourceShape(std::string_view text);
 [[nodiscard]] std::string_view resourceShapeName(ResourceShape shape);
 

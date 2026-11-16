@@ -65,3 +65,24 @@ hits = 3
 hit_ticks = 10
 regrow = 4800
 abundance = 15
+
+# --- Ramassage au sol : un clic à la main suffit, l'objet disparaît puis revient plus tard. -----
+# De quoi faire ses premiers outils sans rien casser. Ajoutés en fin de fichier (rang réseau).
+
+[resource loose_stone]
+name = Caillou
+shape = pebble
+item = stone 2
+hits = 1
+hit_ticks = 5
+regrow = 6000
+abundance = 20
+
+[resource fallen_log]
+name = Bûche au sol
+shape = log
+item = wood_log 1
+hits = 1
+hit_ticks = 5
+regrow = 7200
+abundance = 15
