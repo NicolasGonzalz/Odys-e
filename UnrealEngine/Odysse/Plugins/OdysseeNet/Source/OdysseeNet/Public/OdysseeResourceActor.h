@@ -20,6 +20,8 @@ enum class EOdysseeResourceShape : uint8
 	Rock,
 	Bush,
 	Vein,
+	Pebble, ///< caillou au sol : ramassé d'un clic, caché tant qu'il n'est pas revenu
+	Log,    ///< bûche couchée au sol : idem
 };
 
 /**

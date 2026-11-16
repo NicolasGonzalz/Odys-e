@@ -29,6 +29,10 @@ namespace
 			return {FVector(1.2, 1.2, 1.0), FLinearColor(FColor(70, 140, 60))};
 		case EOdysseeResourceShape::Vein:
 			return {FVector(1.2, 1.2, 0.6), FLinearColor(FColor(90, 60, 50))};
+		case EOdysseeResourceShape::Pebble:
+			return {FVector(0.35, 0.28, 0.18), FLinearColor(FColor(140, 140, 145))};
+		case EOdysseeResourceShape::Log: // cylindre couché : sa hauteur (Z) devient sa longueur
+			return {FVector(0.26, 0.26, 0.9), FLinearColor(FColor(120, 80, 45))};
 		case EOdysseeResourceShape::Unknown:
 			break;
 		}
@@ -102,10 +106,17 @@ void AOdysseeResourceActor::UpdateLook()
 	const FShapeLook Look = LookOf(Shape);
 	const FVector Size = Look.Size * (bDepleted ? DepletedScale : 1.0);
 
+	// Ce qui se ramasse au sol disparaît une fois pris, jusqu'à son retour.
+	const bool bPickup = Shape == EOdysseeResourceShape::Pebble || Shape == EOdysseeResourceShape::Log;
+	Body->SetVisibility(!(bPickup && bDepleted));
+
 	// Les formes de base sont centrées : on les monte de leur demi-hauteur pour poser la base au sol.
+	// La bûche est un cylindre couché : sa demi-hauteur au sol est son rayon.
+	const bool bLying = Shape == EOdysseeResourceShape::Log;
 	Body->SetStaticMesh(MeshFor(Shape));
 	Body->SetRelativeScale3D(Size);
-	Body->SetRelativeLocation(FVector(0.0, 0.0, Size.Z * 50.0));
+	Body->SetRelativeRotation(bLying ? FRotator(90.0, 0.0, 0.0) : FRotator::ZeroRotator);
+	Body->SetRelativeLocation(FVector(0.0, 0.0, (bLying ? Size.X : Size.Z) * 50.0));
 	SetTint(bDepleted ? Faded(Look.Color) : Look.Color);
 }
 
@@ -114,8 +125,10 @@ UStaticMesh* AOdysseeResourceActor::MeshFor(EOdysseeResourceShape ForShape) cons
 	switch (ForShape)
 	{
 	case EOdysseeResourceShape::Tree:
+	case EOdysseeResourceShape::Log:
 		return TreeMesh;
 	case EOdysseeResourceShape::Bush:
+	case EOdysseeResourceShape::Pebble:
 		return BushMesh;
 	case EOdysseeResourceShape::Vein:
 		return VeinMesh;

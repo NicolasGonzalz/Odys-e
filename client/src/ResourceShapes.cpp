@@ -33,7 +33,17 @@ void drawBush(Vector3 base, float scale, Color color) {
     DrawSphere({base.x, base.y + 0.4f * scale, base.z}, 0.6f * scale, color);
 }
 
+void drawLog(Vector3 base, Color color) {
+    const Vector3 start{base.x - 0.45f, base.y + 0.13f, base.z};
+    const Vector3 end{base.x + 0.45f, base.y + 0.13f, base.z};
+    DrawCylinderEx(start, end, 0.13f, 0.13f, 8, color);
+    DrawCylinderWiresEx(start, end, 0.13f, 0.13f, 8, BLACK);
+}
+
 void drawShape(Vector3 base, std::optional<data::ResourceShape> shape, bool depleted) {
+    if (shape && depleted && data::isGroundPickup(*shape)) {
+        return; // ramassé : rien à voir jusqu'à son retour
+    }
     const float scale = depleted ? 0.6f : 1.0f;
     const auto tint = [depleted](Color color) { return depleted ? faded(color) : color; };
     if (!shape) {
@@ -53,6 +63,12 @@ void drawShape(Vector3 base, std::optional<data::ResourceShape> shape, bool depl
     case data::ResourceShape::Vein:
         drawBlock(base, {1.2f * scale, 0.9f * scale, 1.2f * scale}, tint(Color{70, 60, 60, 255}));
         drawBlock(base, {1.25f * scale, 0.3f * scale, 0.3f * scale}, tint(ORANGE));
+        return;
+    case data::ResourceShape::Pebble:
+        drawBlock(base, {0.35f, 0.18f, 0.28f}, Color{140, 140, 145, 255});
+        return;
+    case data::ResourceShape::Log:
+        drawLog(base, Color{120, 80, 45, 255});
         return;
     }
 }

@@ -79,6 +79,18 @@ TEST_CASE("Ressources : le vrai data/resources.txt se charge") {
     for (const ResourceDef& type : types.types()) {
         CHECK(types.type(type.id) == &type); // indice = rang dans le fichier
     }
+
+    // Ramassage au sol : un seul clic, à la main, de quoi faire ses premiers outils.
+    for (const std::string_view key : {"loose_stone", "fallen_log"}) {
+        const ResourceDef* pickup = types.find(key);
+        REQUIRE(pickup != nullptr);
+        CHECK(isGroundPickup(pickup->shape));
+        CHECK(pickup->hits == 1);
+        CHECK(pickup->handAllowed);
+    }
+    CHECK(types.find("loose_stone")->yield.item == *items.catalog->findItem("stone"));
+    CHECK(types.find("fallen_log")->yield.item == *items.catalog->findItem("wood_log"));
+    CHECK_FALSE(isGroundPickup(ResourceShape::Rock));
 }
 
 TEST_CASE("Ressources : un bloc complet est lu") {
