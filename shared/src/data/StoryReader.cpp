@@ -16,10 +16,12 @@ constexpr std::array<std::string_view, 1> kIntroKeys{"line"};
 constexpr std::array<std::string_view, 3> kSurvivorKeys{"name", "capsule", "memory"};
 constexpr std::array<std::string_view, 1> kSurvivorRepeatable{"memory"};
 constexpr std::array<std::string_view, 2> kStepKeys{"number", "text"};
-constexpr std::array<std::string_view, 9> kClueKeys{"zone", "step",   "reveals", "owner", "title",
-                                                    "text", "memory", "generic", "at"};
+constexpr std::array<std::string_view, 11> kClueKeys{"zone",  "step",    "reveals", "owner",
+                                                     "title", "text",    "memory",  "generic",
+                                                     "at",    "support", "date"};
 constexpr std::array<std::string_view, 3> kClueRepeatable{"text", "memory", "generic"};
-constexpr std::array<std::string_view, 5> kClueRequired{"zone", "step", "title", "text", "at"};
+constexpr std::array<std::string_view, 7> kClueRequired{"zone", "step",    "title", "text",
+                                                        "at",   "support", "date"};
 
 /// Toutes les lignes `key` du bloc, réunies (une par ligne de texte).
 std::string joinedLines(const DataBlock& block, std::string_view key) {
@@ -30,6 +32,29 @@ std::string joinedLines(const DataBlock& block, std::string_view key) {
         }
     }
     return text;
+}
+
+/// « AAAA », « AAAA-MM » ou « AAAA-MM-JJ », chiffres seulement (mois 01 à 12, jour 01 à 31).
+bool isValidDate(std::string_view text) {
+    const auto digits = [&](std::size_t from, std::size_t count) {
+        return text.size() >= from + count &&
+               std::all_of(text.begin() + static_cast<std::ptrdiff_t>(from),
+                           text.begin() + static_cast<std::ptrdiff_t>(from + count),
+                           [](char c) { return c >= '0' && c <= '9'; });
+    };
+    const auto number = [&](std::size_t from) {
+        return (text[from] - '0') * 10 + (text[from + 1] - '0');
+    };
+    if (text.size() == 4) {
+        return digits(0, 4);
+    }
+    const bool month = text.size() >= 7 && digits(0, 4) && text[4] == '-' && digits(5, 2) &&
+                       number(5) >= 1 && number(5) <= 12;
+    if (text.size() == 7) {
+        return month;
+    }
+    return text.size() == 10 && month && text[7] == '-' && digits(8, 2) && number(8) >= 1 &&
+           number(8) <= 31;
 }
 
 std::optional<std::int32_t> parseSigned(std::string_view text) {
@@ -152,6 +177,9 @@ class StoryBlockReader {
         if (auto error = readClueTexts(block, clue)) {
             return error;
         }
+        if (auto error = readClueSupport(block, clue)) {
+            return error;
+        }
         _read.clues.push_back(std::move(clue));
         return std::nullopt;
     }
@@ -200,6 +228,23 @@ class StoryBlockReader {
             return fail(block.line, "titre ou texte trop long");
         }
         return readOwner(block, clue);
+    }
+
+    /// `support = letter | data` et `date` (sa place sur la frise du bracelet).
+    std::optional<DataError> readClueSupport(const DataBlock& block, ClueDef& clue) const {
+        const DataField& support = *findField(block, "support");
+        if (support.value != "letter" && support.value != "data") {
+            return fail(support.line, "support " + quoted(support.value) +
+                                          " invalide : letter (scanné) ou data (branché) attendu");
+        }
+        clue.support = support.value == "letter" ? ClueSupport::Letter : ClueSupport::Data;
+        const DataField& date = *findField(block, "date");
+        if (!isValidDate(date.value)) {
+            return fail(date.line, "date " + quoted(date.value) +
+                                       " invalide : AAAA, AAAA-MM ou AAAA-MM-JJ attendu");
+        }
+        clue.date = std::string(date.value);
+        return std::nullopt;
     }
 
     /// `owner = survivant` (facultatif) : un indice personnel a un souvenir et une version

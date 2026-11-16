@@ -44,8 +44,18 @@ struct StepDef {
     std::string text;
 };
 
+/// Comment le bracelet de stase lit un indice (docs/BRACELET.md § 3).
+enum class ClueSupport : std::uint8_t {
+    Letter, ///< note, registre, affiche, objet : on le vise, le bracelet le scanne
+    Data,   ///< clé USB ou terminal : on le branche au bracelet
+};
+
 struct ClueDef {
     ClueId id;
+    ClueSupport support = ClueSupport::Letter;
+    /// Sa place sur la frise du bracelet : « 2073 », « 2073-10 » ou « 2074-10-17 » (l'ordre du
+    /// texte est l'ordre chronologique).
+    std::string date;
     std::string key;       ///< identifiant stable : `z1_capsule_log` (sauvegardes, journal)
     std::uint8_t zone = 1; ///< 1 à 5
     std::uint8_t step = 1; ///< étape du fil qu'il concerne

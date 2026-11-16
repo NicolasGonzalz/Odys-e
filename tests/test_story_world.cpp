@@ -39,6 +39,8 @@ capsule = C-9
 memory = Teo.
 
 [clue note]
+support = letter
+date = 2074
 zone = 1
 step = 1
 title = Note
@@ -46,6 +48,8 @@ text = Commun.
 at = -3 -1
 
 [clue mara_file]
+support = letter
+date = 2074
 zone = 1
 step = 2
 owner = mara
@@ -56,6 +60,8 @@ generic = Une fiche.
 at = -3 1
 
 [clue far]
+support = letter
+date = 2074
 zone = 2
 step = 3
 title = Loin

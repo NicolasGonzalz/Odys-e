@@ -3,7 +3,9 @@
 # [intro capsule]   lignes « line » de l'écran du réveil ; {capsule} = capsule du survivant.
 # [survivor clé]    name, capsule, memory (bribes au réveil, une ligne chacune).
 # [step clé]        number (1 à 8), text : phrase du journal quand l'étape est comprise.
-# [clue clé]        zone (1 à 5), step (1 à 8), reveals (yes par défaut ; no = pressentiment),
+# [clue clé]        support (letter : scanné par le bracelet ; data : clé USB ou terminal branché),
+#                   date (AAAA, AAAA-MM ou AAAA-MM-JJ : sa place sur la frise du bracelet),
+#                   zone (1 à 5), step (1 à 8), reveals (yes par défaut ; no = pressentiment),
 #                   owner (survivant : indice personnel, avec memory et generic), title, text,
 #                   at = « est sud » en mètres depuis le point d'apparition (provisoire, en
 #                   attendant les marqueurs de la carte).
@@ -82,6 +84,8 @@ text = Les cocons sont des humains vivants.
 # --- Zone 1 : l'Abri (centre de stase du Site 12) -----------------------------------------------
 
 [clue z1_capsule_log]
+support = data
+date = 2074-10-17
 zone = 1
 step = 1
 title = Journal de la capsule
@@ -90,6 +94,8 @@ text = Dernière commande reçue : il y a 127 ans. Aucune commande depuis.
 at = 2 1
 
 [clue z1_operator_note]
+support = letter
+date = 2074-10-17
 zone = 1
 step = 1
 title = Note d'un opérateur
@@ -99,6 +105,8 @@ text = Pardonnez-nous.
 at = 8 -4
 
 [clue z1_shift_board]
+support = letter
+date = 2074-10
 zone = 1
 step = 2
 title = Tableau des transferts
@@ -107,6 +115,8 @@ text = Départ prévu : 3 jours après l'ouverture des Portes. Destination : Sit
 at = -5 3
 
 [clue z1_poster]
+support = letter
+date = 2072
 zone = 1
 step = 2
 title = Affiche délavée
@@ -115,6 +125,8 @@ text = Les Portes s'ouvriront bientôt. Présentez-vous au centre de recrutement
 at = 0 -12
 
 [clue z1_farm_diary]
+support = letter
+date = 2073-04
 zone = 1
 step = 4
 reveals = no
@@ -124,6 +136,8 @@ text = À la radio, ils appellent ça la Floraison, comme si c'était une fête.
 at = 30 -25
 
 [clue z1_mara_mission]
+support = data
+date = 2074-09
 zone = 1
 step = 2
 owner = mara
@@ -135,6 +149,8 @@ generic = Fiche d'une technicienne qui devait être réveillée « à l'arrivée
 at = -3 6
 
 [clue z1_ilian_alias]
+support = letter
+date = 2073-11
 zone = 1
 step = 2
 owner = ilian
@@ -146,6 +162,8 @@ generic = Fiche d'un passager au nom d'emprunt : quelqu'un voyageait sous une fa
 at = -1 6
 
 [clue z1_teo_capsule]
+support = data
+date = 2074-10-17
 zone = 1
 step = 1
 owner = teo
@@ -156,6 +174,8 @@ generic = La capsule C-9 n'avait aucun passager enregistré. Pourtant, quelqu'un
 at = 4 5
 
 [clue z1_nadia_orders]
+support = data
+date = 2074-10-17
 zone = 1
 step = 1
 owner = nadia
@@ -169,6 +189,8 @@ at = 6 -10
 # --- Zone 2 : la Ville engloutie (Odyssée et les non-choisis) -----------------------------------
 
 [clue z2_selection]
+support = letter
+date = 2072-06
 zone = 2
 step = 3
 title = Critères de sélection
@@ -177,6 +199,8 @@ text = Les familles ne sont pas garanties d'être réunies.
 at = 180 -40
 
 [clue z2_boarding_list]
+support = letter
+date = 2074-10
 zone = 2
 step = 3
 title = Liste d'embarquement
@@ -185,6 +209,8 @@ text = Sous la liste, peint en rouge : « ET NOUS ? »
 at = 184 -36
 
 [clue z2_van_log]
+support = data
+date = 2074-10-17
 zone = 2
 step = 3
 title = Terminal du fourgon U-12
@@ -193,6 +219,8 @@ text = Ordre suivant : aucun.
 at = 200 -20
 
 [clue z2_hospital]
+support = letter
+date = 2073-09
 zone = 2
 step = 8
 reveals = no
@@ -202,6 +230,8 @@ text = Ils sont sortis seuls, calmes.
 at = 230 10
 
 [clue z2_park_note]
+support = letter
+date = 2074-02
 zone = 2
 step = 5
 title = Message sur un banc
@@ -210,6 +240,8 @@ text = Les grandes bêtes l'ont laissée passer, et puis elles sont restées là
 at = 160 30
 
 [clue z2_teo_family]
+support = letter
+date = 2074-10-16
 zone = 2
 step = 3
 owner = teo
@@ -221,6 +253,8 @@ generic = Un message de famille à un fils absent : « on part vers les jardins 
 at = 150 -60
 
 [clue z2_nadia_camera]
+support = data
+date = 2074-10-17
 zone = 2
 step = 3
 owner = nadia
@@ -231,6 +265,8 @@ generic = Une caméra montre une agente qui recule devant la foule, sans tirer.
 at = 210 -55
 
 [clue z2_mara_gate_plan]
+support = data
+date = 2073-12
 zone = 2
 step = 6
 reveals = no
@@ -243,6 +279,8 @@ generic = Plan d'une Porte urbaine jamais terminée : tout a été transféré �
 at = 240 -30
 
 [clue z2_ilian_ad]
+support = letter
+date = 2071-09
 zone = 2
 step = 4
 owner = ilian
@@ -256,6 +294,8 @@ at = 182 -44
 # --- Zone 3 : les Terres noyées (Gaïa) ------------------------------------------------------------
 
 [clue z3_launch_report]
+support = data
+date = 2071-05
 zone = 3
 step = 4
 title = Rapport de lancement
@@ -264,6 +304,8 @@ text = Gaïa apprend vite, plus vite que prévu.
 at = -350 120
 
 [clue z3_bloom_alert]
+support = data
+date = 2073-06
 zone = 3
 step = 4
 title = Alerte rouge
@@ -272,6 +314,8 @@ text = Évacuez les zones habitées.
 at = -380 160
 
 [clue z3_quarantine]
+support = letter
+date = 2073-08
 zone = 3
 step = 5
 title = Panneau de quarantaine
@@ -280,6 +324,8 @@ text = Ne touchez pas aux cocons. Ne provoquez pas les gardiens.
 at = -300 100
 
 [clue z3_rule_fragment]
+support = letter
+date = 2071-03
 zone = 3
 step = 7
 title = Gravure du fronton
@@ -287,6 +333,8 @@ text = … PROTÉGER LA VIE, SOUS TOUTES SES FORMES, Y COMPRIS CONTRE ELLE-MÊME
 at = -352 116
 
 [clue z3_ranger_notes]
+support = letter
+date = 2074-05
 zone = 3
 step = 5
 title = Carnet du garde-forestier
@@ -295,6 +343,8 @@ text = Elle s'est mise entre moi et les cocons, comme une mère devant ses petit
 at = -420 60
 
 [clue z3_ilian_notes]
+support = data
+date = 2071-03
 zone = 3
 step = 7
 owner = ilian
@@ -306,6 +356,8 @@ generic = Note d'un chercheur : la règle de Gaïa a été modifiée au dernier 
 at = -356 124
 
 [clue z3_mara_power]
+support = data
+date = 2074-08
 zone = 3
 step = 6
 reveals = no
@@ -317,6 +369,8 @@ generic = Un relevé : toute l'énergie a été détournée des serres de Gaïa 
 at = -384 164
 
 [clue z3_teo_bracelet]
+support = letter
+date = 2074-10-17
 zone = 3
 step = 8
 reveals = no
@@ -328,6 +382,8 @@ generic = Un bracelet d'enfant pris dans la paroi d'un cocon, comme si le cocon 
 at = -440 40
 
 [clue z3_nadia_signed_order]
+support = data
+date = 2074-10-16
 zone = 3
 step = 1
 owner = nadia

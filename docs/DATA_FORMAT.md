@@ -107,7 +107,7 @@ sortes de blocs :
 | `[intro capsule]` | `line` (répétée) : l'écran du réveil ; `{capsule}` est remplacé par la capsule du survivant |
 | `[survivor clé]` | `name`, `capsule`, `memory` (répétée : bribes de mémoire au réveil). **Avant** les indices |
 | `[step clé]` | `number` (1 à 8), `text` : phrase du journal quand l'étape du fil est comprise |
-| `[clue clé]` | `zone` (1 à 5), `step` (1 à 8), `reveals` (`yes` par défaut, `no` : pressentiment), `title`, `text` (répétée), `at` (« est sud » en mètres entiers depuis le point d'apparition, provisoire) ; indice personnel : `owner` (clé d'un survivant), `memory` et `generic` (répétées) |
+| `[clue clé]` | `support` (`letter` : scanné par le bracelet ; `data` : clé USB ou terminal branché, voir [BRACELET.md](BRACELET.md)), `date` (`AAAA`, `AAAA-MM` ou `AAAA-MM-JJ` : sa place sur la frise), `zone` (1 à 5), `step` (1 à 8), `reveals` (`yes` par défaut, `no` : pressentiment), `title`, `text` (répétée), `at` (« est sud » en mètres entiers depuis le point d'apparition, provisoire) ; indice personnel : `owner` (clé d'un survivant), `memory` et `generic` (répétées) |
 
 Les clés des indices et des survivants ne changent plus une fois en jeu : le journal et les survivants sont
 sauvegardés par clé. Client et serveur lisent le même fichier (sur le réseau, un indice circule par son rang).
