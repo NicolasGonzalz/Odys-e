@@ -62,3 +62,19 @@ TEST_CASE("GameEvents : mort du joueur (T052), avec ou sans sac") {
     bytes.pop_back(); // tronqué
     CHECK_FALSE(decodeGameEvent(bytes));
 }
+
+TEST_CASE("GameEvents : survivants et journal (T049)") {
+    const std::vector<GameEvent> events{ChooseSurvivor{2}, SurvivorStatus{1, 0b0110, true},
+                                        SurvivorStatus{kNoSurvivor, 0, false},
+                                        JournalEntry{26, ClueVersion::Generic, 3},
+                                        ClueLocked{4, 0}};
+    for (const GameEvent& event : events) {
+        const auto decoded = decodeGameEvent(encodeGameEvent(event));
+        REQUIRE(decoded);
+        CHECK(*decoded == event);
+    }
+    auto bytes = encodeGameEvent(JournalEntry{1, ClueVersion::Full, 0});
+    bytes[3] = std::byte{7}; // version inconnue
+    CHECK_FALSE(decodeGameEvent(bytes));
+    CHECK_FALSE(decodeGameEvent(encodeGameEvent(ChooseSurvivor{kNoSurvivor})));
+}

@@ -11,6 +11,8 @@ add_library(odyssee_server_core STATIC
     src/GameStep.cpp
     src/GameWorld.cpp
     src/GameWorldSave.cpp
+    src/GameWorldStory.cpp
+    src/StoryLoading.cpp
     src/InputQueue.cpp
     src/Inventory.cpp
     src/ItemUse.cpp
@@ -23,6 +25,10 @@ add_library(odyssee_server_core STATIC
     src/death/DroppedBags.cpp
     src/persistence/SaveStore.cpp
     src/persistence/Sqlite.cpp
+    src/story/ClueField.cpp
+    src/story/ClueReading.cpp
+    src/story/Journal.cpp
+    src/story/SurvivorRoster.cpp
     src/ResourceLoading.cpp
     src/WorldLoading.cpp
     src/resources/HarvestReach.cpp

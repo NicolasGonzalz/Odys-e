@@ -51,6 +51,7 @@ if(ODYSSEE_BUILD_SERVER)
     test_death.cpp
     test_persistence.cpp
     test_story.cpp
+    test_story_world.cpp
         test_ecs.cpp
         test_vitals.cpp
         test_inventory.cpp

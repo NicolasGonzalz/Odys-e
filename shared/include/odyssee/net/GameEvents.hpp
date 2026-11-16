@@ -14,7 +14,7 @@ namespace odyssee::net {
 
 /// Événements de jeu, envoyés sur le canal fiable ordonné (docs/NETWORK.md) : ce qui doit arriver,
 /// et dans l'ordre, mais pas à chaque tick : l'inventaire (T045), l'artisanat (T047), la mort
-/// (T052).
+/// (T052), les survivants et le journal (T049).
 
 using odyssee::kHotbarSlots;
 using odyssee::kInventorySlots;
@@ -77,15 +77,64 @@ struct PlayerDied {
     friend bool operator==(const PlayerDied&, const PlayerDied&) = default;
 };
 
+/// Pas de survivant (data/story.txt) : valeur réservée des champs « survivant ».
+inline constexpr std::uint8_t kNoSurvivor = 0xFF;
+
+/// Client → serveur : incarner ce survivant (rang dans data/story.txt), s'il est libre (T049).
+struct ChooseSurvivor {
+    std::uint8_t survivor = 0;
+
+    friend bool operator==(const ChooseSurvivor&, const ChooseSurvivor&) = default;
+};
+
+/// Serveur → client : son survivant (kNoSurvivor tant qu'il n'en a pas choisi), ceux déjà pris
+/// dans ce monde (bit n = survivant n), et s'il vient de se réveiller (écran de la capsule).
+struct SurvivorStatus {
+    std::uint8_t yours = kNoSurvivor;
+    std::uint8_t taken = 0;
+    bool awakening = false;
+
+    friend bool operator==(const SurvivorStatus&, const SurvivorStatus&) = default;
+};
+
+/// Quelle version d'un indice le journal contient.
+enum class ClueVersion : std::uint8_t {
+    Full = 1,    ///< le texte complet (et, pour un indice personnel lu par son survivant, le souvenir)
+    Generic = 2, ///< indice personnel dont le survivant n'est joué par personne
+};
+
+/// Serveur → client : un indice entre dans son journal (rang dans data/story.txt), et qui l'a
+/// trouvé. Tout le journal est renvoyé ainsi à la connexion.
+struct JournalEntry {
+    std::uint16_t clue = 0;
+    ClueVersion version = ClueVersion::Full;
+    std::uint8_t finder = kNoSurvivor; ///< survivant qui l'a lu
+
+    friend bool operator==(const JournalEntry&, const JournalEntry&) = default;
+};
+
+/// Serveur → client : cet indice personnel appartient à un autre survivant, joué dans ce monde.
+struct ClueLocked {
+    std::uint16_t clue = 0;
+    std::uint8_t owner = 0; ///< survivant qui saurait le lire
+
+    friend bool operator==(const ClueLocked&, const ClueLocked&) = default;
+};
+
 enum class GameEventType : std::uint8_t {
     InventoryContents = 1,
     MoveItem = 2,
     CraftRequest = 3,
     CraftStatus = 4,
     PlayerDied = 5,
+    ChooseSurvivor = 6,
+    SurvivorStatus = 7,
+    JournalEntry = 8,
+    ClueLocked = 9,
 };
 
-using GameEvent = std::variant<InventoryContents, MoveItem, CraftRequest, CraftStatus, PlayerDied>;
+using GameEvent = std::variant<InventoryContents, MoveItem, CraftRequest, CraftStatus, PlayerDied,
+                               ChooseSurvivor, SurvivorStatus, JournalEntry, ClueLocked>;
 
 [[nodiscard]] std::vector<std::byte> encodeGameEvent(const GameEvent& message);
 

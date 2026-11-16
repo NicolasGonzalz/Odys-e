@@ -3,6 +3,7 @@
 #include "CommandLine.hpp"
 #include "ResourceLoading.hpp"
 #include "Server.hpp"
+#include "StoryLoading.hpp"
 #include "ShutdownSignals.hpp"
 #include "WorldLoading.hpp"
 
@@ -60,6 +61,9 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    if (!server::tellStory(*world, dataDir)) { // T049 : survivants et indices
+        return EXIT_FAILURE;
+    }
     // T053 : la sauvegarde du monde, reprise avant d'accueillir les joueurs.
     std::optional<server::SaveStore> store;
     if (!options->savePath.empty()) {

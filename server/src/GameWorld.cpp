@@ -116,6 +116,12 @@ void GameWorld::step() {
     _registry.each<PlayerControl, Motion, Harvester>(
         [this](ecs::Entity, const PlayerControl& control, const Motion& motion,
                Harvester& harvester) { harvestWith(control, motion, harvester); });
+
+    // Système « lecture » (T049) : un clic gauche sur un indice le lit.
+    _registry.each<PlayerControl, Motion>(
+        [this](ecs::Entity, const PlayerControl& control, const Motion& motion) {
+            readAimedClue(control, motion);
+        });
 }
 
 void GameWorld::useHeldItem(PlayerControl& control, Vitals& vitals, Inventory& inventory) {
@@ -278,8 +284,14 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
         }
     }
     if (const Motion* own = motionComponentOf(player)) {
-        // Puis les sacs proches (T052), et les ressources proches (T044) dans la place qui reste.
+        // Puis les sacs proches (T052), les indices (T049), et les ressources proches (T044) dans
+        // la place qui reste.
         _bags.appendNearby(_registry, own->state.position, snapshot.entities, kMaxSnapshotEntities);
+        const auto reader = survivorOf(player);
+        _clues.appendNearby(
+            _registry, own->state.position,
+            [this, reader](data::ClueId clue) { return clueReadBy(clue, reader); },
+            snapshot.entities, kMaxSnapshotEntities);
         _resources.appendNearby(_registry, own->state.position, snapshot.entities,
                                 kMaxSnapshotEntities);
     }
@@ -302,6 +314,10 @@ void GameWorld::receiveRequest(net::PlayerId player, const net::GameEvent& reque
                                ? static_cast<std::uint16_t>(crafting->ticksLeft)
                                : std::uint16_t{0};
         _outbox[player].push_back(net::CraftStatus{craft->recipe, outcome, ticks});
+        return;
+    }
+    if (const auto* choose = std::get_if<net::ChooseSurvivor>(&request)) {
+        chooseSurvivor(player, data::SurvivorId{choose->survivor});
         return;
     }
     const auto* move = std::get_if<net::MoveItem>(&request);
@@ -392,6 +408,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     control.generation = player.generation;
     control.name = player.name;
     control.saved = !player.name.empty() && !nameInUse(player.name);
+    control.survivor = control.saved ? _roster.survivorOf(player.name) : std::nullopt;
     const bool saved = control.saved;
     _registry.add<PlayerControl>(entity, std::move(control));
     _players[player.id] = entity;
@@ -400,6 +417,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
         restorePlayer(entity, found->second);
         _absent.erase(found);
     }
+    greetStory(player.id); // T049 : son survivant, puis le journal
 }
 
 void GameWorld::despawn(net::PlayerId player) {

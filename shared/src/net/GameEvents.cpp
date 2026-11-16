@@ -32,6 +32,27 @@ void writeBody(ByteWriter& w, const PlayerDied& m) {
     w.writeU16(m.bag);
 }
 
+void writeBody(ByteWriter& w, const ChooseSurvivor& m) {
+    w.writeU8(m.survivor);
+}
+
+void writeBody(ByteWriter& w, const SurvivorStatus& m) {
+    w.writeU8(m.yours);
+    w.writeU8(m.taken);
+    w.writeU8(m.awakening ? 1 : 0);
+}
+
+void writeBody(ByteWriter& w, const JournalEntry& m) {
+    w.writeU16(m.clue);
+    w.writeU8(static_cast<std::uint8_t>(m.version));
+    w.writeU8(m.finder);
+}
+
+void writeBody(ByteWriter& w, const ClueLocked& m) {
+    w.writeU16(m.clue);
+    w.writeU8(m.owner);
+}
+
 /// Le type d'un événement : son rang dans le variant + 1 (même ordre que GameEventType).
 GameEventType typeOf(const GameEvent& message) {
     return static_cast<GameEventType>(message.index() + 1);
@@ -86,6 +107,45 @@ std::optional<GameEvent> readPlayerDied(ByteReader& r) {
     return PlayerDied{*bag};
 }
 
+std::optional<GameEvent> readChooseSurvivor(ByteReader& r) {
+    const auto survivor = r.readU8();
+    if (!survivor || *survivor == kNoSurvivor) {
+        return std::nullopt;
+    }
+    return ChooseSurvivor{*survivor};
+}
+
+std::optional<GameEvent> readSurvivorStatus(ByteReader& r) {
+    const auto yours = r.readU8();
+    const auto taken = r.readU8();
+    const auto awakening = r.readU8();
+    if (!yours || !taken || !awakening || *awakening > 1) {
+        return std::nullopt;
+    }
+    return SurvivorStatus{*yours, *taken, *awakening == 1};
+}
+
+std::optional<GameEvent> readJournalEntry(ByteReader& r) {
+    const auto clue = r.readU16();
+    const auto version = r.readU8();
+    const auto finder = r.readU8();
+    const bool known = version && (*version == static_cast<std::uint8_t>(ClueVersion::Full) ||
+                                   *version == static_cast<std::uint8_t>(ClueVersion::Generic));
+    if (!clue || !known || !finder) {
+        return std::nullopt;
+    }
+    return JournalEntry{*clue, static_cast<ClueVersion>(*version), *finder};
+}
+
+std::optional<GameEvent> readClueLocked(ByteReader& r) {
+    const auto clue = r.readU16();
+    const auto owner = r.readU8();
+    if (!clue || !owner) {
+        return std::nullopt;
+    }
+    return ClueLocked{*clue, *owner};
+}
+
 std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
     switch (type) {
     case GameEventType::InventoryContents:
@@ -98,6 +158,14 @@ std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
         return readCraftStatus(r);
     case GameEventType::PlayerDied:
         return readPlayerDied(r);
+    case GameEventType::ChooseSurvivor:
+        return readChooseSurvivor(r);
+    case GameEventType::SurvivorStatus:
+        return readSurvivorStatus(r);
+    case GameEventType::JournalEntry:
+        return readJournalEntry(r);
+    case GameEventType::ClueLocked:
+        return readClueLocked(r);
     }
     return std::nullopt;
 }

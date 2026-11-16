@@ -44,12 +44,31 @@ struct SavedBag {
     friend bool operator==(const SavedBag&, const SavedBag&) = default;
 };
 
+/// Une lecture du journal (T049), par clés stables (data/story.txt).
+struct SavedJournalRecord {
+    std::string clue;
+    std::uint8_t version = 1; ///< net::ClueVersion
+    std::string finder;       ///< clé du survivant qui l'a lu (vide : sans survivant)
+
+    friend bool operator==(const SavedJournalRecord&, const SavedJournalRecord&) = default;
+};
+
+/// Qui incarne quel survivant (T049) : clé du survivant, nom du joueur.
+struct SavedSurvivor {
+    std::string survivor;
+    std::string player;
+
+    friend bool operator==(const SavedSurvivor&, const SavedSurvivor&) = default;
+};
+
 struct WorldSave {
     /// Empreinte de la carte au moment de la sauvegarde (world::fingerprintOf ; 0 sans carte).
     std::uint64_t worldFingerprint = 0;
     std::vector<SavedPlayer> players;
     std::vector<SavedResource> resources;
     std::vector<SavedBag> bags;
+    std::vector<SavedSurvivor> survivors;    ///< T049
+    std::vector<SavedJournalRecord> journal; ///< T049, dans l'ordre de lecture
 
     friend bool operator==(const WorldSave&, const WorldSave&) = default;
 };
