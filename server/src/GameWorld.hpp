@@ -163,6 +163,7 @@ class GameWorld {
     [[nodiscard]] std::optional<SavedPlayer> capturePlayer(ecs::Entity entity) const;
     void restorePlayer(ecs::Entity entity, const SavedPlayer& saved);
     void loadResources(const std::vector<SavedResource>& saved);
+    [[nodiscard]] bool sameResourceTypes(const std::vector<SavedResource>& saved) const;
     [[nodiscard]] const PlayerControl* controlOf(net::PlayerId player) const;
     [[nodiscard]] const Motion* motionComponentOf(net::PlayerId player) const;
     [[nodiscard]] Inventory* mutableInventoryOf(net::PlayerId player);

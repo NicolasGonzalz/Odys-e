@@ -108,7 +108,7 @@ WorldSave sampleSave() {
     teo.name = "Téo"; // accents : le nom est en UTF-8
     teo.inventory = {};
     save.players = {mara, teo};
-    save.resources = {{2, 0}, {0, 380}};
+    save.resources = {{0, 2, 0}, {1, 0, 380}};
     SavedBag bag;
     bag.position = {7, 8, 9};
     bag.contents.owner = 2;
@@ -243,4 +243,48 @@ TEST_CASE("Monde : sauvegarde d'une autre carte ; inventaire gardé, position re
     CHECK(server::countItem(*world.inventoryOf(0), kStone) == 4);
     CHECK(world.resourceNode(net::kFirstResourceEntity)->hitsLeft == 2); // pas l'ancien état
     CHECK(world.bags().size() == 0);
+}
+
+TEST_CASE("Sauvegarde : une base au format 1 est mise à jour ; joueurs gardés, ressources oubliées") {
+    TempBase base("format_1");
+    {
+        auto db = server::sqlite::Database::open(base.path);
+        REQUIRE(db);
+        CHECK(db->exec(R"(
+CREATE TABLE meta(key TEXT PRIMARY KEY, value INTEGER NOT NULL);
+CREATE TABLE players(
+    name TEXT PRIMARY KEY, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL,
+    yaw INTEGER NOT NULL, health INTEGER NOT NULL, hunger INTEGER NOT NULL,
+    thirst INTEGER NOT NULL, rest_x INTEGER NOT NULL, rest_y INTEGER NOT NULL,
+    rest_z INTEGER NOT NULL, rest_yaw INTEGER NOT NULL, inventory BLOB NOT NULL);
+CREATE TABLE resources(rank INTEGER PRIMARY KEY, hits INTEGER NOT NULL, regrow INTEGER NOT NULL);
+INSERT INTO meta VALUES ('schema_version', 1);
+INSERT INTO players VALUES ('Mara', 1, 2, 3, 0, 100000, 100000, 100000, 1, 2, 3, 0, x'');
+INSERT INTO resources VALUES (0, 1, 50);
+)"));
+    }
+    auto store = SaveStore::open(base.path);
+    REQUIRE(store);
+    const auto save = store->load();
+    REQUIRE(save);
+    REQUIRE(save->players.size() == 1);
+    CHECK(save->players[0].name == "Mara");
+    CHECK(save->resources.empty());
+    CHECK(store->store(sampleSave())); // et elle s'écrit au nouveau format
+    CHECK(store->load() == sampleSave());
+}
+
+TEST_CASE("Monde : ressources sauvegardées d'autres types (données changées) ; elles repartent pleines") {
+    GameWorld world = freshWorld();
+    WorldSave save;
+    save.players.push_back(SavedPlayer{});
+    save.players[0].name = "Mara";
+    save.resources = {{7, 1, 100}}; // même nombre, mais le type 7 n'est pas un rocher
+    world.load(save);
+    CHECK(world.resourceNode(net::kFirstResourceEntity)->hitsLeft == 2);
+
+    save.resources = {{0, 1, 0}}; // le bon type : l'état est repris
+    GameWorld same = freshWorld();
+    same.load(save);
+    CHECK(same.resourceNode(net::kFirstResourceEntity)->hitsLeft == 1);
 }
