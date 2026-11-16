@@ -8,7 +8,7 @@ namespace odyssee::data {
 namespace {
 
 /// Noms des formes dans les fichiers, dans l'ordre de l'énumération.
-constexpr std::array<std::string_view, 6> kShapeNames{"tree", "rock", "bush",
+constexpr std::array<std::string_view, 6> kShapeNames{"tree", "rock",   "bush",
                                                       "vein", "pebble", "log"};
 
 } // namespace
