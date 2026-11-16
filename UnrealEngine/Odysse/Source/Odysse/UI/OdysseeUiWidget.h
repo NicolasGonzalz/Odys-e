@@ -7,10 +7,12 @@
 #pragma once
 
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetTree.h"
 #include "Components/SizeBox.h"
 #include "CoreMinimal.h"
 #include "Layout/Margin.h"
 #include "Types/SlateEnums.h"
+#include "UI/OdysseeUiStyle.h"
 #include "OdysseeUiWidget.generated.h"
 
 class UBorder;
@@ -30,14 +32,38 @@ public:
 	/** Construit l'arbre dès la création : un écran peut régler ses sous-widgets aussitôt. */
 	virtual bool Initialize() override;
 
+	EOdysseeUiTheme GetTheme() const { return Theme; }
+
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
+
+	/** Thème de l'écran : celui de l'écran qui le crée (OdysseeUi::FScopedTheme), sauf écran qui
+	 *  impose le sien (le bracelet : hologramme). */
+	virtual EOdysseeUiTheme ChooseTheme() const { return OdysseeUi::CurrentTheme(); }
+
+	/** Sous-écran (ou case, carte…) qui prend le thème de celui-ci. */
+	template <typename T>
+	T* MakeChild(FName Name = NAME_None)
+	{
+		OdysseeUi::FScopedTheme Scope(Theme);
+		return WidgetTree->ConstructWidget<T>(T::StaticClass(), Name);
+	}
+
+	FLinearColor TextColor() const { return OdysseeUi::TextColor(Theme); }
+	FLinearColor DimColor() const { return OdysseeUi::DimColor(Theme); }
+	FLinearColor AccentColor() const { return OdysseeUi::AccentColor(Theme); }
+	/** Teinte des images d'objets : telles quelles, ou légèrement cyan (projetées) en hologramme. */
+	FLinearColor IconTint() const
+	{
+		return Theme == EOdysseeUiTheme::Holo ? FLinearColor(0.78f, 0.97f, 1.f, 0.95f) : FLinearColor::White;
+	}
 
 	/** Racine de l'écran, construite une seule fois. */
 	virtual UWidget* BuildTree() PURE_VIRTUAL(UOdysseeUiWidget::BuildTree, return nullptr;);
 
+	/** `Color` transparent (par défaut) : la couleur de texte du thème. */
 	UTextBlock* MakeText(FName Name, const FText& Text, int32 Size, bool bBold = false,
-		const FLinearColor& Color = FLinearColor(0.93f, 0.89f, 0.80f));
+		const FLinearColor& Color = FLinearColor::Transparent);
 	/** Bouton low-poly avec un libellé en majuscules, dans une boîte à sa taille : on l'ajoute à
 	 *  une colonne avec AddButton (qui place la boîte, pas le bouton seul). */
 	UButton* MakeButton(FName Name, const FText& Label, float Width = 320.f);
@@ -58,4 +84,6 @@ protected:
 
 	/** Titre d'écran, puis une colonne de boutons, dans un panneau. */
 	UBorder* MakeMenuPanel(FName Name, const FText& Title, UVerticalBox*& OutColumn);
+
+	EOdysseeUiTheme Theme = EOdysseeUiTheme::Ground;
 };

@@ -7,6 +7,7 @@
 
 #include "odyssee/data/Catalog.hpp"
 #include "odyssee/data/ResourceCatalog.hpp"
+#include "odyssee/data/StoryCatalog.hpp"
 
 #include <optional>
 
@@ -35,11 +36,16 @@ public:
 		return ResourceTypes ? &*ResourceTypes : nullptr;
 	}
 
+	/** L'histoire (data/story.txt : survivants, indices…), ou nullptr si elle n'a pas pu être chargée. */
+	const odyssee::data::StoryCatalog* GetStory() const { return Story ? &*Story : nullptr; }
+
 private:
 	static FString FindDataDir();
 	void LoadItems(const FString& Dir);
 	void LoadResourceTypes(const FString& Dir);
+	void LoadStory(const FString& Dir);
 
 	std::optional<odyssee::data::Catalog> Catalog;
 	std::optional<odyssee::data::ResourceCatalog> ResourceTypes;
+	std::optional<odyssee::data::StoryCatalog> Story;
 };

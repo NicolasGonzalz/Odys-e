@@ -150,7 +150,7 @@ et **Charger une partie**.
 | Interagir, ramasser | E | Lampe torche | F |
 | Attaquer | Clic gauche | Bloquer, viser | Clic droit |
 | Esquiver | Ctrl | Pause | Échap |
-| Artisanat | C | | |
+| Bracelet (dernier onglet) | Tab | Sac · Fabrication · Histoire · Carte | I · C · J · M |
 
 ## 6. Notifications
 

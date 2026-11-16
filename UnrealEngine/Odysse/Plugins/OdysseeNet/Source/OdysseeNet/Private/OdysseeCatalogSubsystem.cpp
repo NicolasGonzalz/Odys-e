@@ -19,6 +19,19 @@ void UOdysseeCatalogSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	LoadItems(Dir);
 	LoadResourceTypes(Dir);
+	LoadStory(Dir);
+}
+
+void UOdysseeCatalogSubsystem::LoadStory(const FString& Dir)
+{
+	auto Result = odyssee::data::StoryCatalog::fromDirectory(std::string(TCHAR_TO_UTF8(*Dir)));
+	if (!Result.catalog)
+	{
+		const std::string Why = Result.error ? Result.error->describe() : "erreur inconnue";
+		UE_LOG(LogOdysseeCatalog, Error, TEXT("Histoire non chargée : %s"), UTF8_TO_TCHAR(Why.c_str()));
+		return;
+	}
+	Story = std::move(Result.catalog);
 }
 
 void UOdysseeCatalogSubsystem::LoadItems(const FString& Dir)

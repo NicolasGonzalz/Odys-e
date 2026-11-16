@@ -18,6 +18,8 @@ bool UOdysseeUiWidget::Initialize()
 	const bool bFirstTime = Super::Initialize();
 	if (WidgetTree && !WidgetTree->RootWidget)
 	{
+		Theme = ChooseTheme();
+		OdysseeUi::FScopedTheme Scope(Theme); // les sous-écrans créés ici prennent le même
 		WidgetTree->RootWidget = BuildTree();
 	}
 	return bFirstTime;
@@ -38,16 +40,18 @@ UTextBlock* UOdysseeUiWidget::MakeText(FName Name, const FText& Text, int32 Size
 	UTextBlock* Block = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), Name);
 	Block->SetText(Text);
 	Block->SetFont(OdysseeUi::Font(Size, bBold));
-	Block->SetColorAndOpacity(FSlateColor(Color));
+	Block->SetColorAndOpacity(FSlateColor(Color == FLinearColor::Transparent ? TextColor() : Color));
+	// Ombre portée sombre, ou halo cyan en hologramme (le texte semble émettre sa lumière).
 	Block->SetShadowOffset(FVector2D(1.f, 1.f));
-	Block->SetShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.6f));
+	Block->SetShadowColorAndOpacity(Theme == EOdysseeUiTheme::Holo ? FLinearColor(0.2f, 0.8f, 1.f, 0.45f)
+		: FLinearColor(0.f, 0.f, 0.f, 0.6f));
 	return Block;
 }
 
 UButton* UOdysseeUiWidget::MakeButton(FName Name, const FText& Label, float Width)
 {
 	UButton* Button = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Name);
-	Button->SetStyle(OdysseeUi::ButtonStyle());
+	Button->SetStyle(OdysseeUi::ButtonStyle(Theme));
 	UTextBlock* Text = MakeText(NAME_None, Label.ToUpper(), 15, true);
 	Text->SetFont(OdysseeUi::Font(15, true, 120));
 	Text->SetJustification(ETextJustify::Center);
@@ -67,7 +71,7 @@ void UOdysseeUiWidget::AddButton(UVerticalBox* Column, UButton* Button)
 UBorder* UOdysseeUiWidget::MakePanel(FName Name, UWidget* Content, const FMargin& Inset)
 {
 	UBorder* Panel = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), Name);
-	Panel->SetBrush(OdysseeUi::BoxBrush(TEXT("panneau"), FMargin(0.18f)));
+	Panel->SetBrush(OdysseeUi::BoxBrush(TEXT("panneau"), FMargin(0.18f), Theme));
 	Panel->SetPadding(Inset);
 	Panel->SetContent(Content);
 	return Panel;
@@ -77,7 +81,7 @@ UImage* UOdysseeUiWidget::MakeImage(FName Name, const TCHAR* Texture, const FVec
 	const FLinearColor& Tint)
 {
 	UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), Name);
-	Image->SetBrush(OdysseeUi::ImageBrush(Texture, Size));
+	Image->SetBrush(OdysseeUi::ImageBrush(Texture, Size, Theme));
 	Image->SetColorAndOpacity(Tint);
 	return Image;
 }
@@ -85,7 +89,7 @@ UImage* UOdysseeUiWidget::MakeImage(FName Name, const TCHAR* Texture, const FVec
 UProgressBar* UOdysseeUiWidget::MakeBar(FName Name, const FLinearColor& Fill, float Percent)
 {
 	UProgressBar* Bar = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), Name);
-	Bar->SetWidgetStyle(OdysseeUi::BarStyle());
+	Bar->SetWidgetStyle(OdysseeUi::BarStyle(Theme));
 	Bar->SetFillColorAndOpacity(Fill);
 	Bar->SetPercent(Percent);
 	return Bar;
@@ -129,7 +133,7 @@ void UOdysseeUiWidget::AddTo(UHorizontalBox* Row, UWidget* Child, const FMargin&
 UBorder* UOdysseeUiWidget::MakeMenuPanel(FName Name, const FText& Title, UVerticalBox*& OutColumn)
 {
 	UVerticalBox* Column = MakeColumn();
-	UTextBlock* Heading = MakeText(NAME_None, Title.ToUpper(), 22, true, OdysseeUi::Rust);
+	UTextBlock* Heading = MakeText(NAME_None, Title.ToUpper(), 22, true, AccentColor());
 	Heading->SetFont(OdysseeUi::Font(22, true, 300));
 	AddTo(Column, Heading, FMargin(0.f, 0.f, 0.f, 14.f), HAlign_Center);
 	OutColumn = MakeColumn();

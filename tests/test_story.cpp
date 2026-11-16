@@ -80,6 +80,12 @@ TEST_CASE("Histoire : le vrai data/story.txt se charge, cohérent avec docs/HIST
     }
     const auto intro = story.introFor(story.findSurvivor("teo")->id);
     CHECK(intro[1].find("C-9") != std::string::npos);
+    // L'écran du choix montre la spécialité de chacun (docs/CHARACTERS.md).
+    CHECK(story.findSurvivor("mara")->specialty == "Mécanique");
+    for (const SurvivorDef& survivor : story.survivors()) {
+        CHECK_FALSE(survivor.specialty.empty());
+        CHECK_FALSE(survivor.skill.empty());
+    }
 }
 
 TEST_CASE("Histoire : un fichier minimal est lu entièrement") {
@@ -102,6 +108,7 @@ TEST_CASE("Histoire : un fichier minimal est lu entièrement") {
     CHECK_FALSE(personal->reveals);
     CHECK(personal->generic == "Une fiche.");
     CHECK(story.introFor(SurvivorId{0}).front() == "Capsule C-7");
+    CHECK(story.findSurvivor("mara")->specialty.empty()); // facultative
 }
 
 TEST_CASE("Histoire : erreurs, avec leur ligne") {

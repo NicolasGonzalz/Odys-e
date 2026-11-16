@@ -36,6 +36,8 @@ struct SurvivorDef {
     std::string name;    ///< nom affiché : « Mara Velin »
     std::string capsule; ///< sa capsule au réveil : « C-7 »
     std::string awakening; ///< bribes de mémoire au réveil (mémoire floue), lignes séparées par \n
+    std::string specialty; ///< « Mécanique »… (écran du choix ; docs/CHARACTERS.md), vide si absente
+    std::string skill;     ///< ce que la spécialité apporte, en une phrase (écran du choix)
 };
 
 /// Une étape du fil des révélations et la phrase ajoutée au journal quand elle est comprise.

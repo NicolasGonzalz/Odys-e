@@ -24,6 +24,7 @@
 #include "UI/OdysseeUiStyle.h"
 #include "UI/OdysseeMainMenuWidget.h"
 #include "UI/OdysseePauseMenuWidget.h"
+#include "UI/OdysseeSurvivorChoiceWidget.h"
 
 #define LOCTEXT_NAMESPACE "OdysseController"
 
@@ -81,8 +82,12 @@ void AOdyssePlayerController::SetupInputComponent()
 	{
 		// Échap : menu pause (hors des actions d'entrée du modèle, pour ne dépendre d'aucun asset)
 		InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AOdyssePlayerController::TogglePause);
-		InputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &AOdyssePlayerController::ToggleInventory);
+		// Bracelet de stase : Tab (dernier onglet), I sac, C fabrication, J histoire, M carte.
+		InputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &AOdyssePlayerController::ToggleBracelet);
+		InputComponent->BindKey(EKeys::I, IE_Pressed, this, &AOdyssePlayerController::OpenBagTab);
 		InputComponent->BindKey(EKeys::C, IE_Pressed, this, &AOdyssePlayerController::ToggleCrafting);
+		InputComponent->BindKey(EKeys::J, IE_Pressed, this, &AOdyssePlayerController::OpenStoryTab);
+		InputComponent->BindKey(EKeys::M, IE_Pressed, this, &AOdyssePlayerController::OpenMapTab);
 
 		// Add Input Mapping Context
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -114,6 +119,7 @@ void AOdyssePlayerController::CreateScreens()
 	PauseMenu = CreateWidget<UOdysseePauseMenuWidget>(this);
 	PauseMenu->SetCoopMode(true); // en ligne, le serveur sauvegarde : pas de bouton Enregistrer
 	CreatePanels();
+	CreateSurvivorChoice();
 
 	MainMenu->JoinButton->OnClicked.AddDynamic(this, &AOdyssePlayerController::OnJoinClicked);
 	MainMenu->NewWorldButton->OnClicked.AddDynamic(this, &AOdyssePlayerController::OnPlayOfflineClicked);
@@ -132,6 +138,7 @@ void AOdyssePlayerController::ShowMenu(const FText& Status)
 {
 	bInGame = false;
 	ClosePanels();
+	SurvivorChoice->RemoveFromParent();
 	Hud->RemoveFromParent();
 	PauseMenu->RemoveFromParent();
 	MainMenu->JoinStatusText->SetText(Status);
@@ -146,6 +153,7 @@ void AOdyssePlayerController::ShowGame()
 {
 	bInGame = true;
 	MainMenu->RemoveFromParent();
+	SurvivorChoice->RemoveFromParent();
 	PauseMenu->RemoveFromParent();
 	if (!Hud->IsInViewport())
 	{
@@ -204,7 +212,7 @@ void AOdyssePlayerController::OnJoinClicked()
 
 void AOdyssePlayerController::OnPlayOfflineClicked()
 {
-	ShowGame(); // hors ligne : le personnage simule seul, sur la carte locale
+	ShowSurvivorChoice(FText::GetEmpty()); // hors ligne : on choisit, puis on simule seul sur la carte locale
 }
 
 void AOdyssePlayerController::OnQuitGameClicked()
@@ -231,7 +239,17 @@ void AOdyssePlayerController::OnConnectionChanged(EOdysseeConnection State, cons
 {
 	if (State == EOdysseeConnection::Connected)
 	{
-		ShowGame();
+		// Le survivant d'abord (le premier écran d'une partie), sauf s'il est déjà connu (reconnexion).
+		const UOdysseeNetSubsystem* Net = GetNet();
+		if (Net && Net->GetMySurvivor() >= 0)
+		{
+			ShowGame();
+		}
+		else
+		{
+			ShowSurvivorChoice(Net && Net->KnowsSurvivors() ? FText::GetEmpty()
+				: LOCTEXT("AskingSurvivors", "Le serveur dit qui est déjà là…"));
+		}
 	}
 	else if (State == EOdysseeConnection::Failed)
 	{

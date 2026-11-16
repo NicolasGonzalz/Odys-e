@@ -105,7 +105,7 @@ sortes de blocs :
 | Bloc | Clés |
 |---|---|
 | `[intro capsule]` | `line` (répétée) : l'écran du réveil ; `{capsule}` est remplacé par la capsule du survivant |
-| `[survivor clé]` | `name`, `capsule`, `memory` (répétée : bribes de mémoire au réveil). **Avant** les indices |
+| `[survivor clé]` | `name`, `capsule`, `memory` (répétée : bribes de mémoire au réveil), et facultatives `specialty` et `skill` (spécialité et ce qu'elle apporte, montrées au choix du survivant). **Avant** les indices |
 | `[step clé]` | `number` (1 à 8), `text` : phrase du journal quand l'étape du fil est comprise |
 | `[clue clé]` | `support` (`letter` : scanné par le bracelet ; `data` : clé USB ou terminal branché, voir [BRACELET.md](BRACELET.md)), `date` (`AAAA`, `AAAA-MM` ou `AAAA-MM-JJ` : sa place sur la frise), `zone` (1 à 5), `step` (1 à 8), `reveals` (`yes` par défaut, `no` : pressentiment), `title`, `text` (répétée), `at` (« est sud » en mètres entiers depuis le point d'apparition, provisoire) ; indice personnel : `owner` (clé d'un survivant), `memory` et `generic` (répétées) |
 

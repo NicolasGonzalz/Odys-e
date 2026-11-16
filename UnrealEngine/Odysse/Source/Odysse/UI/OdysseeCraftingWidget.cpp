@@ -36,11 +36,11 @@ namespace
 	const FLinearColor Enough(0.55f, 0.82f, 0.42f);
 
 	/** Carte de recette : la case facettée de l'inventaire, allumée au survol ou si choisie. */
-	FButtonStyle CardStyle(bool bSelected)
+	FButtonStyle CardStyle(bool bSelected, EOdysseeUiTheme Theme)
 	{
 		const FMargin Margin(0.2f);
-		const FSlateBrush Normal = OdysseeUi::BoxBrush(bSelected ? TEXT("case_active") : TEXT("case"), Margin);
-		const FSlateBrush Lit = OdysseeUi::BoxBrush(TEXT("case_active"), Margin);
+		const FSlateBrush Normal = OdysseeUi::BoxBrush(bSelected ? TEXT("case_active") : TEXT("case"), Margin, Theme);
+		const FSlateBrush Lit = OdysseeUi::BoxBrush(TEXT("case_active"), Margin, Theme);
 		FButtonStyle Style;
 		Style.SetNormal(Normal).SetHovered(Lit).SetPressed(Lit).SetDisabled(Normal);
 		Style.SetNormalPadding(FMargin(6.f)).SetPressedPadding(FMargin(6.f, 7.f, 6.f, 5.f));
@@ -74,26 +74,27 @@ void UOdysseeRecipeEntryWidget::Show(int32 InIndex, const FText& Text, const FSt
 	{
 		Box->SetWidthOverride(TabSize.X);
 		Box->SetHeightOverride(TabSize.Y);
-		Button->SetStyle(OdysseeUi::ButtonStyle());
+		Button->SetStyle(OdysseeUi::ButtonStyle(Theme));
 		Label->SetText(Text.ToUpper());
 		Picture->SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
-	Button->SetStyle(CardStyle(false));
+	Button->SetStyle(CardStyle(false, Theme));
 	Label->SetText(Text);
 	Picture->SetVisibility(Icon.IsEmpty() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 	if (!Icon.IsEmpty())
 	{
-		Picture->SetBrush(OdysseeUi::ImageBrush(*Icon, FVector2D(CardIcon)));
+		Picture->SetBrush(OdysseeUi::ImageBrush(*Icon, FVector2D(CardIcon), Theme));
+		Picture->SetColorAndOpacity(IconTint());
 	}
 }
 
 void UOdysseeRecipeEntryWidget::SetSelected(bool bSelected)
 {
-	Label->SetColorAndOpacity(FSlateColor(bSelected ? OdysseeUi::Rust : OdysseeUi::Bone));
+	Label->SetColorAndOpacity(FSlateColor(bSelected ? AccentColor() : TextColor()));
 	if (!bIsTab)
 	{
-		Button->SetStyle(CardStyle(bSelected));
+		Button->SetStyle(CardStyle(bSelected, Theme));
 	}
 }
 
@@ -107,7 +108,7 @@ void UOdysseeRecipeEntryWidget::HandleClicked()
 UWidget* UOdysseeCraftingWidget::BuildTree()
 {
 	UBorder* Veil = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
-	Veil->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, 0.45f));
+	Veil->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, Theme == EOdysseeUiTheme::Holo ? 0.f : 0.45f));
 	UHorizontalBox* Panels = MakeRow();
 	AddTo(Panels, BuildList(), FMargin(0.f, 0.f, 16.f, 0.f), VAlign_Fill);
 	AddTo(Panels, BuildDetail(), FMargin(0.f), VAlign_Fill);
@@ -147,16 +148,16 @@ UWidget* UOdysseeCraftingWidget::BuildDetail()
 	OutputIcon = MakeImage(TEXT("OutputIcon"), TEXT("outil_baton"), FVector2D(128.f));
 	RecipeName = MakeText(TEXT("RecipeName"), LOCTEXT("Choose", "Choisissez une recette"), 22, true);
 	RecipeName->SetAutoWrapText(true);
-	StationText = MakeText(TEXT("StationText"), FText::GetEmpty(), 14, true, OdysseeUi::Rust);
+	StationText = MakeText(TEXT("StationText"), FText::GetEmpty(), 14, true, AccentColor());
 	Formula = MakeRow(TEXT("Formula"));
-	DurationText = MakeText(TEXT("DurationText"), FText::GetEmpty(), 13, false, OdysseeUi::BoneDim);
+	DurationText = MakeText(TEXT("DurationText"), FText::GetEmpty(), 13, false, DimColor());
 	CraftButton = MakeButton(TEXT("CraftButton"), LOCTEXT("Craft", "Fabriquer"), 300.f);
 	CraftButton->OnClicked.AddDynamic(this, &UOdysseeCraftingWidget::HandleCraftClicked);
 	CraftButton->SetIsEnabled(false);
 	CraftProgress = MakeBar(TEXT("CraftProgress"), OdysseeUi::Stamina, 0.f);
 	StatusText = MakeText(TEXT("StatusText"), FText::GetEmpty(), 14, true);
 	StatusText->SetAutoWrapText(true);
-	UTextBlock* Needs = MakeText(NAME_None, LOCTEXT("Needs", "INGRÉDIENTS"), 11, true, OdysseeUi::BoneDim);
+	UTextBlock* Needs = MakeText(NAME_None, LOCTEXT("Needs", "INGRÉDIENTS"), 11, true, DimColor());
 	Needs->SetFont(OdysseeUi::Font(11, true, 250));
 
 	UVerticalBox* Column = MakeColumn();
@@ -204,8 +205,7 @@ void UOdysseeCraftingWidget::BuildTabs()
 	TabEntries.Reset();
 	for (int32 Tab = 0; Tab < Tabs.Num(); ++Tab)
 	{
-		UOdysseeRecipeEntryWidget* Entry = WidgetTree->ConstructWidget<UOdysseeRecipeEntryWidget>(
-			UOdysseeRecipeEntryWidget::StaticClass());
+		UOdysseeRecipeEntryWidget* Entry = MakeChild<UOdysseeRecipeEntryWidget>();
 		Entry->Show(Tab, Labels[Tab], FString(), true);
 		Entry->OnChosen.BindUObject(this, &UOdysseeCraftingWidget::SelectTab);
 		CategoryTabs->AddChildToWrapBox(Entry);
@@ -238,8 +238,7 @@ void UOdysseeCraftingWidget::FillGrid()
 			continue;
 		}
 		const int32 Card = Cards.Num();
-		UOdysseeRecipeEntryWidget* Entry = WidgetTree->ConstructWidget<UOdysseeRecipeEntryWidget>(
-			UOdysseeRecipeEntryWidget::StaticClass());
+		UOdysseeRecipeEntryWidget* Entry = MakeChild<UOdysseeRecipeEntryWidget>();
 		Entry->Show(Card, Shown[Recipe].Output.Name, Shown[Recipe].Output.Icon, false);
 		Entry->OnChosen.BindUObject(this, &UOdysseeCraftingWidget::ChooseCard);
 		RecipeGrid->AddChildToUniformGrid(Entry, Card / Columns, Card % Columns);
@@ -272,7 +271,8 @@ void UOdysseeCraftingWidget::Select(int32 Recipe)
 	const FOdysseeRecipeView& View = Shown[Recipe];
 	if (!View.Output.Icon.IsEmpty())
 	{
-		OutputIcon->SetBrush(OdysseeUi::ImageBrush(*View.Output.Icon, FVector2D(128.f)));
+		OutputIcon->SetBrush(OdysseeUi::ImageBrush(*View.Output.Icon, FVector2D(128.f), Theme));
+		OutputIcon->SetColorAndOpacity(IconTint());
 	}
 	RecipeName->SetText(View.Output.Name);
 	StationText->SetText(View.Station);
@@ -291,12 +291,12 @@ void UOdysseeCraftingWidget::ShowFormula(const FOdysseeRecipeView& Recipe)
 	{
 		if (Input > 0)
 		{
-			AddTo(Formula, MakeText(NAME_None, FText::FromString(TEXT("+")), 22, true, OdysseeUi::BoneDim),
+			AddTo(Formula, MakeText(NAME_None, FText::FromString(TEXT("+")), 22, true, DimColor()),
 				SignSpace, VAlign_Top);
 		}
 		AddTo(Formula, MakeItemTile(Recipe.Inputs[Input], true, Size), FMargin(0.f), VAlign_Top);
 	}
-	AddTo(Formula, MakeText(NAME_None, FText::FromString(TEXT("→")), 22, true, OdysseeUi::Rust),
+	AddTo(Formula, MakeText(NAME_None, FText::FromString(TEXT("→")), 22, true, AccentColor()),
 		FMargin(8.f, Size * 0.3f, 8.f, 0.f), VAlign_Top);
 	AddTo(Formula, MakeItemTile(Recipe.Output, false, Size), FMargin(0.f), VAlign_Top);
 }
@@ -308,7 +308,7 @@ UWidget* UOdysseeCraftingWidget::MakeItemTile(const FOdysseeItemView& Item, bool
 	Back->SetHorizontalAlignment(HAlign_Center);
 	if (!Item.Icon.IsEmpty())
 	{
-		UOverlaySlot* Front = Frame->AddChildToOverlay(MakeImage(NAME_None, *Item.Icon, FVector2D(Size * TileIcon / 84.f)));
+		UOverlaySlot* Front = Frame->AddChildToOverlay(MakeImage(NAME_None, *Item.Icon, FVector2D(Size * TileIcon / 84.f), IconTint()));
 		Front->SetHorizontalAlignment(HAlign_Center);
 		Front->SetVerticalAlignment(VAlign_Center);
 	}
@@ -355,7 +355,7 @@ void UOdysseeCraftingWidget::ShowCraftStarted(FName Recipe, float Seconds)
 	CraftProgress->SetPercent(0.f);
 	CraftProgress->GetParent()->SetVisibility(ESlateVisibility::HitTestInvisible);
 	CraftButton->SetIsEnabled(false); // une fabrication à la fois
-	StatusText->SetColorAndOpacity(FSlateColor(OdysseeUi::Bone));
+	StatusText->SetColorAndOpacity(FSlateColor(TextColor()));
 	StatusText->SetText(LOCTEXT("Crafting", "Fabrication…"));
 }
 

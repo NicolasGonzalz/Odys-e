@@ -1,25 +1,27 @@
 // Aperçu de l'interface, en attendant qu'elle soit branchée sur le jeu : pendant une partie (Play),
 // ouvrir la console (touche ² ou `) et taper
-//     Odyssee.Ui hud | menu | pause | coop | inventaire | artisanat | aucun
+//     Odyssee.Ui hud | menu | pause | coop | inventaire | artisanat | bracelet
+//                | bracelet-fabrication | bracelet-histoire | survivants | aucun
 // L'écran choisi s'affiche avec des valeurs de démonstration ; « aucun » le retire.
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
+#include "UI/OdysseeBraceletWidget.h"
 #include "UI/OdysseeCraftingWidget.h"
 #include "UI/OdysseeHudWidget.h"
 #include "UI/OdysseeInventoryWidget.h"
 #include "UI/OdysseeMainMenuWidget.h"
 #include "UI/OdysseePauseMenuWidget.h"
+#include "UI/OdysseeSurvivorChoiceWidget.h"
 
 namespace
 {
 	TWeakObjectPtr<UUserWidget> Shown;
 
-	UUserWidget* CreateInventory(APlayerController* Player)
+	void FillInventory(UOdysseeInventoryWidget* Inventory)
 	{
-		UOdysseeInventoryWidget* Inventory = CreateWidget<UOdysseeInventoryWidget>(Player);
 		TArray<FOdysseeSlotView> Views;
 		Views.SetNum(UOdysseeInventoryWidget::SlotCount);
 		Views[0] = {TEXT("outil_hache_pierre"), 1, FText::FromString(TEXT("Hache de pierre"))};
@@ -28,6 +30,12 @@ namespace
 		Views[5] = {TEXT("outil_baton"), 12, FText::FromString(TEXT("Bâton"))};
 		Views[6] = {TEXT("outil_lance"), 1, FText::FromString(TEXT("Lance"))};
 		Inventory->ShowSlots(Views);
+	}
+
+	UUserWidget* CreateInventory(APlayerController* Player)
+	{
+		UOdysseeInventoryWidget* Inventory = CreateWidget<UOdysseeInventoryWidget>(Player);
+		FillInventory(Inventory);
 		return Inventory;
 	}
 
@@ -42,9 +50,8 @@ namespace
 		return {Key, Category, FText::FromString(Label), FText::FromString(Station), Seconds, Output, Inputs};
 	}
 
-	UUserWidget* CreateCrafting(APlayerController* Player)
+	void FillCrafting(UOdysseeCraftingWidget* Crafting)
 	{
-		UOdysseeCraftingWidget* Crafting = CreateWidget<UOdysseeCraftingWidget>(Player);
 		const FOdysseeItemView Stick = Item(TEXT("stick"), TEXT("objet_baton"), TEXT("Bâton"), 1);
 		const FOdysseeItemView Stone = Item(TEXT("stone"), TEXT("objet_pierre"), TEXT("Pierre"), 2);
 		const FOdysseeItemView Log = Item(TEXT("wood_log"), TEXT("objet_buche"), TEXT("Bûche"), 8);
@@ -61,7 +68,24 @@ namespace
 				Item(TEXT("workbench"), TEXT("objet_etabli"), TEXT("Établi"), 1), {Log, Item(TEXT("stone"), TEXT("objet_pierre"), TEXT("Pierre"), 6)}),
 		});
 		Crafting->ShowOwned({{TEXT("wood_log"), 3}, {TEXT("stone"), 6}, {TEXT("stick"), 4}});
+	}
+
+	UUserWidget* CreateCrafting(APlayerController* Player)
+	{
+		UOdysseeCraftingWidget* Crafting = CreateWidget<UOdysseeCraftingWidget>(Player);
+		FillCrafting(Crafting);
 		return Crafting;
+	}
+
+	/** Le bracelet de stase, sur l'onglet demandé (« bracelet », « bracelet-fabrication »…). */
+	UUserWidget* CreateBracelet(APlayerController* Player, EOdysseeBraceletTab Tab)
+	{
+		UOdysseeBraceletWidget* Bracelet = CreateWidget<UOdysseeBraceletWidget>(Player);
+		FillInventory(Bracelet->Inventory);
+		FillCrafting(Bracelet->Crafting);
+		Bracelet->ShowTab(Tab);
+		Bracelet->PlayOpen();
+		return Bracelet;
 	}
 
 	UUserWidget* Create(const FString& What, APlayerController* Player)
@@ -71,6 +95,30 @@ namespace
 			UOdysseeHudWidget* Hud = CreateWidget<UOdysseeHudWidget>(Player);
 			Hud->ShowPreviewValues();
 			return Hud;
+		}
+		if (What == TEXT("survivants"))
+		{
+			UOdysseeSurvivorChoiceWidget* Choice = CreateWidget<UOdysseeSurvivorChoiceWidget>(Player);
+			const auto T = [](const TCHAR* Value) { return FText::FromString(Value); };
+			Choice->ShowSurvivors({
+				{0, T(TEXT("Mara Velin")), T(TEXT("C-7")), T(TEXT("Mécanique")), T(TEXT("Répare les machines plus vite."))},
+				{1, T(TEXT("Ilian Sorel")), T(TEXT("C-4")), T(TEXT("Botanique")), T(TEXT("Reconnaît les plantes.")), true},
+				{2, T(TEXT("Teo Brandt")), T(TEXT("C-9")), T(TEXT("Débrouille")), T(TEXT("Discret, se faufile partout."))},
+				{3, T(TEXT("Nadia Okoro")), T(TEXT("C-12")), T(TEXT("Protection")), T(TEXT("Plus résistante."))},
+			});
+			return Choice;
+		}
+		if (What == TEXT("bracelet"))
+		{
+			return CreateBracelet(Player, EOdysseeBraceletTab::Bag);
+		}
+		if (What == TEXT("bracelet-fabrication"))
+		{
+			return CreateBracelet(Player, EOdysseeBraceletTab::Crafting);
+		}
+		if (What == TEXT("bracelet-histoire"))
+		{
+			return CreateBracelet(Player, EOdysseeBraceletTab::Story);
 		}
 		if (What == TEXT("inventaire"))
 		{

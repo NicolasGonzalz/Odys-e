@@ -64,9 +64,90 @@ def plate(width, height, cut, fill, border, border_px=2, seed=1, spread=7):
     return image.resize((width, height), Image.LANCZOS)
 
 
+CYAN = (120, 230, 255)
+
+
+def _holo_fill(w, h, alpha):
+    """Fond bleu nuit translucide, un peu plus clair vers le bas. (Les lignes de balayage sont une
+    texture répétée à part, holo_lignes : étirées avec la plaque, elles deviendraient des bandes.)"""
+    fill = Image.new("RGBA", (w, h))
+    draw = ImageDraw.Draw(fill)
+    for y in range(h):
+        t = y / max(1, h - 1)
+        draw.line([(0, y), (w, y)], fill=(int(6 + 6 * t), int(22 + 14 * t), int(34 + 18 * t), alpha))
+    return fill
+
+
+def _brackets(draw, w, h, cut, length, width, color):
+    """Équerres lumineuses aux quatre coins coupés : l'accent d'interface « projetée »."""
+    for (x0, y0, dx, dy) in ((0, 0, 1, 1), (w - 1, 0, -1, 1), (0, h - 1, 1, -1), (w - 1, h - 1, -1, -1)):
+        corner = [(x0 + dx * cut + dx * length, y0), (x0 + dx * cut, y0), (x0, y0 + dy * cut),
+                  (x0, y0 + dy * cut + dy * length)]
+        draw.line(corner, fill=color, width=width, joint="curve")
+
+
+def holo_plate(width, height, cut, fill_alpha, edge_alpha, brackets=False, glow=True):
+    """Plaque d'hologramme (bracelet de stase) : fond sombre translucide (lisible sur un ciel clair),
+    bord cyan lumineux avec un halo intérieur, équerres aux coins pour les panneaux."""
+    s = SUPERSAMPLE
+    w, h = width * s, height * s
+    shape = chamfered(w - 1, h - 1, cut * s)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).polygon(shape, fill=255)
+
+    image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    image.paste(_holo_fill(w, h, fill_alpha), (0, 0), mask)
+    if glow:  # halo : le bord flouté, gardé à l'intérieur de la plaque
+        halo = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        ImageDraw.Draw(halo).line(shape + [shape[0]], fill=CYAN + (edge_alpha,), width=6 * s, joint="curve")
+        halo = halo.filter(ImageFilter.GaussianBlur(4 * s))
+        clipped = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        clipped.paste(halo, (0, 0), mask)
+        image = Image.alpha_composite(image, clipped)
+    draw = ImageDraw.Draw(image)
+    draw.line(shape + [shape[0]], fill=CYAN + (edge_alpha,), width=2 * s, joint="curve")
+    if brackets:
+        _brackets(draw, w, h, cut * s, 10 * s, 3 * s, (210, 250, 255, 255))
+    return image.resize((width, height), Image.LANCZOS)
+
+
+def holo_sweep(width=256, height=64):
+    """Bande de balayage : elle descend lentement sur l'hologramme (fondue en haut et en bas)."""
+    image = Image.new("RGBA", (width, height))
+    draw = ImageDraw.Draw(image)
+    for y in range(height):
+        t = 1 - abs(y / (height - 1) * 2 - 1)
+        draw.line([(0, y), (width, y)], fill=CYAN + (int(70 * t * t),))
+    return image
+
+
+def holo_lines():
+    """Motif des lignes de balayage, répété sur tout l'hologramme : une ligne claire toutes les 3 px."""
+    image = Image.new("RGBA", (8, 3), (0, 0, 0, 0))
+    ImageDraw.Draw(image).line([(0, 0), (8, 0)], fill=CYAN + (34,))
+    return image
+
+
+def holo_plates():
+    return {
+        "holo_panneau": holo_plate(128, 128, 18, 175, 230, brackets=True),
+        "holo_case": holo_plate(96, 96, 12, 110, 130, glow=False),
+        "holo_case_active": holo_plate(96, 96, 12, 150, 255),
+        "holo_bouton": holo_plate(256, 64, 14, 150, 170, glow=False),
+        "holo_bouton_survol": holo_plate(256, 64, 14, 170, 255),
+        "holo_bouton_appui": holo_plate(256, 64, 14, 200, 255),
+        "holo_bouton_grise": holo_plate(256, 64, 14, 90, 70, glow=False),
+        "holo_barre_fond": holo_plate(256, 20, 6, 140, 150, glow=False),
+        "holo_champ": holo_plate(256, 48, 10, 170, 200, glow=False),
+        "holo_balayage": holo_sweep(),
+        "holo_lignes": holo_lines(),
+    }
+
+
 # --- Icônes (blanches : teintées par l'interface) ---------------------------------------------
 
 ICONS = {  # polygones dans un carré de 64, facettes en niveaux de gris
+    # (icone_soif.png, une goutte, est dessinée à la main : le script ne la génère pas)
     "icone_sante": [[(32, 58), (6, 30), (6, 16), (16, 8), (32, 18)],
                     [(32, 58), (58, 30), (58, 16), (48, 8), (32, 18)]],
     "icone_endurance": [[(38, 4), (14, 36), (30, 36), (24, 60)], [(24, 60), (50, 26), (34, 26), (38, 4)]],
@@ -74,7 +155,6 @@ ICONS = {  # polygones dans un carré de 64, facettes en niveaux de gris
                    [(30, 6), (40, 24), (60, 24), (54, 40), (38, 44), (24, 34), (22, 18)],
                    [(26, 36), (34, 42), (18, 56), (12, 50)],
                    [(6, 48), (14, 46), (18, 54), (16, 62), (8, 60), (4, 54)]],
-    "icone_soif": [[(32, 4), (14, 34), (32, 60)], [(32, 4), (50, 34), (32, 60)]],
 }
 FACET_GRAYS = [255, 222]
 
@@ -142,7 +222,7 @@ def plates():
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, image in plates().items():
+    for name, image in {**plates(), **holo_plates()}.items():
         image.save(OUT / f"{name}.png")
     for name, polygons in ICONS.items():
         icon(polygons).save(OUT / f"{name}.png")
