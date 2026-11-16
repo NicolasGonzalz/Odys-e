@@ -101,6 +101,7 @@ d'inventaire), `EXPORT = False` (repère gardé dans Blender, sans .fbx), `OUTLI
 | `ressources/corde`, `ressources/fibres`, `ressources/tissu` | 🟡 matériaux tirés des fibres (fibres → corde, tissu) |
 | `ressources/planches`, `ressources/baton`, `ressources/lingot` | 🟡 matériaux transformés : pile de 3 planches, branche, lingot fondu main |
 | `munitions/munitions_pistolet`, `munitions/munitions_fusil` | 🟡 petits tas de 3 cartouches (`lowpoly/cartridge.py`), contour plus fin |
+| `objets/bracelet_stase` | 🟡 bracelet de stase ([docs/BRACELET.md](../docs/BRACELET.md)) : brassard d'Odyssée, écran, lentille (hologramme), cellules solaires, port de données, soudure ; sans concept, à valider |
 | `reference/squelette` | Repère d'échelle 1,75 m (main droite tendue), **Blender seulement**, jamais exporté |
 | `vegetation/sapin` | ✅ fidèle à la planche (40 faces) |
 | `animaux/chien` | ✅ proche du concept : proportions, couleurs, pose (442 faces) ; pelage hirsute et gueule à affiner |

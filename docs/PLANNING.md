@@ -6,7 +6,7 @@
 - **Début :** lundi 16 nov. 2026 · **Fin prévue du MVP :** semaine 23 (25 avr. 2027)
 - **Équipe :** Nicolas (code, serveur, réseau) et son coéquipier (Unreal, art, cartes) — voir [TEAM.md](TEAM.md)
 - **Rythme :** ~12 h/semaine pour Nicolas (10–15 h), objectifs fixés semaine par semaine
-- **Charge totale :** 355 h, 77 tâches
+- **Charge totale :** 375 h, 80 tâches
 - **Suivi au quotidien :** GitHub Issues + Project (une issue par tâche)
 
 ## Règles du jeu
@@ -39,7 +39,7 @@
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
 | M4 — Récolter, fabriquer, enquêter | 12 / 16 | 67 / 88 h | — |
-| M5 — Survivre & persister (MVP) | 5 / 9 | 28 / 58 h | — |
+| M5 — Survivre & persister (MVP) | 5 / 12 | 28 / 78 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
 
@@ -212,9 +212,9 @@
 |---|---|---|---|---|---|
 | ☑ | T051 | Les deux | Santé, faim, soif, endurance | 6 | Stats simulées par le serveur (Nicolas), HUD côté client (coéquipier). |
 | ☑ | T052 | Nicolas | Mort, sac au sol et réapparition | 6 | Inventaire laissé sur place, récupérable ; réapparition au point de repos. |
-| ☐ | T076 | Les deux | GPS et piles | 4 | Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS). |
+| ☐ | T076 | Les deux | Boussole du bracelet (ancien GPS) | 4 | Flèche vers le prochain point d'intérêt et détecteur de cocons, dans l'onglet Carte du bracelet ; recharge solaire (BRACELET.md). |
 
-### Semaine 21 — du 5 avr. 2027 · M4, M5 · Nicolas 12 h · Coéquipier 9 h
+### Semaine 21 — du 5 avr. 2027 · M4, M5 · Nicolas 22 h · Coéquipier 15 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
@@ -222,14 +222,17 @@
 | ☑ | T054 | Nicolas | Test de redémarrage du serveur | 2 | Arrêt/redémarrage sans perte, automatisé. |
 | ☐ | T073 | Coéquipier | Notifications du HUD | 3 | Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu. |
 | ☐ | T075 | Coéquipier | Grande carte plein écran | 6 | Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte. |
+| ☐ | T078 | Nicolas | Carnet de survie | 4 | Premières fois de chaque joueur (récolte, fabrication, repas) retenues, envoyées et sauvegardées ; onglet Survie du bracelet (BRACELET.md § 5). |
+| ☐ | T079 | Les deux | Bracelet de stase : modèle et geste | 6 | Modèle du bracelet, animation « lever le poignet » en vue 1re personne, écran ou hologramme choisi. |
 
-### Semaine 22 — du 12 avr. 2027 · M5 · Nicolas 18 h · Coéquipier 14 h
+### Semaine 22 — du 12 avr. 2027 · M5 · Nicolas 28 h · Coéquipier 24 h
 
 | | ID | Qui | Tâche | h | Fini quand |
 |---|---|---|---|---|---|
 | ☐ | T055 | Les deux | Menu principal et serveur local intégré | 8 | Solo (serveur en arrière-plan), Rejoindre, Favoris, Héberger ; choix du survivant. |
 | ☑ | T056 | Nicolas | Codes d'invitation V1 | 4 | Connexion refusée sans le bon code. |
 | ☐ | T077 | Les deux | Menu pause, touches et sauvegardes | 6 | Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique. |
+| ☐ | T080 | Les deux | Bracelet de stase : les cinq onglets | 10 | Sac, Fabrication, Survie, Histoire (frise chronologique à trous), Carte, sur le bracelet ; le temps continue ; raccourcis décidés. |
 
 ### Semaine 23 — du 19 avr. 2027 · M5 · Nicolas 12 h · Coéquipier 12 h
 

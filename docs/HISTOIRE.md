@@ -72,6 +72,9 @@ Le numéro de capsule dépend du survivant (Mara C-7, Ilian C-4, Teo C-9, Nadia 
 
 - **Un indice = un objet lisible** posé dans le monde : note, registre, terminal, affiche, graffiti, étiquette.
   Il tient en quelques lignes et apporte **une seule information nouvelle**. Texte seul (pas de voix pour l'instant).
+- **Lu par le bracelet de stase** ([BRACELET.md](BRACELET.md)) : une lettre se **scanne**, une clé USB ou un
+  terminal se **branche**. Chaque indice a une **date** qui le place sur la frise chronologique du bracelet, où
+  les trous de l'histoire restent visibles.
 - **On le lit en le visant** (comme on récolte), puis il entre dans le **journal**.
 - **Indices communs** : le journal est commun au monde. Lu par un joueur, il apparaît chez tous, avec « trouvé par … ».
 - **Indices personnels** : liés à un survivant. Seul ce survivant peut le lire ; il lui rend aussi un **souvenir**.

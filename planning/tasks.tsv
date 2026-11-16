@@ -74,5 +74,8 @@ T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md
 T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.	a_faire
 T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.	fait
 T075	21	M4	ami	client,ui,unreal	6	Grande carte plein écran	Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte.	a_faire
-T076	20	M5	both	gameplay,client	4	GPS et piles	Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS).	a_faire
+T076	20	M5	both	gameplay,client	4	Boussole du bracelet (ancien GPS)	Flèche vers le prochain point d'intérêt et détecteur de cocons, dans l'onglet Carte du bracelet ; recharge solaire (BRACELET.md).	a_faire
 T077	22	M5	both	client,ui,server	6	Menu pause, touches et sauvegardes	Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique.	a_faire
+T078	21	M5	nicolas	gameplay,server,data	4	Carnet de survie	Premières fois de chaque joueur (récolte, fabrication, repas) retenues, envoyées et sauvegardées ; onglet Survie du bracelet (BRACELET.md § 5).	a_faire
+T079	21	M5	both	art,blender,unreal	6	Bracelet de stase : modèle et geste	Modèle du bracelet, animation « lever le poignet » en vue 1re personne, écran ou hologramme choisi.	a_faire
+T080	22	M5	both	client,ui,unreal	10	Bracelet de stase : les cinq onglets	Sac, Fabrication, Survie, Histoire (frise chronologique à trous), Carte, sur le bracelet ; le temps continue ; raccourcis décidés.	a_faire

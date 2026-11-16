@@ -70,6 +70,9 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
   (`stack` dans `data/items.txt`).
 - Tenu par le serveur seul : récolte et artisanat y ajoutent, le joueur ne fait que réorganiser
   (déplacer une case : échange, ou regroupement d'une même pile).
+- **Bracelet de stase** (voir [BRACELET.md](BRACELET.md)) : l'inventaire, l'artisanat, le journal et la carte
+  s'affichent sur le bracelet du survivant, qu'il lève au poignet ; le temps continue. Les écrans ci-dessous
+  (T048) en deviennent les onglets **Sac** et **Fabrication**.
 - **Écran d'inventaire** (Tab) : les 20 cases du sac, la barre d'outils, et la fiche de l'objet
   survolé. On glisse un objet sur une autre case pour le déplacer (échange ou regroupement).
   **Écran d'artisanat** (C) : recettes, ingrédients, durée, bouton Fabriquer. Ces deux écrans
@@ -89,7 +92,7 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
 
 **Pas de mini-carte.** On se repère au paysage, et on consulte une **grande carte plein écran** quand on veut.
 
-- **Ouvrir la carte** : touche **M**, ou utiliser l'objet **Carte** de l'inventaire. On la reçoit au réveil
+- **Ouvrir la carte** : onglet **Carte** du bracelet ([BRACELET.md](BRACELET.md)), raccourci **M** à confirmer. On la reçoit au réveil
   (carte vierge) ; comme les objets équipés, on la garde à la mort.
 - **Au départ, seule la zone de départ (L'Abri) est dessinée.** Le reste est blanc.
 - **On explore, puis on reporte** : en marchant, le joueur *mémorise* les régions qu'il traverse et les lieux qu'il
@@ -107,14 +110,14 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
 - Technique : le monde est découpé en chunks de 64 m. Le serveur retient, par joueur, les chunks vus et pas
   encore reportés, et la carte commune (sauvegardée avec le monde). Le client ne dessine que ce qu'on lui envoie.
 
-## 4. GPS
+## 4. GPS : la boussole du bracelet
 
-Un vieil appareil retrouvé, qui fonctionne avec des **piles** (objet `pile`, à trouver dans les ruines).
+Intégré au **bracelet de stase** ([BRACELET.md](BRACELET.md)), rechargé au soleil : plus de piles pour lui.
 
 - **Il pointe vers les nouveaux points d'intérêt** : une flèche indique la direction et la distance du prochain
   lieu découvert sur la carte mais pas encore visité. On peut en choisir un autre sur la grande carte.
 - **Détecteur** : il bipe de plus en plus vite près d'un cocon ou d'un artefact.
-- Les piles s'usent quand il est allumé ; sans pile, il s'éteint. La lampe torche utilise les mêmes piles.
+- Les **piles** (objet `pile`, dans les ruines) ne servent plus qu'à la lampe torche.
 
 ## 5. Menus et sauvegarde
 

@@ -26,6 +26,8 @@ number = 1
 text = Je me suis réveillé seul.
 
 [clue z1_note]
+support = letter
+date = 2074-10-17
 zone = 1
 step = 1
 title = Note
@@ -34,6 +36,8 @@ text = Deuxième ligne.
 at = 3 -4
 
 [clue z1_perso]
+support = data
+date = 2073
 zone = 1
 step = 2
 reveals = no
@@ -89,6 +93,8 @@ TEST_CASE("Histoire : un fichier minimal est lu entièrement") {
     CHECK(note->offset == std::array<std::int32_t, 2>{3, -4});
     CHECK_FALSE(note->personal());
     CHECK(note->reveals);
+    CHECK(note->support == ClueSupport::Letter);
+    CHECK(note->date == "2074-10-17");
 
     const ClueDef* personal = story.findClue("z1_perso");
     REQUIRE(personal != nullptr);
@@ -111,6 +117,14 @@ TEST_CASE("Histoire : erreurs, avec leur ligne") {
     SUBCASE("position invalide") {
         text.replace(text.find("at = 3 -4"), 9, "at = 3");
         CHECK(errorOf(text).find("position") != std::string::npos);
+    }
+    SUBCASE("date invalide") {
+        text.replace(text.find("date = 2073"), 11, "date = 2073-13");
+        CHECK(errorOf(text).find("date") != std::string::npos);
+    }
+    SUBCASE("support inconnu") {
+        text.replace(text.find("support = data"), 14, "support = video");
+        CHECK(errorOf(text).find("support") != std::string::npos);
     }
     SUBCASE("étape hors limites") {
         text.replace(text.find("number = 1"), 10, "number = 9");
