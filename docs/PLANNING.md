@@ -38,7 +38,7 @@
 | M1 — Premier contact réseau | 12 / 16 | 51 / 70 h | — |
 | M2 — Mouvement fluide | 6 / 9 | 24 / 39 h | — |
 | M3 — Zone de départ | 3 / 8 | 16 / 42 h | T039 |
-| M4 — Récolter, fabriquer, enquêter | 11 / 16 | 61 / 88 h | — |
+| M4 — Récolter, fabriquer, enquêter | 12 / 16 | 67 / 88 h | — |
 | M5 — Survivre & persister (MVP) | 5 / 9 | 28 / 58 h | — |
 
 ☑ fait · ◐ en cours · ☐ à faire. L'état vient de la colonne `etat` de `planning/tasks.tsv`.
@@ -197,7 +197,7 @@
 |---|---|---|---|---|---|
 | ☑ | T047 | Nicolas | Artisanat | 4 | Fabriquer à la main, à l'établi ou à la forge (postes posés dans le monde) consomme les ressources, validé par le serveur. |
 | ☑ | T048 | Coéquipier | UI d'inventaire et d'artisanat | 8 | Maquettes Figma intégrées en UMG, glisser-déposer, branchées sur l'état fourni par OdysseeNet. |
-| ☐ | T074 | Nicolas | Exploration et carte commune (serveur) | 6 | Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde. |
+| ☑ | T074 | Nicolas | Exploration et carte commune (serveur) | 6 | Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde. |
 
 ### Semaine 19 — du 22 mars 2027 · M4 · Nicolas 12 h · Coéquipier 12 h
 

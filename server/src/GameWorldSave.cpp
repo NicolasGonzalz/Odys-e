@@ -19,7 +19,7 @@ template <typename Registry> auto playerParts(Registry& registry, ecs::Entity en
     auto parts = std::tuple{
         registry.template get<PlayerControl>(entity), registry.template get<Motion>(entity),
         registry.template get<Vitals>(entity), registry.template get<Inventory>(entity),
-        registry.template get<RestPoint>(entity)};
+        registry.template get<RestPoint>(entity), registry.template get<Explorer>(entity)};
     const bool complete =
         std::apply([](const auto*... part) { return ((part != nullptr) && ...); }, parts);
     return complete ? std::optional(parts) : std::nullopt;
@@ -48,6 +48,7 @@ WorldSave GameWorld::save() const {
                   : SavedResource{});
     }
     saveStory(save);
+    save.map = {_worldMap.chunks().begin(), _worldMap.chunks().end()};
     for (const ecs::Entity bag : _bags.bags()) {
         const Placement* placement = _registry.get<Placement>(bag);
         const BagContents* contents = _registry.get<BagContents>(bag);
@@ -60,7 +61,7 @@ WorldSave GameWorld::save() const {
 
 void GameWorld::load(const WorldSave& save) {
     if (save.players.empty() && save.resources.empty() && save.bags.empty() &&
-        save.journal.empty() && save.survivors.empty()) {
+        save.journal.empty() && save.survivors.empty() && save.map.empty()) {
         kLog.info("aucune sauvegarde : nouveau monde");
         return;
     }
@@ -71,6 +72,7 @@ void GameWorld::load(const WorldSave& save) {
             player.position = _spawn.position;
             player.yaw = _spawn.yaw;
             player.rest = RestPoint{_spawn.position, _spawn.yaw};
+            player.pendingMap.clear(); // des carrés de l'ancienne carte
         }
         _absent[player.name] = std::move(player);
     }
@@ -79,6 +81,7 @@ void GameWorld::load(const WorldSave& save) {
                   "ressources et sacs repartent de zéro");
         return;
     }
+    (void)_worldMap.reveal(save.map); // T074 : la carte commune
     loadResources(save.resources);
     for (const SavedBag& bag : save.bags) {
         (void)_bags.drop(_registry, bag.position, bag.contents);
@@ -130,12 +133,17 @@ std::optional<SavedPlayer> GameWorld::capturePlayer(ecs::Entity entity) const {
     if (!parts) {
         return std::nullopt;
     }
-    const auto [control, motion, vitals, inventory, rest] = *parts;
+    const auto [control, motion, vitals, inventory, rest, explorer] = *parts;
     if (!control->saved) {
         return std::nullopt;
     }
-    return SavedPlayer{control->name, motion->state.position, motion->state.yaw,
-                       *vitals,       inventory->slots,       *rest};
+    return SavedPlayer{control->name,
+                       motion->state.position,
+                       motion->state.yaw,
+                       *vitals,
+                       inventory->slots,
+                       *rest,
+                       {explorer->pending.begin(), explorer->pending.end()}};
 }
 
 void GameWorld::restorePlayer(ecs::Entity entity, const SavedPlayer& saved) {
@@ -143,7 +151,7 @@ void GameWorld::restorePlayer(ecs::Entity entity, const SavedPlayer& saved) {
     if (!parts) {
         return;
     }
-    const auto [control, motion, vitals, inventory, rest] = *parts;
+    const auto [control, motion, vitals, inventory, rest, explorer] = *parts;
     motion->state = sim::PlayerState{};
     motion->state.position = saved.position;
     motion->state.yaw = saved.yaw;
@@ -151,6 +159,7 @@ void GameWorld::restorePlayer(ecs::Entity entity, const SavedPlayer& saved) {
     inventory->slots = saved.inventory;
     inventory->changed = true;
     *rest = saved.rest;
+    explorer->pending = {saved.pendingMap.begin(), saved.pendingMap.end()};
 }
 
 } // namespace odyssee::server

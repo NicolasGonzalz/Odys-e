@@ -78,3 +78,17 @@ TEST_CASE("GameEvents : survivants et journal (T049)") {
     CHECK_FALSE(decodeGameEvent(bytes));
     CHECK_FALSE(decodeGameEvent(encodeGameEvent(ChooseSurvivor{kNoSurvivor})));
 }
+
+TEST_CASE("GameEvents : carte (T074)") {
+    const MapChunks chunks{MapLayer::Pending, true, {{-3, 7}, {120, -40}}};
+    const auto decoded = decodeGameEvent(encodeGameEvent(chunks));
+    REQUIRE(decoded);
+    CHECK(std::get<MapChunks>(*decoded) == chunks);
+
+    auto bytes = encodeGameEvent(MapChunks{MapLayer::Shared, false, {{1, 2}}});
+    bytes[1] = std::byte{3}; // couche inconnue
+    CHECK_FALSE(decodeGameEvent(bytes));
+    bytes = encodeGameEvent(MapChunks{MapLayer::Shared, false, {{1, 2}}});
+    bytes[3] = std::byte{2}; // deux carrés annoncés, un seul présent
+    CHECK_FALSE(decodeGameEvent(bytes));
+}

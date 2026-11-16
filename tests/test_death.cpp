@@ -138,7 +138,12 @@ TEST_CASE("GameWorld : on ramasse son sac en repassant dessus ; vide, il dispara
     GameWorld world = worldWithLoadedPlayer();
     walkEast(world, 0, 1, 40);
     kill(world, 0);
-    const auto died = std::get<net::PlayerDied>(world.takeEvents(0).at(0));
+    const auto events = world.takeEvents(0);
+    const auto death = std::find_if(events.begin(), events.end(), [](const net::GameEvent& e) {
+        return std::holds_alternative<net::PlayerDied>(e);
+    });
+    REQUIRE(death != events.end());
+    const auto died = std::get<net::PlayerDied>(*death);
     REQUIRE(world.bags().size() == 1);
 
     walkEast(world, 0, 41, 39); // même chemin : il repasse sur le sac
@@ -153,6 +158,7 @@ TEST_CASE("GameWorld : mourir les mains vides ne laisse pas de sac") {
     world.useCatalog(catalog());
     const std::vector<ConnectedPlayer> one{{0, 1}};
     world.syncPlayers(one);
+    (void)world.takeEvents(0); // à l'apparition : la carte (T074)
     kill(world, 0);
     const auto events = world.takeEvents(0);
     REQUIRE(events.size() == 1);

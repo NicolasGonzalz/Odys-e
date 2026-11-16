@@ -7,6 +7,9 @@
 #include "PlayerComponents.hpp"
 #include "Vitals.hpp"
 #include "death/DroppedBags.hpp"
+#include "exploration/Explorer.hpp"
+#include "exploration/MapTables.hpp"
+#include "exploration/WorldMap.hpp"
 #include "persistence/WorldSave.hpp"
 #include "story/ClueField.hpp"
 #include "story/ClueReading.hpp"
@@ -25,6 +28,7 @@
 #include <array>
 #include <functional>
 #include <map>
+#include <set>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -148,6 +152,15 @@ class GameWorld {
     /// Le survivant d'un joueur (T049), s'il est dans le monde et en a choisi un.
     [[nodiscard]] std::optional<data::SurvivorId> survivorOf(net::PlayerId player) const;
 
+    /// La carte commune du monde (T074) et les souvenirs non reportés d'un joueur (tests, outils).
+    [[nodiscard]] const WorldMap& worldMap() const { return _worldMap; }
+    [[nodiscard]] std::optional<std::set<net::MapChunk>> pendingMapOf(net::PlayerId player) const;
+    /// Pose la table de cartographie de l'abri (T074), près du point d'apparition. Au démarrage.
+    void addShelterMapTable() { _tables.placeShelterTable(_registry, *_terrain, _spawn.position); }
+    /// Zone de départ dessinée d'emblée : les carrés à moins de kStartZoneChunks du point
+    /// d'apparition (5 × 5 carrés, 320 m de côté).
+    static constexpr std::int16_t kStartZoneChunks = 2;
+
     /// Tout ce qui doit survivre à un redémarrage (T053) : les joueurs (connectés ou partis,
     /// retrouvés par leur nom), l'état des ressources et les sacs au sol.
     [[nodiscard]] WorldSave save() const;
@@ -168,6 +181,10 @@ class GameWorld {
     void craftFor(const PlayerControl& control, Crafting& crafting, Inventory& inventory);
     void harvestWith(const PlayerControl& control, const Motion& motion, Harvester& harvester);
     void killStarved();
+    void explore(const PlayerControl& control, const Motion& motion, Explorer& explorer);
+    void reportMap(const PlayerControl& control, Explorer& explorer);
+    void greetMap(net::PlayerId player);
+    void sendTo(net::PlayerId player, std::vector<net::MapChunks> events);
     void greetStory(net::PlayerId player);
     void chooseSurvivor(net::PlayerId player, data::SurvivorId survivor);
     void readAimedClue(const PlayerControl& control, const Motion& motion);
@@ -209,6 +226,8 @@ class GameWorld {
     ClueField _clues;                         ///< indices posés dans le monde
     Journal _journal;                         ///< journal commun du monde
     SurvivorRoster _roster;                   ///< qui incarne quel survivant
+    WorldMap _worldMap;                       ///< carte commune (T074)
+    MapTables _tables;                        ///< tables de cartographie (T074)
     /// Joueurs sauvegardés qui ne sont pas connectés, par nom (T053).
     std::map<std::string, SavedPlayer, std::less<>> _absent;
 };

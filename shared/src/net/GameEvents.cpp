@@ -53,6 +53,16 @@ void writeBody(ByteWriter& w, const ClueLocked& m) {
     w.writeU8(m.owner);
 }
 
+void writeBody(ByteWriter& w, const MapChunks& m) {
+    w.writeU8(static_cast<std::uint8_t>(m.layer));
+    w.writeU8(m.reset ? 1 : 0);
+    w.writeU8(static_cast<std::uint8_t>(m.chunks.size()));
+    for (const MapChunk& chunk : m.chunks) {
+        w.writeI16(chunk.x);
+        w.writeI16(chunk.y);
+    }
+}
+
 /// Le type d'un événement : son rang dans le variant + 1 (même ordre que GameEventType).
 GameEventType typeOf(const GameEvent& message) {
     return static_cast<GameEventType>(message.index() + 1);
@@ -146,6 +156,27 @@ std::optional<GameEvent> readClueLocked(ByteReader& r) {
     return ClueLocked{*clue, *owner};
 }
 
+std::optional<GameEvent> readMapChunks(ByteReader& r) {
+    const auto layer = r.readU8();
+    const auto reset = r.readU8();
+    const auto count = r.readU8();
+    const bool knownLayer = layer && (*layer == static_cast<std::uint8_t>(MapLayer::Shared) ||
+                                      *layer == static_cast<std::uint8_t>(MapLayer::Pending));
+    if (!knownLayer || !reset || *reset > 1 || !count || *count > kMaxMapChunksPerEvent) {
+        return std::nullopt;
+    }
+    MapChunks message{static_cast<MapLayer>(*layer), *reset == 1, {}};
+    for (std::uint8_t i = 0; i < *count; ++i) {
+        const auto x = r.readI16();
+        const auto y = r.readI16();
+        if (!x || !y) {
+            return std::nullopt;
+        }
+        message.chunks.push_back({*x, *y});
+    }
+    return message;
+}
+
 std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
     switch (type) {
     case GameEventType::InventoryContents:
@@ -166,6 +197,8 @@ std::optional<GameEvent> readBody(GameEventType type, ByteReader& r) {
         return readJournalEntry(r);
     case GameEventType::ClueLocked:
         return readClueLocked(r);
+    case GameEventType::MapChunks:
+        return readMapChunks(r);
     }
     return std::nullopt;
 }
