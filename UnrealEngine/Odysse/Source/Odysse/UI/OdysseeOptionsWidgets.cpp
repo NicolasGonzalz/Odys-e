@@ -27,7 +27,7 @@ namespace
 		{TEXT("Aller à droite"), TEXT("D")}, {TEXT("Courir"), TEXT("Maj")}, {TEXT("Sauter"), TEXT("Espace")},
 		{TEXT("Interagir, ramasser"), TEXT("E")}, {TEXT("Attaquer"), TEXT("Clic gauche")},
 		{TEXT("Bloquer, viser"), TEXT("Clic droit")}, {TEXT("Esquiver"), TEXT("Ctrl")},
-		{TEXT("Outils 1 à 5"), TEXT("1 – 5, molette")}, {TEXT("Inventaire"), TEXT("Tab")},
+		{TEXT("Outils 1 à 5"), TEXT("1 – 5, molette")}, {TEXT("Inventaire"), TEXT("Tab")}, {TEXT("Artisanat"), TEXT("C")},
 		{TEXT("Carte"), TEXT("M")}, {TEXT("Journal d'indices"), TEXT("J")}, {TEXT("Lampe torche"), TEXT("F")},
 		{TEXT("Pause"), TEXT("Échap")},
 	};
