@@ -17,7 +17,8 @@ constexpr log::Logger kLog{"sauvegarde"};
 /// 2 : type de chaque ressource (une ressource sauvegardée n'est reprise que si son type n'a pas
 /// changé depuis : data/resources.txt modifié, le tirage ne donne plus les mêmes ressources).
 /// 3 : survivants et journal (T049), tables ajoutées sans toucher au reste.
-constexpr std::int64_t kSchemaVersion = 3;
+/// 4 : carte commune et souvenirs d'exploration (T074), tables ajoutées.
+constexpr std::int64_t kSchemaVersion = 4;
 
 constexpr std::string_view kResourcesTable = R"(
 CREATE TABLE IF NOT EXISTS resources(
@@ -39,6 +40,9 @@ CREATE TABLE IF NOT EXISTS survivors(survivor TEXT PRIMARY KEY, player TEXT NOT 
 CREATE TABLE IF NOT EXISTS journal(
     rank INTEGER PRIMARY KEY, clue TEXT NOT NULL, version INTEGER NOT NULL,
     finder TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS map_chunks(x INTEGER NOT NULL, y INTEGER NOT NULL, PRIMARY KEY(x, y));
+CREATE TABLE IF NOT EXISTS pending_chunks(
+    player TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, PRIMARY KEY(player, x, y));
 )";
 
 /// Ramène une valeur lue dans la base dans les bornes de son type (base abîmée ou modifiée).
@@ -131,7 +135,8 @@ std::optional<WorldSave> SaveStore::load() {
     if (meta->step()) {
         save.worldFingerprint = static_cast<std::uint64_t>(meta->integer(0));
     }
-    if (!loadPlayers(save) || !loadResources(save) || !loadBags(save) || !loadStory(save)) {
+    if (!loadPlayers(save) || !loadResources(save) || !loadBags(save) || !loadStory(save) ||
+        !loadMap(save)) {
         return std::nullopt;
     }
     return save;
@@ -189,9 +194,10 @@ bool SaveStore::store(const WorldSave& save) {
         return false;
     }
     const bool written = _db.exec("DELETE FROM players; DELETE FROM resources; DELETE FROM bags; "
-                                  "DELETE FROM survivors; DELETE FROM journal") &&
+                                  "DELETE FROM survivors; DELETE FROM journal; "
+                                  "DELETE FROM map_chunks; DELETE FROM pending_chunks") &&
                          storePlayers(save) && storeResources(save) && storeBags(save) &&
-                         storeStory(save) && storeMeta(save);
+                         storeStory(save) && storeMap(save) && storeMeta(save);
     if (!written) {
         (void)_db.exec("ROLLBACK");
         return false;
@@ -292,6 +298,54 @@ bool SaveStore::storeStory(const WorldSave& save) {
         entry->bind(4, save.journal[rank].finder);
         if (!entry->run()) {
             return false;
+        }
+    }
+    return true;
+}
+
+bool SaveStore::loadMap(WorldSave& save) {
+    auto shared = _db.prepare("SELECT x, y FROM map_chunks ORDER BY x, y");
+    auto pending = _db.prepare("SELECT player, x, y FROM pending_chunks ORDER BY player, x, y");
+    if (!shared || !pending) {
+        return false;
+    }
+    while (shared->step()) {
+        save.map.push_back(
+            {clamped<std::int16_t>(shared->integer(0)), clamped<std::int16_t>(shared->integer(1))});
+    }
+    while (pending->step()) {
+        const std::string name = pending->text(0);
+        const auto player = std::find_if(save.players.begin(), save.players.end(),
+                                         [&](const SavedPlayer& p) { return p.name == name; });
+        if (player != save.players.end()) {
+            player->pendingMap.push_back({clamped<std::int16_t>(pending->integer(1)),
+                                          clamped<std::int16_t>(pending->integer(2))});
+        }
+    }
+    return !shared->failed() && !pending->failed();
+}
+
+bool SaveStore::storeMap(const WorldSave& save) {
+    auto shared = _db.prepare("INSERT OR IGNORE INTO map_chunks VALUES (?, ?)");
+    auto pending = _db.prepare("INSERT OR IGNORE INTO pending_chunks VALUES (?, ?, ?)");
+    if (!shared || !pending) {
+        return false;
+    }
+    for (const net::MapChunk& chunk : save.map) {
+        shared->bind(1, std::int64_t{chunk.x});
+        shared->bind(2, std::int64_t{chunk.y});
+        if (!shared->run()) {
+            return false;
+        }
+    }
+    for (const SavedPlayer& player : save.players) {
+        for (const net::MapChunk& chunk : player.pendingMap) {
+            pending->bind(1, player.name);
+            pending->bind(2, std::int64_t{chunk.x});
+            pending->bind(3, std::int64_t{chunk.y});
+            if (!pending->run()) {
+                return false;
+            }
         }
     }
     return true;

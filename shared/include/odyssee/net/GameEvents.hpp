@@ -14,7 +14,7 @@ namespace odyssee::net {
 
 /// Événements de jeu, envoyés sur le canal fiable ordonné (docs/NETWORK.md) : ce qui doit arriver,
 /// et dans l'ordre, mais pas à chaque tick : l'inventaire (T045), l'artisanat (T047), la mort
-/// (T052), les survivants et le journal (T049).
+/// (T052), les survivants et le journal (T049), la carte (T074).
 
 using odyssee::kHotbarSlots;
 using odyssee::kInventorySlots;
@@ -121,6 +121,35 @@ struct ClueLocked {
     friend bool operator==(const ClueLocked&, const ClueLocked&) = default;
 };
 
+/// Un carré de carte de kMapChunkMeters de côté (T074), en coordonnées de carré : x vers l'est,
+/// y vers le sud, (0, 0) au coin nord-ouest du monde.
+struct MapChunk {
+    std::int16_t x = 0;
+    std::int16_t y = 0;
+
+    friend auto operator<=>(const MapChunk&, const MapChunk&) = default;
+};
+
+inline constexpr std::int32_t kMapChunkMeters = 64;
+/// Carrés par événement MapChunks : un lot tient largement dans un paquet.
+inline constexpr std::size_t kMaxMapChunksPerEvent = 200;
+
+/// Les deux couches de la carte d'un joueur.
+enum class MapLayer : std::uint8_t {
+    Shared = 1,  ///< la carte commune du monde, reportée aux tables de cartographie
+    Pending = 2, ///< ses souvenirs : vus en marchant, pas encore reportés
+};
+
+/// Serveur → client : des carrés de carte à ajouter à une couche ; `reset` vide d'abord la couche
+/// (à la connexion, et quand ses souvenirs viennent d'être reportés).
+struct MapChunks {
+    MapLayer layer = MapLayer::Shared;
+    bool reset = false;
+    std::vector<MapChunk> chunks; ///< au plus kMaxMapChunksPerEvent
+
+    friend bool operator==(const MapChunks&, const MapChunks&) = default;
+};
+
 enum class GameEventType : std::uint8_t {
     InventoryContents = 1,
     MoveItem = 2,
@@ -131,10 +160,11 @@ enum class GameEventType : std::uint8_t {
     SurvivorStatus = 7,
     JournalEntry = 8,
     ClueLocked = 9,
+    MapChunks = 10,
 };
 
 using GameEvent = std::variant<InventoryContents, MoveItem, CraftRequest, CraftStatus, PlayerDied,
-                               ChooseSurvivor, SurvivorStatus, JournalEntry, ClueLocked>;
+                               ChooseSurvivor, SurvivorStatus, JournalEntry, ClueLocked, MapChunks>;
 
 [[nodiscard]] std::vector<std::byte> encodeGameEvent(const GameEvent& message);
 

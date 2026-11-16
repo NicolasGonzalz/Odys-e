@@ -72,7 +72,7 @@ T070	16	M4	ami	art,blender	2	Objet carte (Blender)	Carte vierge (seule la zone d
 T071	15	M4	ami	art,blender	6	Postes d'artisanat (Blender)	Établi, forge et table de cartographie : modèles posables, .fbx et icônes.	fait
 T072	17	M4	ami	art,blender	8	Animations de combat	Animations de docs/GAMEPLAY.md § 7 (bras FPS + corps entier), intégrées dans Unreal.	a_faire
 T073	21	M4	ami	client,ui	3	Notifications du HUD	Messages courts de docs/GAMEPLAY.md § 6 : 3 au maximum, regroupés, sans interrompre le jeu.	a_faire
-T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.	a_faire
+T074	18	M4	nicolas	gameplay,net	6	Exploration et carte commune (serveur)	Chunks vus par joueur, report à une table de cartographie, carte commune sauvegardée avec le monde.	fait
 T075	21	M4	ami	client,ui,unreal	6	Grande carte plein écran	Touche M : biomes dévoilés, chemins, points d'intérêt, position des joueurs ; pas de mini-carte.	a_faire
 T076	20	M5	both	gameplay,client	4	GPS et piles	Flèche vers le prochain point d'intérêt, détecteur de cocons, piles qui s'usent (lampe et GPS).	a_faire
 T077	22	M5	both	client,ui,server	6	Menu pause, touches et sauvegardes	Pause réelle en solo, touches modifiables, sauvegarder, charger, nouvelle partie ; sauvegarde automatique.	a_faire

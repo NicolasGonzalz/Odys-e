@@ -145,6 +145,7 @@ TEST_CASE("GameWorld : fabriquer à la main, et manger avec E (une fois par appu
     CHECK(world.giveItem(0, kStone, 2) == 0);
     CHECK(world.giveItem(0, kBerries, 3) == 0); // case 2
 
+    (void)world.takeEvents(0); // à l'apparition : la carte (T074)
     world.receiveRequest(0, net::CraftRequest{0});
     auto events = world.takeEvents(0);
     REQUIRE(events.size() == 1);

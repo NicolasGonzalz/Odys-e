@@ -12,6 +12,9 @@ add_executable(odyssee_client
     src/ResourceShapes.cpp
     src/BagShapes.cpp
     src/ClueShapes.cpp
+    src/MapScreen.cpp
+    src/MapState.cpp
+    src/StationShapes.cpp
     src/StoryScreens.cpp
     src/StoryState.cpp
     src/Hud.cpp

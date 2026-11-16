@@ -4,6 +4,8 @@
 #include "Vitals.hpp"
 #include "death/DroppedBags.hpp"
 
+#include "odyssee/net/GameEvents.hpp"
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -22,6 +24,7 @@ struct SavedPlayer {
     Vitals vitals;
     DroppedSlots inventory{}; ///< les 25 cases, dans l'ordre
     RestPoint rest;
+    std::vector<net::MapChunk> pendingMap; ///< souvenirs pas encore reportés (T074)
 
     friend bool operator==(const SavedPlayer&, const SavedPlayer&) = default;
 };
@@ -69,6 +72,7 @@ struct WorldSave {
     std::vector<SavedBag> bags;
     std::vector<SavedSurvivor> survivors;    ///< T049
     std::vector<SavedJournalRecord> journal; ///< T049, dans l'ordre de lecture
+    std::vector<net::MapChunk> map;          ///< carte commune (T074)
 
     friend bool operator==(const WorldSave&, const WorldSave&) = default;
 };

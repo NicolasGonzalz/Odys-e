@@ -14,7 +14,8 @@ namespace odyssee {
 /// 8 : événements fiables (inventaire, T045). 9 : case tenue dans l'input, artisanat (T047).
 /// 10 : mort et sac au sol (entité Bag, événement PlayerDied, T052).
 /// 11 : survivants, indices et journal (entité Clue, événements de T049).
-inline constexpr std::uint16_t kProtocolVersion = 11;
+/// 12 : carte commune et souvenirs d'exploration (événement MapChunks, entité Station, T074).
+inline constexpr std::uint16_t kProtocolVersion = 12;
 
 /// Fréquence de simulation du serveur (ticks par seconde).
 inline constexpr std::uint32_t kTickRate = 20;

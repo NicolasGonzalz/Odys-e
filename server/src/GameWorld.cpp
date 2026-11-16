@@ -65,7 +65,10 @@ GameWorld::GameWorld()
 
 GameWorld::GameWorld(std::unique_ptr<const sim::Terrain> terrain, SpawnPoint spawn,
                      std::uint64_t worldFingerprint)
-    : _terrain(std::move(terrain)), _spawn(spawn), _worldFingerprint(worldFingerprint) {}
+    : _terrain(std::move(terrain)), _spawn(spawn), _worldFingerprint(worldFingerprint) {
+    // T074 : la zone de départ est déjà sur la carte.
+    (void)_worldMap.reveal(chunksAround(chunkOf(_spawn.position), kStartZoneChunks));
+}
 
 void GameWorld::syncPlayers(std::span<const ConnectedPlayer> connected) {
     for (net::PlayerId id = 0; id < kMaxPlayers; ++id) {
@@ -122,6 +125,11 @@ void GameWorld::step() {
         [this](ecs::Entity, const PlayerControl& control, const Motion& motion) {
             readAimedClue(control, motion);
         });
+
+    // Système « exploration » (T074) : on mémorise ce qu'on voit, on le reporte à une table.
+    _registry.each<PlayerControl, Motion, Explorer>(
+        [this](ecs::Entity, const PlayerControl& control, const Motion& motion,
+               Explorer& explorer) { explore(control, motion, explorer); });
 }
 
 void GameWorld::useHeldItem(PlayerControl& control, Vitals& vitals, Inventory& inventory) {
@@ -287,6 +295,7 @@ net::Snapshot GameWorld::snapshotFor(net::PlayerId player, net::Tick serverTick)
         // Puis les sacs proches (T052), les indices (T049), et les ressources proches (T044) dans
         // la place qui reste.
         _bags.appendNearby(_registry, own->state.position, snapshot.entities, kMaxSnapshotEntities);
+        _tables.appendAll(_registry, snapshot.entities, kMaxSnapshotEntities);
         const auto reader = survivorOf(player);
         _clues.appendNearby(
             _registry, own->state.position,
@@ -402,6 +411,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
     _registry.add<Inventory>(entity); // vide ; envoyé au joueur dès le premier tick
     _registry.add<Crafting>(entity);
     _registry.add<RestPoint>(entity, RestPoint{state.position, state.yaw});
+    _registry.add<Explorer>(entity);
     _outbox[player.id].clear();
     PlayerControl control;
     control.id = player.id;
@@ -418,6 +428,7 @@ void GameWorld::spawn(const ConnectedPlayer& player) {
         _absent.erase(found);
     }
     greetStory(player.id); // T049 : son survivant, puis le journal
+    greetMap(player.id);   // T074 : la carte commune et ses souvenirs
 }
 
 void GameWorld::despawn(net::PlayerId player) {

@@ -68,6 +68,7 @@ enum class EntityKind : std::uint8_t {
     Resource = 2, ///< ressource récoltable (T044) : fixe, ne s'interpole pas
     Bag = 3, ///< sac laissé à la mort d'un joueur (T052) : fixe, se ramasse en passant dessus
     Clue = 4, ///< indice à lire (T049) : fixe, se lit en le visant (clic gauche)
+    Station = 5, ///< poste fixe du monde (T074 : table de cartographie de l'abri)
 };
 
 /// Numéros d'entité : 0 à kMaxPlayers - 1 pour les joueurs (numéro d'entité = numéro de joueur),
@@ -77,6 +78,10 @@ inline constexpr EntityId kFirstResourceEntity = 4; ///< = kMaxPlayers (static_a
 inline constexpr EntityId kFirstBagEntity = 8192;
 /// Les indices (T049) à partir de kFirstClueEntity, après tous les sacs possibles.
 inline constexpr EntityId kFirstClueEntity = 9216;
+/// Les postes fixes (T074) à partir de kFirstStationEntity, après tous les indices possibles.
+inline constexpr EntityId kFirstStationEntity = 10240;
+/// Drapeaux d'une entité `Station` : sa sorte.
+inline constexpr std::uint8_t kStationCartographyTable = 1;
 /// Drapeau d'une entité `Clue` : déjà dans le journal du joueur destinataire.
 inline constexpr std::uint8_t kClueRead = 0x01;
 
@@ -92,6 +97,7 @@ struct EntityState {
     std::uint16_t yaw = 0;                  ///< quantizeYaw
     /// Joueur : animation (au sol, accroupi…). Ressource : type et état (kResourceTypeMask,
     /// kResourceDepleted). Sac : numéro du joueur à qui il appartenait. Indice : kClueRead.
+    /// Poste : sa sorte (kStationCartographyTable).
     std::uint8_t flags = 0;
 
     friend bool operator==(const EntityState&, const EntityState&) = default;

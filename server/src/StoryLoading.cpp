@@ -16,6 +16,7 @@ constexpr log::Logger kLog{"histoire"};
 } // namespace
 
 bool tellStory(GameWorld& world, const std::string& dataDir) {
+    world.addShelterMapTable(); // T074 : la table de cartographie de l'abri
     const std::string dir = dataDir.empty() ? std::string("data") : dataDir;
     std::error_code ignored;
     if (!std::filesystem::exists(dir + "/story.txt", ignored)) {

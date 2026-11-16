@@ -5,6 +5,7 @@
 #include "InputSampler.hpp"
 #include "MapView.hpp"
 #include "PauseMenu.hpp"
+#include "MapState.hpp"
 #include "StoryState.hpp"
 
 #include "odyssee/client/Interpolation.hpp"
@@ -97,6 +98,7 @@ class DebugClient {
     std::string _deathNotice; ///< dernier message de mort (T052), vide tant qu'on n'est pas mort
     const data::StoryCatalog* _story; ///< nul : pas d'histoire (T049)
     StoryState _storyState;           ///< survivant, journal et écrans de l'histoire
+    MapState _mapState;               ///< carte commune et souvenirs (T074), touche M
     client::Interpolation _remote; ///< les autres joueurs, affichés entre deux snapshots (T033)
     /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
     std::optional<std::array<std::int32_t, 3>> _previousDisplay;

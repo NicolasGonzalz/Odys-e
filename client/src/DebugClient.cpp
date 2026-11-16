@@ -4,6 +4,8 @@
 #include "ResourceShapes.hpp"
 #include "BagShapes.hpp"
 #include "ClueShapes.hpp"
+#include "MapScreen.hpp"
+#include "StationShapes.hpp"
 #include "StoryScreens.hpp"
 #include "Scene.hpp"
 
@@ -165,6 +167,9 @@ void DebugClient::handleStoryKeys() {
     if (IsKeyPressed(KEY_J)) {
         _storyState.toggleJournal();
     }
+    if (IsKeyPressed(KEY_M)) {
+        _mapState.toggle();
+    }
     if (!_storyState.mustChoose()) {
         return;
     }
@@ -210,8 +215,8 @@ void DebugClient::keepLatestSnapshot() {
 
 void DebugClient::keepEvents() {
     for (auto& event : _link.takeEvents()) {
-        if (_storyState.onEvent(event, GetTime())) {
-            continue; // survivant, journal (T049)
+        if (_storyState.onEvent(event, GetTime()) || _mapState.onEvent(event)) {
+            continue; // survivant, journal (T049) ; carte (T074)
         }
         if (auto* contents = std::get_if<net::InventoryContents>(&event)) {
             _inventory = std::move(*contents); // le serveur renvoie tout à chaque changement
@@ -275,6 +280,14 @@ PauseChoice DebugClient::draw(float betweenTicks) const {
     if (_story) {
         drawStory(*_story, _storyState, GetTime());
     }
+    drawMapReminder(_mapState);
+    if (_mapState.open()) {
+        drawMapScreen(_mapState,
+                      {_latest ? std::span<const net::EntityState>(_latest->entities)
+                               : std::span<const net::EntityState>(),
+                       _link.playerId()},
+                      _map);
+    }
     const PauseChoice choice = _paused ? drawPauseMenu() : PauseChoice::None;
     EndDrawing();
     return choice;
@@ -294,6 +307,7 @@ void DebugClient::drawWorld(float betweenTicks) const {
         drawResources(_latest->entities, _resourceTypes); // T044 : fixes, dernier état connu
         drawBags(_latest->entities);                      // T052 : sacs laissés à la mort
         drawClues(_latest->entities);                     // T049 : indices à lire
+        drawStations(_latest->entities);                  // T074 : table de cartographie
     }
     for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
         drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),
