@@ -9,7 +9,9 @@
 
 class UInputMappingContext;
 class UUserWidget;
+class UOdysseeCraftingWidget;
 class UOdysseeHudWidget;
+class UOdysseeInventoryWidget;
 class UOdysseeMainMenuWidget;
 class UOdysseePauseMenuWidget;
 
@@ -19,7 +21,9 @@ class UOdysseePauseMenuWidget;
  *  Overrides the Player Camera Manager class.
  *
  *  Écrans du jeu (T027) : menu principal au lancement (rejoindre un serveur, ou jouer hors ligne),
- *  HUD en partie, menu pause sur Échap. Le HUD est rempli à chaque image.
+ *  HUD en partie, menu pause sur Échap. Le HUD est rempli à chaque image. Inventaire (Tab) et
+ *  artisanat (C) : des panneaux par-dessus le jeu, qui ne le mettent jamais en pause
+ *  (OdyssePlayerControllerPanels.cpp).
  */
 UCLASS(abstract)
 class ODYSSE_API AOdyssePlayerController : public APlayerController
@@ -76,9 +80,31 @@ private:
 	UFUNCTION() void OnPlayerDied(bool bLeftBag);
 	void TogglePause();
 
+	// Panneaux inventaire et artisanat (OdyssePlayerControllerPanels.cpp).
+	void CreatePanels();
+	UFUNCTION() void ToggleInventory();
+	UFUNCTION() void ToggleCrafting();
+	/** Artisanat d'une station : « hand » (touche C : à la main seulement), « workbench » ou « forge »
+	 *  (leurs recettes, plus celles à la main). */
+	void ToggleStation(FName Station);
+	/** Console, en attendant que les établis et forges soient posés dans le monde (on les ouvrira
+	 *  en interagissant avec eux) : « OdysseeStation etabli », « OdysseeStation forge ». */
+	UFUNCTION(Exec) void OdysseeStation(const FString& Which);
+	void OpenPanel(UUserWidget* Panel);
+	/** Ferme l'inventaire ou l'artisanat ; vrai s'il y en avait un d'ouvert. */
+	bool ClosePanels();
+	void UpdateInventoryPanel();
+	void UpdateCraftingPanel();
+	void RequestMove(int32 From, int32 To);
+	void RequestCraft(FName Recipe);
+	UFUNCTION() void OnCraftChanged(FName RecipeKey, EOdysseeCraftOutcome Outcome, float Seconds);
+
 	UPROPERTY(Transient) TObjectPtr<UOdysseeHudWidget> Hud;
 	UPROPERTY(Transient) TObjectPtr<UOdysseeMainMenuWidget> MainMenu;
 	UPROPERTY(Transient) TObjectPtr<UOdysseePauseMenuWidget> PauseMenu;
+	UPROPERTY(Transient) TObjectPtr<UOdysseeInventoryWidget> InventoryPanel;
+	UPROPERTY(Transient) TObjectPtr<UOdysseeCraftingWidget> CraftingPanel;
+	FName OpenStationName; ///< station dont l'artisanat est ouvert
 	bool bInGame = false;
 	TArray<FString> ShownToolbar;     ///< contenu affiché de chaque case (redessin si changement)
 	TMap<FString, FString> IconCache; ///< nom de base → texture trouvée (vide : aucune)

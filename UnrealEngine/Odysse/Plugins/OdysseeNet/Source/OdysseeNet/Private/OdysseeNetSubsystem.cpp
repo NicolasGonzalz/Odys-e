@@ -243,6 +243,22 @@ FName UOdysseeNetSubsystem::RecipeKeyOf(std::uint16_t Recipe) const
 	return FName(UTF8_TO_TCHAR(Catalog->recipes()[Recipe].key.c_str()));
 }
 
+namespace
+{
+	FOdysseeIngredient IngredientOf(const odyssee::data::Catalog& Catalog, const odyssee::data::ItemStack& Stack)
+	{
+		FOdysseeIngredient Ingredient;
+		Ingredient.Count = static_cast<int32>(Stack.count);
+		if (const odyssee::data::ItemDef* Item = Catalog.item(Stack.item))
+		{
+			Ingredient.ItemKey = FName(UTF8_TO_TCHAR(Item->key.c_str()));
+			Ingredient.Name = FText::FromString(UTF8_TO_TCHAR(Item->name.c_str()));
+			Ingredient.IconName = FPaths::GetBaseFilename(UTF8_TO_TCHAR(Item->model.c_str()));
+		}
+		return Ingredient;
+	}
+}
+
 TArray<FOdysseeRecipe> UOdysseeNetSubsystem::GetRecipes() const
 {
 	TArray<FOdysseeRecipe> Recipes;
@@ -267,6 +283,15 @@ TArray<FOdysseeRecipe> UOdysseeNetSubsystem::GetRecipes() const
 		}
 		Recipe.Ingredients = FText::FromString(Ingredients);
 		Recipe.Seconds = static_cast<float>(Def.ticks) / static_cast<float>(odyssee::kTickRate);
+		Recipe.Output = IngredientOf(*Catalog, Def.output);
+		for (const odyssee::data::ItemStack& Input : Def.inputs)
+		{
+			Recipe.Inputs.Add(IngredientOf(*Catalog, Input));
+		}
+		if (Output)
+		{
+			Recipe.Category = FName(UTF8_TO_TCHAR(std::string(odyssee::data::itemCategoryName(Output->category)).c_str()));
+		}
 	}
 	return Recipes;
 }

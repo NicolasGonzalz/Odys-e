@@ -81,6 +81,8 @@ void AOdyssePlayerController::SetupInputComponent()
 	{
 		// Échap : menu pause (hors des actions d'entrée du modèle, pour ne dépendre d'aucun asset)
 		InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AOdyssePlayerController::TogglePause);
+		InputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &AOdyssePlayerController::ToggleInventory);
+		InputComponent->BindKey(EKeys::C, IE_Pressed, this, &AOdyssePlayerController::ToggleCrafting);
 
 		// Add Input Mapping Context
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -111,6 +113,7 @@ void AOdyssePlayerController::CreateScreens()
 	MainMenu = CreateWidget<UOdysseeMainMenuWidget>(this);
 	PauseMenu = CreateWidget<UOdysseePauseMenuWidget>(this);
 	PauseMenu->SetCoopMode(true); // en ligne, le serveur sauvegarde : pas de bouton Enregistrer
+	CreatePanels();
 
 	MainMenu->JoinButton->OnClicked.AddDynamic(this, &AOdyssePlayerController::OnJoinClicked);
 	MainMenu->NewWorldButton->OnClicked.AddDynamic(this, &AOdyssePlayerController::OnPlayOfflineClicked);
@@ -128,6 +131,7 @@ void AOdyssePlayerController::CreateScreens()
 void AOdyssePlayerController::ShowMenu(const FText& Status)
 {
 	bInGame = false;
+	ClosePanels();
 	Hud->RemoveFromParent();
 	PauseMenu->RemoveFromParent();
 	MainMenu->JoinStatusText->SetText(Status);
@@ -171,7 +175,7 @@ void AOdyssePlayerController::SetGameInput()
 
 void AOdyssePlayerController::TogglePause()
 {
-	if (!bInGame)
+	if (!bInGame || ClosePanels()) // Échap ferme d'abord l'inventaire ou l'artisanat
 	{
 		return;
 	}
@@ -257,6 +261,8 @@ void AOdyssePlayerController::PlayerTick(float DeltaTime)
 	if (bInGame && Hud)
 	{
 		UpdateHud();
+		UpdateInventoryPanel();
+		UpdateCraftingPanel();
 	}
 }
 

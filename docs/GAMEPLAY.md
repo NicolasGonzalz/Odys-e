@@ -70,6 +70,10 @@ Trois niveaux, chacun ouvre le suivant. Pour utiliser un poste, il faut être **
   (`stack` dans `data/items.txt`).
 - Tenu par le serveur seul : récolte et artisanat y ajoutent, le joueur ne fait que réorganiser
   (déplacer une case : échange, ou regroupement d'une même pile).
+- **Écran d'inventaire** (Tab) : les 20 cases du sac, la barre d'outils, et la fiche de l'objet
+  survolé. On glisse un objet sur une autre case pour le déplacer (échange ou regroupement).
+  **Écran d'artisanat** (C) : recettes, ingrédients, durée, bouton Fabriquer. Ces deux écrans
+  ne mettent jamais le jeu en pause : on peut continuer à marcher.
 
 ### Outil tenu, artisanat, nourriture (T047)
 
@@ -143,6 +147,7 @@ et **Charger une partie**.
 | Interagir, ramasser | E | Lampe torche | F |
 | Attaquer | Clic gauche | Bloquer, viser | Clic droit |
 | Esquiver | Ctrl | Pause | Échap |
+| Artisanat | C | | |
 
 ## 6. Notifications
 
