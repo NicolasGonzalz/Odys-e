@@ -8,6 +8,10 @@
 #include "Vitals.hpp"
 #include "death/DroppedBags.hpp"
 #include "persistence/WorldSave.hpp"
+#include "story/ClueField.hpp"
+#include "story/ClueReading.hpp"
+#include "story/Journal.hpp"
+#include "story/SurvivorRoster.hpp"
 #include "ecs/Registry.hpp"
 #include "resources/ResourceField.hpp"
 
@@ -134,6 +138,16 @@ class GameWorld {
     /// Contenu d'un sac par son numéro réseau (tests, outils), s'il existe.
     [[nodiscard]] std::optional<BagContents> bagContents(net::EntityId id) const;
 
+    /// L'histoire (data/story.txt, T049) : survivants, et indices posés autour du point
+    /// d'apparition. Au démarrage, avant load() et l'arrivée des joueurs. Renvoie le nombre
+    /// d'indices posés.
+    std::size_t useStory(data::StoryCatalog story);
+    [[nodiscard]] const data::StoryCatalog* story() const { return _story ? &*_story : nullptr; }
+    [[nodiscard]] const Journal& journal() const { return _journal; }
+    [[nodiscard]] const SurvivorRoster& survivors() const { return _roster; }
+    /// Le survivant d'un joueur (T049), s'il est dans le monde et en a choisi un.
+    [[nodiscard]] std::optional<data::SurvivorId> survivorOf(net::PlayerId player) const;
+
     /// Tout ce qui doit survivre à un redémarrage (T053) : les joueurs (connectés ou partis,
     /// retrouvés par leur nom), l'état des ressources et les sacs au sol.
     [[nodiscard]] WorldSave save() const;
@@ -154,6 +168,18 @@ class GameWorld {
     void craftFor(const PlayerControl& control, Crafting& crafting, Inventory& inventory);
     void harvestWith(const PlayerControl& control, const Motion& motion, Harvester& harvester);
     void killStarved();
+    void greetStory(net::PlayerId player);
+    void chooseSurvivor(net::PlayerId player, data::SurvivorId survivor);
+    void readAimedClue(const PlayerControl& control, const Motion& motion);
+    void recordReading(const PlayerControl& control, const data::ClueDef& clue,
+                       const ClueReading& reading);
+    void sendStatusToAll();
+    [[nodiscard]] net::SurvivorStatus statusFor(const PlayerControl& control, bool awakening) const;
+    [[nodiscard]] bool visibleTo(const JournalRecord& record,
+                                 std::optional<data::SurvivorId> reader) const;
+    [[nodiscard]] bool clueReadBy(data::ClueId clue, std::optional<data::SurvivorId> reader) const;
+    void loadStory(const WorldSave& save);
+    void saveStory(WorldSave& save) const;
     void die(ecs::Entity entity);
     void pickUpBags();
     void spawn(const ConnectedPlayer& player);
@@ -179,6 +205,10 @@ class GameWorld {
     std::array<std::optional<ecs::Entity>, kMaxPlayers> _players;
     ResourceField _resources; ///< arbres, rochers… (T044)
     DroppedBags _bags;        ///< sacs laissés à la mort (T052)
+    std::optional<data::StoryCatalog> _story; ///< l'histoire (T049) ; sans : ni indices ni survivants
+    ClueField _clues;                         ///< indices posés dans le monde
+    Journal _journal;                         ///< journal commun du monde
+    SurvivorRoster _roster;                   ///< qui incarne quel survivant
     /// Joueurs sauvegardés qui ne sont pas connectés, par nom (T053).
     std::map<std::string, SavedPlayer, std::less<>> _absent;
 };

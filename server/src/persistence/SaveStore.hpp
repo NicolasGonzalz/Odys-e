@@ -32,9 +32,11 @@ class SaveStore {
     bool loadPlayers(WorldSave& save);
     bool loadResources(WorldSave& save);
     bool loadBags(WorldSave& save);
+    bool loadStory(WorldSave& save);
     bool storePlayers(const WorldSave& save);
     bool storeResources(const WorldSave& save);
     bool storeBags(const WorldSave& save);
+    bool storeStory(const WorldSave& save);
     bool storeMeta(const WorldSave& save);
 
     sqlite::Database _db;

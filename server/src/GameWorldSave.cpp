@@ -47,6 +47,7 @@ WorldSave GameWorld::save() const {
             state ? SavedResource{state->type.value, state->hitsLeft, state->regrowTicksLeft}
                   : SavedResource{});
     }
+    saveStory(save);
     for (const ecs::Entity bag : _bags.bags()) {
         const Placement* placement = _registry.get<Placement>(bag);
         const BagContents* contents = _registry.get<BagContents>(bag);
@@ -58,10 +59,12 @@ WorldSave GameWorld::save() const {
 }
 
 void GameWorld::load(const WorldSave& save) {
-    if (save.players.empty() && save.resources.empty() && save.bags.empty()) {
+    if (save.players.empty() && save.resources.empty() && save.bags.empty() &&
+        save.journal.empty() && save.survivors.empty()) {
         kLog.info("aucune sauvegarde : nouveau monde");
         return;
     }
+    loadStory(save); // l'histoire ne dépend pas de la carte
     const bool sameMap = save.worldFingerprint == _worldFingerprint;
     for (SavedPlayer player : save.players) {
         if (!sameMap) { // une position de l'ancienne carte peut tomber dans un mur

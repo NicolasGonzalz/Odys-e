@@ -3,6 +3,8 @@
 #include "PauseMenu.hpp"
 #include "ResourceShapes.hpp"
 #include "BagShapes.hpp"
+#include "ClueShapes.hpp"
+#include "StoryScreens.hpp"
 #include "Scene.hpp"
 
 #include "odyssee/core/Config.hpp"
@@ -52,7 +54,8 @@ DebugClient::DebugClient(client::ServerLink link, GameData data)
     : _link(std::move(link)), _map(data.map), _resourceTypes(data.resourceTypes),
       _catalog(data.catalog),
       _flat(sim::provisionalGroundHeight()),
-      _prediction(_map != nullptr ? static_cast<const sim::Terrain&>(*_map) : _flat) {
+      _prediction(_map != nullptr ? static_cast<const sim::Terrain&>(*_map) : _flat),
+      _story(data.story) {
     if (_map != nullptr) {
         _mapView.emplace(_map->world());
     }
@@ -152,6 +155,25 @@ void DebugClient::handleWindowKeys() {
     if (const auto recipe = _catalog ? _craft.handleKeys(*_catalog) : std::nullopt) {
         _link.sendEvent(net::CraftRequest{*recipe});
     }
+    handleStoryKeys();
+}
+
+void DebugClient::handleStoryKeys() {
+    if (!_story || _paused) {
+        return;
+    }
+    if (IsKeyPressed(KEY_J)) {
+        _storyState.toggleJournal();
+    }
+    if (!_storyState.mustChoose()) {
+        return;
+    }
+    for (const data::SurvivorDef& survivor : _story->survivors()) {
+        const bool pressed = IsKeyPressed(KEY_F1 + survivor.id.value);
+        if (pressed && !_storyState.isTaken(survivor.id)) {
+            _link.sendEvent(net::ChooseSurvivor{survivor.id.value});
+        }
+    }
 }
 
 void DebugClient::setPaused(bool paused) {
@@ -188,6 +210,9 @@ void DebugClient::keepLatestSnapshot() {
 
 void DebugClient::keepEvents() {
     for (auto& event : _link.takeEvents()) {
+        if (_storyState.onEvent(event, GetTime())) {
+            continue; // survivant, journal (T049)
+        }
         if (auto* contents = std::get_if<net::InventoryContents>(&event)) {
             _inventory = std::move(*contents); // le serveur renvoie tout à chaque changement
         } else if (const auto* status = std::get_if<net::CraftStatus>(&event); status && _catalog) {
@@ -247,6 +272,9 @@ PauseChoice DebugClient::draw(float betweenTicks) const {
     if (_catalog) {
         _craft.draw(*_catalog);
     }
+    if (_story) {
+        drawStory(*_story, _storyState, GetTime());
+    }
     const PauseChoice choice = _paused ? drawPauseMenu() : PauseChoice::None;
     EndDrawing();
     return choice;
@@ -265,6 +293,7 @@ void DebugClient::drawWorld(float betweenTicks) const {
     if (_latest) {
         drawResources(_latest->entities, _resourceTypes); // T044 : fixes, dernier état connu
         drawBags(_latest->entities);                      // T052 : sacs laissés à la mort
+        drawClues(_latest->entities);                     // T049 : indices à lire
     }
     for (const auto& entity : _remote.sample(_link.playerId())) { // T033 : interpolés
         drawPlayer(toWorld(entity.position), static_cast<float>(entity.yawDegrees),

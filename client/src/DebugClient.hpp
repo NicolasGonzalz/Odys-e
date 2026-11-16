@@ -5,6 +5,7 @@
 #include "InputSampler.hpp"
 #include "MapView.hpp"
 #include "PauseMenu.hpp"
+#include "StoryState.hpp"
 
 #include "odyssee/client/Interpolation.hpp"
 #include "odyssee/client/Prediction.hpp"
@@ -30,6 +31,8 @@ struct GameData {
     const data::Catalog* catalog = nullptr;   ///< noms des objets (inventaire) ; nul : numéros
     /// data/resources.txt, pour dessiner les ressources (nul : formes neutres).
     const data::ResourceCatalog* resourceTypes = nullptr;
+    /// data/story.txt : survivants, indices et journal (T049) ; nul : pas d'histoire affichée.
+    const data::StoryCatalog* story = nullptr;
 };
 
 /// Pourquoi une partie s'est terminée.
@@ -71,6 +74,7 @@ class DebugClient {
     void tick(Clock::time_point now);
     void keepLatestSnapshot();
     void keepEvents();
+    void handleStoryKeys();
     [[nodiscard]] std::string hotbarText() const;
     void reconcileWithLatest();
     void startPredictionWhenPossible();
@@ -91,6 +95,8 @@ class DebugClient {
     std::optional<net::InventoryContents> _inventory; ///< dernier reçu du serveur (T045)
     CraftMenu _craft; ///< artisanat (T047), touche C
     std::string _deathNotice; ///< dernier message de mort (T052), vide tant qu'on n'est pas mort
+    const data::StoryCatalog* _story; ///< nul : pas d'histoire (T049)
+    StoryState _storyState;           ///< survivant, journal et écrans de l'histoire
     client::Interpolation _remote; ///< les autres joueurs, affichés entre deux snapshots (T033)
     /// Position affichée au tick d'avant (rendu fluide entre deux ticks), en 1/256 m.
     std::optional<std::array<std::int32_t, 3>> _previousDisplay;

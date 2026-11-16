@@ -8,6 +8,7 @@
 #include "odyssee/client/ServerLink.hpp"
 #include "odyssee/data/Catalog.hpp"
 #include "odyssee/data/ResourceCatalog.hpp"
+#include "odyssee/data/StoryCatalog.hpp"
 #include "odyssee/net/Address.hpp"
 #include "odyssee/world/WorldFileLoader.hpp"
 #include "odyssee/world/WorldTerrain.hpp"
@@ -123,6 +124,24 @@ std::optional<data::ResourceCatalog> loadResourceTypes(const std::string& reques
     return std::nullopt;
 }
 
+/// L'histoire (T049) : --data, sinon data/ à côté de l'exécutable ou du dossier courant.
+/// Absente ou invalide : pas d'écrans d'histoire, sans empêcher de jouer.
+std::optional<data::StoryCatalog> loadStory(const std::string& requested) {
+    const std::string besideExecutable = std::string(GetApplicationDirectory()) + "data";
+    for (const std::string& dir : {requested, besideExecutable, std::string("data")}) {
+        if (dir.empty() || !FileExists((dir + "/story.txt").c_str())) {
+            continue;
+        }
+        auto story = data::StoryCatalog::fromDirectory(dir);
+        if (story.catalog) {
+            std::cout << "Histoire : " << dir << "/story.txt\n";
+            return std::move(story.catalog);
+        }
+        std::cerr << "Histoire non chargée : " << story.error->describe() << "\n";
+    }
+    return std::nullopt;
+}
+
 /// Objets et recettes (noms de l'inventaire) : --data, sinon data/ à côté de l'exécutable ou
 /// du dossier courant. Absents : l'inventaire montre des numéros.
 std::optional<data::Catalog> loadCatalog(std::string dir) {
@@ -158,10 +177,11 @@ int main(int argc, char** argv) {
 
     const auto resourceTypes = loadResourceTypes(options->dataDir);
     const auto catalog = loadCatalog(options->dataDir);
+    const auto story = loadStory(options->dataDir);
 
     openWindow();
     play(*options, {map->get(), catalog ? &*catalog : nullptr,
-                    resourceTypes ? &*resourceTypes : nullptr});
+                    resourceTypes ? &*resourceTypes : nullptr, story ? &*story : nullptr});
     CloseWindow();
     return 0;
 }

@@ -16,7 +16,8 @@ constexpr log::Logger kLog{"sauvegarde"};
 /// une base plus récente que lui (il ne saurait pas la relire sans rien perdre).
 /// 2 : type de chaque ressource (une ressource sauvegardée n'est reprise que si son type n'a pas
 /// changé depuis : data/resources.txt modifié, le tirage ne donne plus les mêmes ressources).
-constexpr std::int64_t kSchemaVersion = 2;
+/// 3 : survivants et journal (T049), tables ajoutées sans toucher au reste.
+constexpr std::int64_t kSchemaVersion = 3;
 
 constexpr std::string_view kResourcesTable = R"(
 CREATE TABLE IF NOT EXISTS resources(
@@ -34,6 +35,10 @@ CREATE TABLE IF NOT EXISTS players(
 CREATE TABLE IF NOT EXISTS bags(
     rank INTEGER PRIMARY KEY, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL,
     owner INTEGER NOT NULL, contents BLOB NOT NULL);
+CREATE TABLE IF NOT EXISTS survivors(survivor TEXT PRIMARY KEY, player TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS journal(
+    rank INTEGER PRIMARY KEY, clue TEXT NOT NULL, version INTEGER NOT NULL,
+    finder TEXT NOT NULL);
 )";
 
 /// Ramène une valeur lue dans la base dans les bornes de son type (base abîmée ou modifiée).
@@ -126,7 +131,7 @@ std::optional<WorldSave> SaveStore::load() {
     if (meta->step()) {
         save.worldFingerprint = static_cast<std::uint64_t>(meta->integer(0));
     }
-    if (!loadPlayers(save) || !loadResources(save) || !loadBags(save)) {
+    if (!loadPlayers(save) || !loadResources(save) || !loadBags(save) || !loadStory(save)) {
         return std::nullopt;
     }
     return save;
@@ -183,9 +188,10 @@ bool SaveStore::store(const WorldSave& save) {
     if (!_db.exec("BEGIN IMMEDIATE")) {
         return false;
     }
-    const bool written = _db.exec("DELETE FROM players; DELETE FROM resources; DELETE FROM bags") &&
+    const bool written = _db.exec("DELETE FROM players; DELETE FROM resources; DELETE FROM bags; "
+                                  "DELETE FROM survivors; DELETE FROM journal") &&
                          storePlayers(save) && storeResources(save) && storeBags(save) &&
-                         storeMeta(save);
+                         storeStory(save) && storeMeta(save);
     if (!written) {
         (void)_db.exec("ROLLBACK");
         return false;
@@ -244,6 +250,47 @@ bool SaveStore::storeBags(const WorldSave& save) {
         insert->bind(5, std::int64_t{bag.contents.owner});
         insert->bind(6, encodeSlots(bag.contents.slots));
         if (!insert->run()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SaveStore::loadStory(WorldSave& save) {
+    auto survivors = _db.prepare("SELECT survivor, player FROM survivors ORDER BY survivor");
+    auto journal = _db.prepare("SELECT clue, version, finder FROM journal ORDER BY rank");
+    if (!survivors || !journal) {
+        return false;
+    }
+    while (survivors->step()) {
+        save.survivors.push_back({survivors->text(0), survivors->text(1)});
+    }
+    while (journal->step()) {
+        save.journal.push_back(
+            {journal->text(0), clamped<std::uint8_t>(journal->integer(1)), journal->text(2)});
+    }
+    return !survivors->failed() && !journal->failed();
+}
+
+bool SaveStore::storeStory(const WorldSave& save) {
+    auto survivor = _db.prepare("INSERT INTO survivors VALUES (?, ?)");
+    auto entry = _db.prepare("INSERT INTO journal VALUES (?, ?, ?, ?)");
+    if (!survivor || !entry) {
+        return false;
+    }
+    for (const SavedSurvivor& saved : save.survivors) {
+        survivor->bind(1, saved.survivor);
+        survivor->bind(2, saved.player);
+        if (!survivor->run()) {
+            return false;
+        }
+    }
+    for (std::size_t rank = 0; rank < save.journal.size(); ++rank) {
+        entry->bind(1, static_cast<std::int64_t>(rank));
+        entry->bind(2, save.journal[rank].clue);
+        entry->bind(3, std::int64_t{save.journal[rank].version});
+        entry->bind(4, save.journal[rank].finder);
+        if (!entry->run()) {
             return false;
         }
     }

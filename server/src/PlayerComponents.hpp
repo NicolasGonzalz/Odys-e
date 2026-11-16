@@ -3,11 +3,13 @@
 #include "ConnectedPlayer.hpp"
 #include "InputQueue.hpp"
 
+#include "odyssee/data/StoryDef.hpp"
 #include "odyssee/net/ControlMessages.hpp"
 #include "odyssee/net/GameMessages.hpp"
 #include "odyssee/sim/Movement.hpp"
 
 #include <array>
+#include <optional>
 #include <cstdint>
 #include <string>
 
@@ -28,6 +30,8 @@ struct PlayerControl {
     /// Faux si un autre joueur du même nom était déjà là à la connexion : celui-ci repart de zéro
     /// et n'est pas sauvegardé (sinon les deux écraseraient la même sauvegarde).
     bool saved = true;
+    /// Le survivant qu'il incarne (T049) ; vide tant qu'il n'en a pas choisi.
+    std::optional<data::SurvivorId> survivor;
     net::Tick lastProcessedInput = 0;
     InputQueue inputs;
     net::InputCommand lastCommand;   ///< dernier input appliqué (reçu ou deviné)
