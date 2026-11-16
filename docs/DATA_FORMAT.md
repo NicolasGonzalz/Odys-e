@@ -97,6 +97,21 @@ Chaque type reçoit un indice compact dans l'ordre du fichier (128 types au plus
 réseau, client et serveur doivent donc avoir le même fichier. Le serveur lit `data/` du dossier
 courant (ou `--data dossier`) ; sans `resources.txt`, le monde n'a pas de ressources.
 
+## Histoire (`story.txt`, T049)
+
+Le récit lui-même est dans [HISTOIRE.md](HISTOIRE.md) ; ce fichier en est la version lue par le jeu. Quatre
+sortes de blocs :
+
+| Bloc | Clés |
+|---|---|
+| `[intro capsule]` | `line` (répétée) : l'écran du réveil ; `{capsule}` est remplacé par la capsule du survivant |
+| `[survivor clé]` | `name`, `capsule`, `memory` (répétée : bribes de mémoire au réveil). **Avant** les indices |
+| `[step clé]` | `number` (1 à 8), `text` : phrase du journal quand l'étape du fil est comprise |
+| `[clue clé]` | `zone` (1 à 5), `step` (1 à 8), `reveals` (`yes` par défaut, `no` : pressentiment), `title`, `text` (répétée), `at` (« est sud » en mètres entiers depuis le point d'apparition, provisoire) ; indice personnel : `owner` (clé d'un survivant), `memory` et `generic` (répétées) |
+
+Les clés des indices et des survivants ne changent plus une fois en jeu : le journal et les survivants sont
+sauvegardés par clé. Client et serveur lisent le même fichier (sur le réseau, un indice circule par son rang).
+
 ## Erreurs
 
 Au premier problème, le chargement s'arrête et donne le fichier, la ligne et la raison, en

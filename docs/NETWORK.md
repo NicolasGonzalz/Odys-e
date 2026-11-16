@@ -95,7 +95,7 @@ jeton = SipHash-2-4(secret du serveur, IP | port | sel | période | pseudo)
 - Il n'y a plus de table de poignées de main à saturer : un flot de fausses demandes ne consomme pas de
   mémoire et ne bloque pas les vrais joueurs.
 
-### Événements fiables (T045, T047, T052 ; protocole v10)
+### Événements fiables (T045, T047, T052, T049 ; protocole v11)
 
 Le canal fiable ordonné transporte des **événements de jeu** (`net::GameEvent`, `GameEvents.hpp`) :
 un octet de type, puis le contenu ; un événement illisible est ignoré.
@@ -106,6 +106,10 @@ un octet de type, puis le contenu ; un événement illisible est ignoré.
 | `MoveItem` = 2 | client → serveur | `from` (u8), `to` (u8), cases < 25 |
 | `CraftRequest` = 3 | client → serveur | `recipe` (u16, rang dans `data/recipes.txt`) |
 | `CraftStatus` = 4 | serveur → client | `recipe` (u16), issue (u8 : 1 commencée, 2 finie, 3 occupé, 4 poste requis, 5 ingrédients manquants, 6 inconnue), durée en ticks (u16) |
+| `ChooseSurvivor` = 6 | client → serveur | `survivor` (u8, rang dans `data/story.txt`) : incarner ce survivant s'il est libre |
+| `SurvivorStatus` = 7 | serveur → client | `yours` (u8, 255 : aucun), `taken` (u8, bit n = survivant n pris), `awakening` (u8, 0/1 : afficher l'écran du réveil) |
+| `JournalEntry` = 8 | serveur → client | `clue` (u16, rang dans `data/story.txt`), `version` (u8 : 1 complète, 2 générique), `finder` (u8, survivant, 255 : aucun). Tout le journal à la connexion, puis chaque lecture |
+| `ClueLocked` = 9 | serveur → client | `clue` (u16), `owner` (u8) : indice personnel d'un survivant joué par un autre |
 | `PlayerDied` = 5 | serveur → client | `bag` (u16) : numéro d'entité du sac laissé sur place, 0 si rien à laisser. Le joueur est déjà revenu au point de repos |
 
 Le client ne modifie jamais son inventaire lui-même : il demande, le serveur vérifie et renvoie l'état
@@ -189,7 +193,7 @@ Canal fiable : l'émetteur n'envoie que les messages à moins de 512 numéros du
 
 - **Input** (8 octets) : `moveForward` (i8), `moveRight` (i8), `yaw` (u16), `pitch` (i16), `buttons` (u16).
   Boutons : `Jump` 1, `Sprint` 2, `Crouch` 4, `Use` 8, `Primary` 16, `Secondary` 32 ; tout autre bit est refusé.
-- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1, `Resource` = 2, `Bag` = 3), `x`, `y`, `z` (i32), `yaw` (u16),
+- **Entité** (18 octets) : `id` (u16), `kind` (u8, `Player` = 1, `Resource` = 2, `Bag` = 3, `Clue` = 4), `x`, `y`, `z` (i32), `yaw` (u16),
   `flags` (u8). Joueur : au sol 1, accroupi 2, court 4, épuisé 8. Toute autre sorte est refusée.
 - **Ressources** (protocole v7, T044) : arbres, rochers… Numéros d'entité à partir de `kFirstResourceEntity` = 4
   (0 à 3 : les joueurs), fixes pour la partie. Position de la base posée au sol, `yaw` = rotation (aspect seul).
@@ -200,6 +204,9 @@ Canal fiable : l'émetteur n'envoie que les messages à moins de 512 numéros du
   Numéros à partir de `kFirstBagEntity` = 8192, position des pieds du mort, `flags` = numéro du joueur à qui il
   était. Fixes comme les ressources ; n'importe quel joueur les ramasse en passant à moins de 1,5 m, et un sac
   vidé disparaît.
+- **Indices** (protocole v11, T049) : numéros à partir de `kFirstClueEntity` = 9216 (+ rang de l'indice), fixes,
+  à moins de 40 m du destinataire ; `flags` bit 0 (`kClueRead`) = déjà dans son journal. Lus au clic gauche en les
+  visant (même portée que la récolte).
 - **Choix des entités** : le snapshot d'un joueur contient d'abord **tous les joueurs**, puis les sacs, puis les
   ressources à moins de **60 m** de lui (à l'horizontale), des plus proches aux plus lointaines, jusqu'à 60 entités en tout.
   Une ressource qui sort du snapshot n'a pas disparu : elle est juste hors de portée (le client peut l'oublier).
