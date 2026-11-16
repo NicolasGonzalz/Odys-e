@@ -14,7 +14,15 @@ constexpr log::Logger kLog{"sauvegarde"};
 
 /// Version du format de la base. Incrémentée à chaque changement de tables ; un serveur refuse
 /// une base plus récente que lui (il ne saurait pas la relire sans rien perdre).
-constexpr std::int64_t kSchemaVersion = 1;
+/// 2 : type de chaque ressource (une ressource sauvegardée n'est reprise que si son type n'a pas
+/// changé depuis : data/resources.txt modifié, le tirage ne donne plus les mêmes ressources).
+constexpr std::int64_t kSchemaVersion = 2;
+
+constexpr std::string_view kResourcesTable = R"(
+CREATE TABLE IF NOT EXISTS resources(
+    rank INTEGER PRIMARY KEY, type INTEGER NOT NULL, hits INTEGER NOT NULL,
+    regrow INTEGER NOT NULL);
+)";
 
 constexpr std::string_view kSchema = R"(
 CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value INTEGER NOT NULL);
@@ -23,8 +31,6 @@ CREATE TABLE IF NOT EXISTS players(
     yaw INTEGER NOT NULL, health INTEGER NOT NULL, hunger INTEGER NOT NULL,
     thirst INTEGER NOT NULL, rest_x INTEGER NOT NULL, rest_y INTEGER NOT NULL,
     rest_z INTEGER NOT NULL, rest_yaw INTEGER NOT NULL, inventory BLOB NOT NULL);
-CREATE TABLE IF NOT EXISTS resources(
-    rank INTEGER PRIMARY KEY, hits INTEGER NOT NULL, regrow INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS bags(
     rank INTEGER PRIMARY KEY, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL,
     owner INTEGER NOT NULL, contents BLOB NOT NULL);
@@ -75,6 +81,15 @@ void bindPosition(sqlite::Statement& statement, int first, const std::array<std:
     }
 }
 
+/// Met une base d'un format plus ancien au format actuel. Format 1 : les ressources n'avaient pas
+/// leur type ; leur état est oublié (elles repartent pleines), le reste est gardé.
+bool upgrade(sqlite::Database& db, std::int64_t version) {
+    if (version == 1 && !db.exec("DROP TABLE resources")) {
+        return false;
+    }
+    return db.exec(kResourcesTable);
+}
+
 std::optional<std::int64_t> schemaVersionOf(sqlite::Database& db) {
     auto query = db.prepare("SELECT value FROM meta WHERE key = 'schema_version'");
     if (!query) {
@@ -94,6 +109,9 @@ std::optional<SaveStore> SaveStore::open(const std::string& path) {
     if (!version || *version > kSchemaVersion) {
         kLog.error("« {} » vient d'une version plus récente du serveur (format {}, connu : {})",
                    path, version.value_or(-1), kSchemaVersion);
+        return std::nullopt;
+    }
+    if (!upgrade(*db, *version)) {
         return std::nullopt;
     }
     return SaveStore(std::move(*db));
@@ -134,13 +152,14 @@ bool SaveStore::loadPlayers(WorldSave& save) {
 }
 
 bool SaveStore::loadResources(WorldSave& save) {
-    auto rows = _db.prepare("SELECT hits, regrow FROM resources ORDER BY rank");
+    auto rows = _db.prepare("SELECT type, hits, regrow FROM resources ORDER BY rank");
     if (!rows) {
         return false;
     }
     while (rows->step()) {
-        save.resources.push_back(
-            {clamped<std::uint16_t>(rows->integer(0)), clamped<std::uint32_t>(rows->integer(1))});
+        save.resources.push_back({clamped<std::uint8_t>(rows->integer(0)),
+                                  clamped<std::uint16_t>(rows->integer(1)),
+                                  clamped<std::uint32_t>(rows->integer(2))});
     }
     return !rows->failed();
 }
@@ -197,14 +216,15 @@ bool SaveStore::storePlayers(const WorldSave& save) {
 }
 
 bool SaveStore::storeResources(const WorldSave& save) {
-    auto insert = _db.prepare("INSERT INTO resources VALUES (?, ?, ?)");
+    auto insert = _db.prepare("INSERT INTO resources VALUES (?, ?, ?, ?)");
     if (!insert) {
         return false;
     }
     for (std::size_t rank = 0; rank < save.resources.size(); ++rank) {
         insert->bind(1, static_cast<std::int64_t>(rank));
-        insert->bind(2, std::int64_t{save.resources[rank].hitsLeft});
-        insert->bind(3, std::int64_t{save.resources[rank].regrowTicksLeft});
+        insert->bind(2, std::int64_t{save.resources[rank].type});
+        insert->bind(3, std::int64_t{save.resources[rank].hitsLeft});
+        insert->bind(4, std::int64_t{save.resources[rank].regrowTicksLeft});
         if (!insert->run()) {
             return false;
         }

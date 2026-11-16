@@ -29,6 +29,7 @@ struct SavedPlayer {
 /// L'état d'une ressource récoltable, par son rang de création (le placement, lui, se refait
 /// à l'identique au démarrage : même carte, mêmes données).
 struct SavedResource {
+    std::uint8_t type = 0; ///< rang du type dans data/resources.txt, pour vérifier à la reprise
     std::uint16_t hitsLeft = 0;
     std::uint32_t regrowTicksLeft = 0;
 

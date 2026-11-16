@@ -43,8 +43,9 @@ WorldSave GameWorld::save() const {
 
     for (const ecs::Entity node : _resources.nodes()) {
         const ResourceNode* state = _registry.get<ResourceNode>(node);
-        save.resources.push_back(state ? SavedResource{state->hitsLeft, state->regrowTicksLeft}
-                                       : SavedResource{});
+        save.resources.push_back(
+            state ? SavedResource{state->type.value, state->hitsLeft, state->regrowTicksLeft}
+                  : SavedResource{});
     }
     for (const ecs::Entity bag : _bags.bags()) {
         const Placement* placement = _registry.get<Placement>(bag);
@@ -85,9 +86,10 @@ void GameWorld::load(const WorldSave& save) {
 
 void GameWorld::loadResources(const std::vector<SavedResource>& saved) {
     const std::span<const ecs::Entity> nodes = _resources.nodes();
-    if (saved.size() != nodes.size()) {
+    if (!sameResourceTypes(saved)) {
         // data/resources.txt a changé : les rangs ne désignent plus les mêmes ressources.
-        kLog.warn("{} ressource(s) sauvegardée(s) pour {} placée(s) : ressources repartent pleines",
+        kLog.warn("ressources sauvegardées différentes de celles placées ({} pour {}, ou types "
+                  "changés) : ressources repartent pleines",
                   saved.size(), nodes.size());
         return;
     }
@@ -97,6 +99,20 @@ void GameWorld::loadResources(const std::vector<SavedResource>& saved) {
             node->regrowTicksLeft = saved[i].regrowTicksLeft;
         }
     }
+}
+
+bool GameWorld::sameResourceTypes(const std::vector<SavedResource>& saved) const {
+    const std::span<const ecs::Entity> nodes = _resources.nodes();
+    if (saved.size() != nodes.size()) {
+        return false;
+    }
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        const ResourceNode* node = _registry.get<ResourceNode>(nodes[i]);
+        if (!node || node->type.value != saved[i].type) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool GameWorld::nameInUse(const std::string& name) const {
