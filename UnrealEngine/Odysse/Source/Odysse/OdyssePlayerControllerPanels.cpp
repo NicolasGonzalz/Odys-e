@@ -1,8 +1,10 @@
-// Panneaux du joueur : inventaire (Tab) et artisanat (C). Ils s'ouvrent par-dessus le jeu sans
-// jamais le mettre en pause : on peut continuer à marcher, la souris sert au panneau.
+// Le bracelet de stase (docs/BRACELET.md) : Tab l'ouvre sur le dernier onglet, I, C, J et M
+// directement sur Sac, Fabrication, Histoire et Carte (même touche pour refermer). Il s'ouvre
+// par-dessus le jeu sans jamais le mettre en pause : on peut continuer à marcher.
 
 #include "OdyssePlayerController.h"
 
+#include "UI/OdysseeBraceletWidget.h"
 #include "UI/OdysseeCraftingWidget.h"
 #include "UI/OdysseeHudWidget.h"
 #include "UI/OdysseeInventoryWidget.h"
@@ -58,31 +60,54 @@ namespace
 
 void AOdyssePlayerController::CreatePanels()
 {
-	InventoryPanel = CreateWidget<UOdysseeInventoryWidget>(this);
-	InventoryPanel->OnMoveRequested.BindUObject(this, &AOdyssePlayerController::RequestMove);
-	CraftingPanel = CreateWidget<UOdysseeCraftingWidget>(this);
-	CraftingPanel->OnCraftRequested.BindUObject(this, &AOdyssePlayerController::RequestCraft);
+	Bracelet = CreateWidget<UOdysseeBraceletWidget>(this);
+	Bracelet->Inventory->OnMoveRequested.BindUObject(this, &AOdyssePlayerController::RequestMove);
+	Bracelet->Crafting->OnCraftRequested.BindUObject(this, &AOdyssePlayerController::RequestCraft);
 	if (UOdysseeNetSubsystem* Net = GetNet())
 	{
 		Net->OnCraftChanged.AddUniqueDynamic(this, &AOdyssePlayerController::OnCraftChanged);
 	}
 }
 
-void AOdyssePlayerController::ToggleInventory()
+bool AOdyssePlayerController::CanUseBracelet() const
 {
-	if (!bInGame || PauseMenu->IsInViewport())
-	{
-		return;
-	}
-	if (InventoryPanel->IsInViewport())
-	{
-		ClosePanels();
-		return;
-	}
-	ClosePanels(); // un seul panneau à la fois
-	OpenPanel(InventoryPanel);
-	UpdateInventoryPanel();
+	return bInGame && !PauseMenu->IsInViewport();
 }
+
+void AOdyssePlayerController::ToggleBracelet()
+{
+	if (!CanUseBracelet())
+	{
+		return;
+	}
+	if (ClosePanels())
+	{
+		return; // Tab referme, quel que soit l'onglet
+	}
+	if (LastTab == EOdysseeBraceletTab::Crafting)
+	{
+		FillCrafting(OpenStationName.IsNone() ? FName(TEXT("hand")) : OpenStationName);
+	}
+	OpenBracelet(LastTab); // Tab : le dernier onglet ouvert
+}
+
+void AOdyssePlayerController::ToggleTab(EOdysseeBraceletTab Tab)
+{
+	if (!CanUseBracelet())
+	{
+		return;
+	}
+	if (Bracelet->IsInViewport() && Bracelet->GetTab() == Tab)
+	{
+		ClosePanels(); // même raccourci : on referme
+		return;
+	}
+	OpenBracelet(Tab);
+}
+
+void AOdyssePlayerController::OpenBagTab() { ToggleTab(EOdysseeBraceletTab::Bag); }
+void AOdyssePlayerController::OpenStoryTab() { ToggleTab(EOdysseeBraceletTab::Story); }
+void AOdyssePlayerController::OpenMapTab() { ToggleTab(EOdysseeBraceletTab::Map); }
 
 void AOdyssePlayerController::ToggleCrafting()
 {
@@ -98,16 +123,23 @@ void AOdyssePlayerController::OdysseeStation(const FString& Which)
 
 void AOdyssePlayerController::ToggleStation(FName Station)
 {
-	if (!bInGame || PauseMenu->IsInViewport())
+	if (!CanUseBracelet())
 	{
 		return;
 	}
-	const bool bSameOpen = CraftingPanel->IsInViewport() && OpenStationName == Station;
-	ClosePanels();
+	const bool bSameOpen = Bracelet->IsInViewport() && Bracelet->GetTab() == EOdysseeBraceletTab::Crafting
+		&& OpenStationName == Station;
 	if (bSameOpen)
 	{
-		return; // même touche : on referme
+		ClosePanels(); // même touche : on referme
+		return;
 	}
+	FillCrafting(Station);
+	OpenBracelet(EOdysseeBraceletTab::Crafting);
+}
+
+void AOdyssePlayerController::FillCrafting(FName Station)
+{
 	OpenStationName = Station;
 	TArray<FOdysseeRecipeView> Views;
 	if (const UOdysseeNetSubsystem* Net = GetNet())
@@ -136,48 +168,48 @@ void AOdyssePlayerController::ToggleStation(FName Station)
 			}
 		}
 	}
-	CraftingPanel->SetTitle(Station == TEXT("forge") ? LOCTEXT("ForgeTitle", "Forge")
-		: Station == TEXT("workbench") ? LOCTEXT("WorkbenchTitle", "Établi") : LOCTEXT("HandTitle", "Artisanat"));
-	CraftingPanel->ShowRecipes(Views);
-	OpenPanel(CraftingPanel);
-	UpdateCraftingPanel();
+	Bracelet->Crafting->SetTitle(Station == TEXT("forge") ? LOCTEXT("ForgeTitle", "Forge")
+		: Station == TEXT("workbench") ? LOCTEXT("WorkbenchTitle", "Établi") : LOCTEXT("HandTitle", "Fabrication"));
+	Bracelet->Crafting->ShowRecipes(Views);
 }
 
-void AOdyssePlayerController::OpenPanel(UUserWidget* Panel)
+void AOdyssePlayerController::OpenBracelet(EOdysseeBraceletTab Tab)
 {
-	Panel->AddToViewport(5);
-	// Le clavier reste au jeu (on marche, Tab et C referment) ; la souris sert au panneau.
-	FInputModeGameAndUI Mode;
-	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	Mode.SetHideCursorDuringCapture(false);
-	SetInputMode(Mode);
-	SetShowMouseCursor(true);
-	SetIgnoreLookInput(true);
+	LastTab = Tab;
+	Bracelet->ShowTab(Tab);
+	if (!Bracelet->IsInViewport())
+	{
+		Bracelet->AddToViewport(5);
+		Bracelet->PlayOpen();
+		// Le clavier reste au jeu (on marche, les raccourcis referment) ; la souris sert au bracelet.
+		FInputModeGameAndUI Mode;
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		Mode.SetHideCursorDuringCapture(false);
+		SetInputMode(Mode);
+		SetShowMouseCursor(true);
+		SetIgnoreLookInput(true);
+	}
+	UpdateInventoryPanel();
+	UpdateCraftingPanel();
 }
 
 bool AOdyssePlayerController::ClosePanels()
 {
-	bool bClosed = false;
-	for (UUserWidget* Panel : {static_cast<UUserWidget*>(InventoryPanel), static_cast<UUserWidget*>(CraftingPanel)})
+	if (!Bracelet || !Bracelet->IsInViewport())
 	{
-		if (Panel && Panel->IsInViewport())
-		{
-			Panel->RemoveFromParent();
-			bClosed = true;
-		}
+		return false;
 	}
-	if (bClosed)
-	{
-		SetGameInput();
-	}
-	return bClosed;
+	LastTab = Bracelet->GetTab();
+	Bracelet->RemoveFromParent();
+	SetGameInput();
+	return true;
 }
 
 void AOdyssePlayerController::UpdateInventoryPanel()
 {
-	if (!InventoryPanel || !InventoryPanel->IsInViewport())
+	if (!Bracelet || !Bracelet->IsInViewport() || Bracelet->GetTab() != EOdysseeBraceletTab::Bag)
 	{
-		return; // fermé : rien à tenir à jour (il se remplit à l'ouverture)
+		return; // pas à l'écran : rien à tenir à jour (il se remplit à l'ouverture)
 	}
 	const UOdysseeNetSubsystem* Net = GetNet();
 	const TArray<FOdysseeInventorySlot> Inventory = Net && Net->IsConnected()
@@ -192,12 +224,12 @@ void AOdyssePlayerController::UpdateInventoryPanel()
 			Views[Index] = {IconFor(Cell.IconName), Cell.Count, Cell.Name};
 		}
 	}
-	InventoryPanel->ShowSlots(Views);
+	Bracelet->Inventory->ShowSlots(Views);
 }
 
 void AOdyssePlayerController::UpdateCraftingPanel()
 {
-	if (!CraftingPanel || !CraftingPanel->IsInViewport())
+	if (!Bracelet || !Bracelet->IsInViewport() || Bracelet->GetTab() != EOdysseeBraceletTab::Crafting)
 	{
 		return;
 	}
@@ -214,7 +246,7 @@ void AOdyssePlayerController::UpdateCraftingPanel()
 			}
 		}
 	}
-	CraftingPanel->ShowOwned(Owned);
+	Bracelet->Crafting->ShowOwned(Owned);
 }
 
 void AOdyssePlayerController::RequestMove(int32 From, int32 To)
@@ -230,7 +262,7 @@ void AOdyssePlayerController::RequestCraft(FName Recipe)
 	UOdysseeNetSubsystem* Net = GetNet();
 	if (!Net || !Net->IsConnected())
 	{
-		CraftingPanel->ShowCraftMessage(LOCTEXT("CraftOffline", "Hors ligne : la fabrication se fait sur le serveur."),
+		Bracelet->Crafting->ShowCraftMessage(LOCTEXT("CraftOffline", "Hors ligne : la fabrication se fait sur le serveur."),
 			false);
 		return;
 	}
@@ -241,10 +273,10 @@ void AOdyssePlayerController::OnCraftChanged(FName RecipeKey, EOdysseeCraftOutco
 {
 	if (Outcome == EOdysseeCraftOutcome::Started)
 	{
-		CraftingPanel->ShowCraftStarted(RecipeKey, Seconds);
+		Bracelet->Crafting->ShowCraftStarted(RecipeKey, Seconds);
 		return;
 	}
-	CraftingPanel->ShowCraftMessage(OutcomeText(Outcome), Outcome == EOdysseeCraftOutcome::Done);
+	Bracelet->Crafting->ShowCraftMessage(OutcomeText(Outcome), Outcome == EOdysseeCraftOutcome::Done);
 	if (Outcome == EOdysseeCraftOutcome::Done)
 	{
 		Hud->AddNotification(LOCTEXT("Crafted", "Objet fabriqué")); // visible même panneau fermé

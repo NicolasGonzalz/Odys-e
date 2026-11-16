@@ -1,7 +1,8 @@
 # L'histoire du jeu (T049) : voir docs/HISTOIRE.md. Format : docs/DATA_FORMAT.md.
 #
 # [intro capsule]   lignes « line » de l'écran du réveil ; {capsule} = capsule du survivant.
-# [survivor clé]    name, capsule, memory (bribes au réveil, une ligne chacune).
+# [survivor clé]    name, capsule, memory (bribes au réveil, une ligne chacune), specialty et
+#                   skill (facultatives : l'écran du choix du survivant ; docs/CHARACTERS.md).
 # [step clé]        number (1 à 8), text : phrase du journal quand l'étape est comprise.
 # [clue clé]        support (letter : scanné par le bracelet ; data : clé USB ou terminal branché),
 #                   date (AAAA, AAAA-MM ou AAAA-MM-JJ : sa place sur la frise du bracelet),
@@ -28,24 +29,32 @@ name = Mara Velin
 capsule = C-7
 memory = Je m'appelle Mara.
 memory = Je réparais des machines… de grandes arches de métal. Je devais partir.
+specialty = Mécanique
+skill = Répare les machines plus vite, ouvre certains mécanismes sans clé, use moins ses outils.
 
 [survivor ilian]
 name = Ilian Sorel
 capsule = C-4
 memory = Ilian. Sorel ? Non, ce n'est pas mon vrai nom.
 memory = Je l'ai choisi pour me cacher. De quoi ?
+specialty = Botanique
+skill = Reconnaît les plantes, récolte davantage sur la flore, apaise plus facilement les créatures.
 
 [survivor teo]
 name = Teo Brandt
 capsule = C-9
 memory = Teo.
 memory = Il y avait une foule, des cris. J'ai couru. Je n'aurais pas dû être là.
+specialty = Débrouille
+skill = Discret, se faufile dans les passages étroits, fouille mieux les ruines.
 
 [survivor nadia]
 name = Nadia Okoro
 capsule = C-12
 memory = Agente Okoro.
 memory = Je tenais une grille. On m'a dit de ne laisser passer personne.
+specialty = Protection
+skill = Plus résistante, bloque mieux, plus efficace en combat.
 
 # --- Ce que j'ai compris : le fil des révélations (docs/ZONES.md) -------------------------------
 

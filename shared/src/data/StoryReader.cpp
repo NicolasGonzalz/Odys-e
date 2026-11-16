@@ -13,8 +13,10 @@ namespace odyssee::data {
 namespace {
 
 constexpr std::array<std::string_view, 1> kIntroKeys{"line"};
-constexpr std::array<std::string_view, 3> kSurvivorKeys{"name", "capsule", "memory"};
+constexpr std::array<std::string_view, 5> kSurvivorKeys{"name", "capsule", "memory", "specialty",
+                                                        "skill"};
 constexpr std::array<std::string_view, 1> kSurvivorRepeatable{"memory"};
+constexpr std::array<std::string_view, 3> kSurvivorRequired{"name", "capsule", "memory"};
 constexpr std::array<std::string_view, 2> kStepKeys{"number", "text"};
 constexpr std::array<std::string_view, 11> kClueKeys{"zone",  "step",    "reveals", "owner",
                                                      "title", "text",    "memory",  "generic",
@@ -123,7 +125,7 @@ class StoryBlockReader {
 
     std::optional<DataError> readSurvivor(const DataBlock& block) {
         if (auto error =
-                checkBlockKeys(block, {kSurvivorKeys, kSurvivorRepeatable, kSurvivorKeys}, _file)) {
+                checkBlockKeys(block, {kSurvivorKeys, kSurvivorRepeatable, kSurvivorRequired}, _file)) {
             return error;
         }
         if (findSurvivor(block.id) || _read.survivors.size() >= kMaxSurvivors) {
@@ -136,6 +138,8 @@ class StoryBlockReader {
         survivor.name = std::string(findField(block, "name")->value);
         survivor.capsule = std::string(findField(block, "capsule")->value);
         survivor.awakening = joinedLines(block, "memory");
+        survivor.specialty = joinedLines(block, "specialty"); // facultatives : vides si absentes
+        survivor.skill = joinedLines(block, "skill");
         _read.survivors.push_back(std::move(survivor));
         return std::nullopt;
     }

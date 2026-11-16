@@ -51,6 +51,39 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOdysseePlayerDied, bool, bLeftBag);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOdysseeCraftChanged, FName, RecipeKey,
 	EOdysseeCraftOutcome, Outcome, float, Seconds);
 
+/** Un survivant (data/story.txt), tel que l'écran du choix le montre. */
+USTRUCT(BlueprintType)
+struct FOdysseeSurvivor
+{
+	GENERATED_BODY()
+
+	/** Rang dans data/story.txt : ce qu'on envoie au serveur pour le choisir. */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	int32 Index = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	FName Key;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	FText Name;
+
+	/** Sa capsule au réveil : « C-7 ». */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	FText Capsule;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	FText Specialty;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	FText Skill;
+
+	/** Déjà incarné par un autre joueur de ce monde. */
+	UPROPERTY(BlueprintReadOnly, Category = "Odyssee|Survivant")
+	bool bTaken = false;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOdysseeSurvivorsChanged);
+
 /** Un objet et sa quantité dans une recette (ingrédient ou résultat). */
 USTRUCT(BlueprintType)
 struct FOdysseeIngredient
@@ -205,6 +238,26 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Artisanat")
 	FOdysseeCraftChanged OnCraftChanged;
 
+	/** Les quatre survivants, avec ceux déjà pris dans ce monde (en ligne). */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survivant")
+	TArray<FOdysseeSurvivor> GetSurvivors() const;
+
+	/** Le survivant incarné ici (rang), -1 tant qu'il n'est pas choisi ou pas encore connu. */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survivant")
+	int32 GetMySurvivor() const;
+
+	/** Vrai dès que le serveur a dit qui est pris (après la connexion). */
+	UFUNCTION(BlueprintPure, Category = "Odyssee|Survivant")
+	bool KnowsSurvivors() const { return SurvivorState.has_value(); }
+
+	/** Demande à incarner ce survivant ; la réponse arrive par OnSurvivorsChanged. */
+	UFUNCTION(BlueprintCallable, Category = "Odyssee|Survivant")
+	void RequestChooseSurvivor(int32 Index);
+
+	/** Le serveur a envoyé l'état des survivants (le sien, ceux pris par d'autres). */
+	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Survivant")
+	FOdysseeSurvivorsChanged OnSurvivorsChanged;
+
 	/** Le joueur local est mort : le serveur le replace au point de repos et lui renvoie son
 	 *  inventaire (vide s'il a laissé un sac). */
 	UPROPERTY(BlueprintAssignable, Category = "Odyssee|Survie")
@@ -248,6 +301,7 @@ private:
 	std::optional<odyssee::client::ServerLink> Link;
 	std::optional<odyssee::net::Snapshot> Latest;
 	std::optional<odyssee::net::InventoryContents> Inventory;
+	std::optional<odyssee::net::SurvivorStatus> SurvivorState;
 	odyssee::client::Interpolation Remote;
 	uint64 SnapshotVersion = 0;
 	uint32 SessionId = 0;

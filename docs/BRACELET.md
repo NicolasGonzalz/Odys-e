@@ -1,7 +1,8 @@
 # Le bracelet de stase
 
 > **Statut : concept validé (2026-11-16).** Remplace les écrans séparés d'inventaire, d'artisanat, de journal et
-> de carte (GAMEPLAY.md §§ 2 à 4). Restent à décider : écran ou hologramme, raccourcis clavier (§ 6).
+> de carte (GAMEPLAY.md §§ 2 à 4). Décidé : **hologramme** et raccourcis du § 6. Interface en place (T080) : Sac et
+> Fabrication fonctionnent ; Survie, Histoire et Carte attendent leurs données (T078, plugin).
 
 ## 1. L'idée
 
@@ -13,8 +14,9 @@ le personnage **lève le poignet** (animation en vue à la première personne) e
   territoire hostile est un risque ; en coop, les autres voient le geste.
 - **Recharge solaire** : pas de batterie à gérer. (Les piles restent pour la lampe torche.)
 - **Toujours sur soi** : soudé au poignet, on le garde à la mort, comme l'équipement.
-- Affichage **à décider** : petit écran sur le bracelet (on lève le bras, il remplit un tiers de la vue) ou
-  projection holographique au-dessus du poignet (plus grand, plus lisible).
+- Affichage : **projection holographique** au-dessus du poignet (plus grande et plus lisible qu'un écran sur le
+  boîtier). Fond bleu nuit translucide, bords cyan lumineux, lignes et bande de balayage, objets légèrement teintés.
+  En attendant le geste (T079), l'hologramme s'affiche à plat devant le joueur.
 
 ## 2. Ce que le bracelet explique dans l'histoire
 
@@ -61,8 +63,11 @@ Chaque indice porte une **date** (clé `date`, « 2073-10 » ou « 2074-10-17 »
   `data/recipes.txt`, `data/items.txt`) : rien à rédiger à la main pour l'essentiel.
 - Chaque survivant tient **son** carnet (pas de synchronisation) : apprendre fait partie de son histoire.
 
-## 6. Raccourcis clavier (à décider)
+## 6. Raccourcis clavier
 
-Proposition : le bracelet s'ouvre avec **Tab** sur le dernier onglet ouvert ; des raccourcis l'ouvrent
-directement sur un onglet (**I** sac, **C** fabrication, **J** histoire, **M** carte). Le geste du poignet est le
-même dans tous les cas. À essayer en jeu avant de trancher.
+Le bracelet s'ouvre avec **Tab** sur le dernier onglet ouvert ; des raccourcis l'ouvrent directement sur un
+onglet (**I** sac, **C** fabrication, **J** histoire, **M** carte). La même touche le referme, Échap aussi. Le geste
+du poignet est le même dans tous les cas.
+
+L'onglet Fabrication montre ce qui se fait à la main ; près d'un établi ou d'une forge, leurs recettes s'y
+ajoutent (en attendant qu'ils soient posés dans le monde : console « OdysseeStation etabli | forge »).

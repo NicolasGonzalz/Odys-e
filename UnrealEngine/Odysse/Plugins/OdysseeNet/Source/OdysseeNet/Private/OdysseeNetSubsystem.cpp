@@ -95,6 +95,7 @@ void UOdysseeNetSubsystem::Disconnect()
 	}
 	Latest.reset();
 	Inventory.reset();
+	SurvivorState.reset();
 	RemoveRemotePlayers();
 	if (Resources)
 	{
@@ -220,6 +221,11 @@ void UOdysseeNetSubsystem::KeepEvents()
 				static_cast<EOdysseeCraftOutcome>(Craft->outcome),
 				static_cast<float>(Craft->ticks) / static_cast<float>(odyssee::kTickRate));
 		}
+		else if (const auto* Survivors = std::get_if<odyssee::net::SurvivorStatus>(&Event))
+		{
+			SurvivorState = *Survivors;
+			OnSurvivorsChanged.Broadcast();
+		}
 		else if (const auto* Died = std::get_if<odyssee::net::PlayerDied>(&Event))
 		{
 			OnPlayerDied.Broadcast(Died->bag != 0); // 0 : rien à laisser, pas de sac
@@ -342,6 +348,45 @@ TArray<FOdysseeInventorySlot> UOdysseeNetSubsystem::GetInventory() const
 		}
 	}
 	return Slots;
+}
+
+TArray<FOdysseeSurvivor> UOdysseeNetSubsystem::GetSurvivors() const
+{
+	TArray<FOdysseeSurvivor> Survivors;
+	const UOdysseeCatalogSubsystem* Data = GetGameInstance()->GetSubsystem<UOdysseeCatalogSubsystem>();
+	const odyssee::data::StoryCatalog* Story = Data ? Data->GetStory() : nullptr;
+	if (!Story)
+	{
+		return Survivors;
+	}
+	const auto Text = [](const std::string& Value) { return FText::FromString(UTF8_TO_TCHAR(Value.c_str())); };
+	for (const odyssee::data::SurvivorDef& Def : Story->survivors())
+	{
+		FOdysseeSurvivor& Survivor = Survivors.AddDefaulted_GetRef();
+		Survivor.Index = Def.id.value;
+		Survivor.Key = FName(UTF8_TO_TCHAR(Def.key.c_str()));
+		Survivor.Name = Text(Def.name);
+		Survivor.Capsule = Text(Def.capsule);
+		Survivor.Specialty = Text(Def.specialty);
+		Survivor.Skill = Text(Def.skill);
+		// Le sien ne compte pas comme pris (reconnexion : on retrouve son survivant).
+		Survivor.bTaken = SurvivorState && (SurvivorState->taken & (1u << Def.id.value)) != 0
+			&& SurvivorState->yours != Def.id.value;
+	}
+	return Survivors;
+}
+
+int32 UOdysseeNetSubsystem::GetMySurvivor() const
+{
+	return SurvivorState && SurvivorState->yours != odyssee::net::kNoSurvivor ? SurvivorState->yours : -1;
+}
+
+void UOdysseeNetSubsystem::RequestChooseSurvivor(int32 Index)
+{
+	if (Link && Index >= 0 && Index < static_cast<int32>(odyssee::data::kMaxSurvivors))
+	{
+		Link->sendEvent(odyssee::net::ChooseSurvivor{static_cast<std::uint8_t>(Index)});
+	}
 }
 
 void UOdysseeNetSubsystem::RequestMoveItem(int32 From, int32 To)

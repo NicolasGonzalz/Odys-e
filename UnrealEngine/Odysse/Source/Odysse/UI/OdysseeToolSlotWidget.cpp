@@ -26,7 +26,7 @@ UWidget* UOdysseeToolSlotWidget::BuildTree()
 	UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
 	Frame = MakeImage(TEXT("Frame"), TEXT("case"), FVector2D(SlotSize));
 	Icon = MakeImage(TEXT("Icon"), TEXT("outil_baton"), FVector2D(IconSize));
-	KeyText = MakeText(TEXT("KeyText"), FText::AsNumber(1), 15, true, OdysseeUi::BoneDim);
+	KeyText = MakeText(TEXT("KeyText"), FText::AsNumber(1), 15, true, DimColor());
 	CountText = MakeText(TEXT("CountText"), FText::GetEmpty(), 17, true);
 	DurabilityBar = MakeBar(TEXT("DurabilityBar"), FLinearColor(0.55f, 0.80f, 0.40f), 1.f);
 	Place(Root->AddChildToOverlay(Frame), HAlign_Fill, VAlign_Fill, FMargin(0.f));
@@ -51,7 +51,8 @@ void UOdysseeToolSlotWidget::ShowItem(const TCHAR* InIcon, int32 Count, float Du
 	Icon->SetVisibility(bEmpty ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 	if (!bEmpty)
 	{
-		Icon->SetBrush(OdysseeUi::ImageBrush(InIcon, FVector2D(IconSize)));
+		Icon->SetBrush(OdysseeUi::ImageBrush(InIcon, FVector2D(IconSize), Theme));
+		Icon->SetColorAndOpacity(IconTint());
 	}
 	CountText->SetText(Count > 1 ? FText::AsNumber(Count) : FText::GetEmpty());
 	DurabilityBar->GetParent()->SetVisibility(
@@ -64,6 +65,6 @@ void UOdysseeToolSlotWidget::ShowItem(const TCHAR* InIcon, int32 Count, float Du
 
 void UOdysseeToolSlotWidget::SetActive(bool bActive)
 {
-	Frame->SetBrush(OdysseeUi::ImageBrush(bActive ? TEXT("case_active") : TEXT("case"), FVector2D(SlotSize)));
-	KeyText->SetColorAndOpacity(FSlateColor(bActive ? OdysseeUi::Rust : OdysseeUi::BoneDim));
+	Frame->SetBrush(OdysseeUi::ImageBrush(bActive ? TEXT("case_active") : TEXT("case"), FVector2D(SlotSize), Theme));
+	KeyText->SetColorAndOpacity(FSlateColor(bActive ? AccentColor() : DimColor()));
 }

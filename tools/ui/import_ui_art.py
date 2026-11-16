@@ -1,13 +1,18 @@
 """Importe les visuels de l'interface (art/ui/, voir generate_ui_art.py) dans Unreal :
 /Game/Odyssee/UI/Textures/T_Ui_<nom>, puis les icônes d'objets (art/exports/icones/) en
-T_Ui_objet_<nom> (le nom de base du modèle de l'objet, data/items.txt). À exécuter DANS l'éditeur (Outils > Exécuter un script
-Python…). Relançable : les textures existantes sont remplacées.
+T_Ui_objet_<nom> (le nom de base du modèle de l'objet, data/items.txt). À exécuter DANS l'éditeur
+(Outils > Exécuter un script Python…).
+
+Par défaut, seules les textures absentes sont importées : les autres sont des fichiers Git LFS en
+lecture seule, qu'il ne faut pas réenregistrer pour rien. Après avoir changé une image existante,
+mettre REIMPORT à True (et rendre ses fichiers modifiables).
 """
 from pathlib import Path
 
 import unreal
 
 FOLDER = "/Game/Odyssee/UI/Textures"
+REIMPORT = False
 
 
 def _art_dir():
@@ -44,11 +49,12 @@ def main():
     art = _art_dir()
     ui = sorted(p for p in (art / "ui").iterdir() if p.suffix in (".png", ".jpg"))
     icons = sorted((art / "exports" / "icones").glob("*.png"))
-    for path in ui:
-        _as_ui_texture(_import(path, f"T_Ui_{path.stem}"))
-    for path in icons:
-        _as_ui_texture(_import(path, f"T_Ui_objet_{path.stem}"))
-    unreal.log(f"[Odyssée] interface : {len(ui)} textures et {len(icons)} icônes d'objets dans {FOLDER}")
+    wanted = [(p, f"T_Ui_{p.stem}") for p in ui] + [(p, f"T_Ui_objet_{p.stem}") for p in icons]
+    todo = [(p, name) for p, name in wanted
+            if REIMPORT or not unreal.EditorAssetLibrary.does_asset_exist(f"{FOLDER}/{name}")]
+    for path, name in todo:
+        _as_ui_texture(_import(path, name))
+    unreal.log(f"[Odyssée] interface : {len(todo)} textures importées sur {len(wanted)} dans {FOLDER}")
 
 
 main()

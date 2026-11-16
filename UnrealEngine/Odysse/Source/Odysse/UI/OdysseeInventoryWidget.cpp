@@ -24,7 +24,8 @@ UWidget* UOdysseeInventoryWidget::BuildTree()
 {
 	// Le jeu reste visible derrière un voile léger : il continue pendant qu'on range.
 	UBorder* Veil = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
-	Veil->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, 0.45f));
+	// Dans le bracelet (hologramme), pas de voile : c'est le bracelet qui décide du fond.
+	Veil->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, Theme == EOdysseeUiTheme::Holo ? 0.f : 0.45f));
 	UHorizontalBox* Panels = MakeRow();
 	AddTo(Panels, BuildGrid(), FMargin(0.f, 0.f, 16.f, 0.f), VAlign_Top);
 	AddTo(Panels, BuildDetail(), FMargin(0.f), VAlign_Top);
@@ -61,7 +62,7 @@ UWidget* UOdysseeInventoryWidget::BuildGrid()
 	UBorder* Panel = MakeMenuPanel(NAME_None, LOCTEXT("Title", "Inventaire"), Column);
 	AddTo(Column, Bag, FMargin(0.f, 0.f, 0.f, 14.f), HAlign_Center);
 	UTextBlock* ToolbarTitle = MakeText(NAME_None, LOCTEXT("Toolbar", "BARRE D'OUTILS"), 11, true,
-		OdysseeUi::BoneDim);
+		DimColor());
 	ToolbarTitle->SetFont(OdysseeUi::Font(11, true, 250));
 	AddTo(Column, ToolbarTitle, FMargin(4.f, 0.f, 0.f, 6.f), HAlign_Left);
 	AddTo(Column, Toolbar, FMargin(0.f), HAlign_Center);
@@ -70,8 +71,7 @@ UWidget* UOdysseeInventoryWidget::BuildGrid()
 
 UOdysseeInventorySlotWidget* UOdysseeInventoryWidget::MakeSlot(int32 Index)
 {
-	UOdysseeInventorySlotWidget* Cell = WidgetTree->ConstructWidget<UOdysseeInventorySlotWidget>(
-		UOdysseeInventorySlotWidget::StaticClass(), *FString::Printf(TEXT("Slot%d"), Index));
+	UOdysseeInventorySlotWidget* Cell = MakeChild<UOdysseeInventorySlotWidget>(*FString::Printf(TEXT("Slot%d"), Index));
 	Cell->SetSlot(Index);
 	if (Index < ToolbarCount)
 	{
@@ -92,9 +92,9 @@ UWidget* UOdysseeInventoryWidget::BuildDetail()
 	DetailIcon = MakeImage(TEXT("DetailIcon"), TEXT("outil_baton"), FVector2D(DetailIconSize));
 	DetailName = MakeText(TEXT("DetailName"), LOCTEXT("NoItem", "Survolez un objet"), 20, true);
 	DetailName->SetAutoWrapText(true);
-	DetailCount = MakeText(TEXT("DetailCount"), FText::GetEmpty(), 14, false, OdysseeUi::BoneDim);
+	DetailCount = MakeText(TEXT("DetailCount"), FText::GetEmpty(), 14, false, DimColor());
 	UTextBlock* Hint = MakeText(NAME_None, LOCTEXT("Hint", "Glissez un objet sur une autre case pour le "
-		"déplacer, ou sur le même objet pour regrouper."), 12, false, OdysseeUi::BoneDim);
+		"déplacer, ou sur le même objet pour regrouper."), 12, false, DimColor());
 	Hint->SetAutoWrapText(true);
 
 	UVerticalBox* Column = MakeColumn();
@@ -138,7 +138,8 @@ void UOdysseeInventoryWidget::ShowDetail(int32 Index)
 	const FOdysseeSlotView& View = Shown[Index];
 	if (!View.Icon.IsEmpty())
 	{
-		DetailIcon->SetBrush(OdysseeUi::ImageBrush(*View.Icon, FVector2D(DetailIconSize)));
+		DetailIcon->SetBrush(OdysseeUi::ImageBrush(*View.Icon, FVector2D(DetailIconSize), Theme));
+		DetailIcon->SetColorAndOpacity(IconTint());
 	}
 	DetailName->SetText(View.Name);
 	DetailCount->SetText(View.Count > 1 ? FText::Format(LOCTEXT("Count", "Quantité : {0}"), View.Count)
